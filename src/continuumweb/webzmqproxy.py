@@ -3,11 +3,11 @@ import gevent.monkey
 gevent.monkey.patch_all()
 from gevent_zeromq import zmq
 from gevent.queue import Queue
-
 import threading
 import uuid
 import time
-
+import logging
+log = logging.getLogger(__name__)
 
 class ProxyClient(threading.Thread):
 	def __init__(self, pushpulladdr, pubsubaddr, timeout=0.5, ctx=None):
@@ -44,14 +44,18 @@ class ProxyClient(threading.Thread):
 		self.sub.setsockopt(zmq.SUBSCRIBE,'')
 		self.sub.connect(self.pubsubaddr)
 		print 'subloop'
-		while True:
-			messages = self.sub.recv_multipart()
-			print 'sub received', messages
-			ident = messages[-1]
-			messages = messages[:-1]
-			if ident in self.queues:
-				self.queues[ident].put(messages)
-			
+		try:
+			while True:
+				messages = self.sub.recv_multipart()
+				print 'sub received', messages
+				ident = messages[-1]
+				messages = messages[:-1]
+				if ident in self.queues:
+					self.queues[ident].put(messages)
+		except zmq.ZMQError as e:
+			log.exception(e)
+		finally:
+			self.sub.close()
 	def run(self):
 		t = threading.Thread(target=self.run_send)
 		t.start()
@@ -86,16 +90,23 @@ class Proxy(threading.Thread):
 		poller = zmq.Poller()
 		poller.register(self.dealer, zmq.POLLIN)
 		poller.register(self.pull, zmq.POLLIN)
+		try:
+			while True:
+				socks = dict(poller.poll())
+				if self.dealer in socks:
+					msg = self.dealer.recv_multipart()
+					payload = msg[msg.index('')+1:]
+					self.pub.send_multipart(payload)
+				if self.pull in socks:
+					msg = self.pull.recv_multipart()
+					msg.insert(0, '')
+					self.dealer.send_multipart(msg)
+		except zmq.ZMQError as e:
+			log.exception(e)
+		finally:
+			self.dealer.close()
+			self.pull.close()
+			
+			
 
-		while True:
-			socks = dict(poller.poll())
-			if self.dealer in socks:
-				msg = self.dealer.recv_multipart()
-				payload = msg[msg.index('')+1:]
-				self.pub.send_multipart(payload)
-			if self.pull in socks:
-				msg = self.pull.recv_multipart()
-				msg.insert(0, '')
-				self.dealer.send_multipart(msg)
-		
-	
+					

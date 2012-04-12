@@ -8,17 +8,24 @@ import test_utils as test_utils
 
 import continuumweb.webzmqproxy as webzmqproxy
 import threading
+import logging
+log = logging.getLogger(__name__)
 pubsub = "inproc://#1"
 reqrep = "inproc://#2"
 pushpull = "inproc://#3"
 
 class ProxyTestCase(unittest.TestCase):
     def echo(self, socket):
-        while True:
-            m = socket.recv_multipart()
-            print 'echo received', m
-            socket.send_multipart(m)
-            
+        try:
+            while True:
+                m = socket.recv_multipart()
+                print 'echo received', m
+                socket.send_multipart(m)
+        except zmq.ZMQError as e:
+            log.exception(e)
+        finally:
+            self.push.close()
+
     def test_proxy(self):
         ctx = zmq.Context()
         repsocket = ctx.socket(zmq.REP)
@@ -50,7 +57,7 @@ class ProxyTestCase(unittest.TestCase):
         client.start()
         result = client.request(['hello'])
         assert result == ['hello']
-        
+
 
 if __name__ == "__main__":
     unittest.main()
