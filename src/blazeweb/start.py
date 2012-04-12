@@ -3,18 +3,27 @@ import gevent.monkey
 gevent.monkey.patch_all()
 from gevent_zeromq import zmq
 from gevent.queue import Queue
+from gevent.pywsgi import WSGIServer
 
-from gevent.wsgi import WSGIServer
 from app import app
 import views
+import time
 
 import continuumweb.webzmqproxy as webzmqproxy
+pubsub = "inproc://#1"
+pushpull = "inproc://#3"
 
-def start_app(reqrepaddr):
+def prepare_app(reqrepaddr, ctx=None):
 	app.debug = True
-	ctx = zmq.Context()
-	app.proxy = webzmqproxy.Proxy(reqrepaddr, "inproc://#1", "inproc://#2", ctx)	
-	app.proxyclient = webzmqproxy.ProxyClient("inproc://#1", "inproc://#2", ctx)
+	if ctx is None:
+		ctx = zmq.Context()
+	app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub, ctx=ctx)
+	app.proxy.start()
+	app.proxyclient = webzmqproxy.ProxyClient(pushpull, pubsub, ctx=ctx)
+	app.proxyclient.start()
+	return app
+
+def start_app():
 	http_server = WSGIServer(('', 5000), app)
 	http_server.serve_forever()
 
@@ -22,4 +31,5 @@ def start_app(reqrepaddr):
 if __name__ == "__main__":
 	import sys
 	reqrepaddr = sys.argv[1]
-	start_app(reqrepaddr)
+	prepare_app(reqrepaddr)
+	#start_app()

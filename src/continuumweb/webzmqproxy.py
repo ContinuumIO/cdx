@@ -81,9 +81,10 @@ class Proxy(threading.Thread):
 
 		self.pull = ctx.socket(zmq.PULL)
 		self.pull.bind(pushpulladdr)
-
+		print 'pull bound'
 		self.pub = ctx.socket(zmq.PUB)
 		self.pub.bind(pubsubaddr)
+		print 'pub bound'
 		super(Proxy, self).__init__()
 		
 	def run(self):
