@@ -61,3 +61,21 @@ class BlazeApiTestCase(unittest.TestCase):
         result = simplejson.loads(result.content)
         assert result['path'] == "datasets/mydata"
         assert result['message'] == 'hello'
+
+    def test_delete(self):
+        s = requests.session()
+        result = s.delete(
+            baseurl + "datasets/mydata",
+            timeout = 10.0,
+            )
+        result = simplejson.loads(result.content)
+        assert result['path'] == "datasets/mydata"
+
+    def test_create(self):
+        s = requests.session()
+        result = s.delete(
+            baseurl + "datasets/mydata",
+            timeout = 10.0,
+            )
+        result = simplejson.loads(result.content)
+        assert result['path'] == "datasets/mydata"

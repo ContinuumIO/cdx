@@ -11,14 +11,12 @@ def get_data(datapath):
 
 @app.route("/data/<path:datapath>", methods=['DELETE'])
 def delete_data(datapath):
-	import pdb;pdb.set_trace()
 	newmsg = {'path' : datapath}
 	retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
 	return retval[0]
 
 @app.route("/data/<path:datapath>", methods=['POST'])
 def create_data(datapath):
-	import pdb;pdb.set_trace()
 	newmsg = {'path' : datapath,
 			  'message' : request.form['message']}
 	retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
