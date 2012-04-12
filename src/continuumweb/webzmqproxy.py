@@ -10,7 +10,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class ProxyClient(threading.Thread):
-	def __init__(self, pushpulladdr, pubsubaddr, timeout=0.5, ctx=None):
+	def __init__(self, pushpulladdr, pubsubaddr, timeout=2, ctx=None):
 		if ctx is None:
 			ctx = zmq.Context()
 		self.ctx = ctx
