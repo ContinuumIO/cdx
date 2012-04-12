@@ -6,7 +6,7 @@ from gevent_zeromq import zmq
 import unittest
 import test_utils as test_utils
 
-import webzmqproxy
+import continuumweb.webzmqproxy as webzmqproxy
 import threading
 pubsub = "inproc://#1"
 reqrep = "inproc://#2"
