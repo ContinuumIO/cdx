@@ -1,7 +1,9 @@
 import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
-from gevent_zeromq import zmq
+import gevent_zeromq
+gevent_zeromq.monkey_patch()
+import zmq
 
 import unittest
 import continuumweb.webzmqproxy as webzmqproxy

@@ -1,8 +1,11 @@
 import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
-from gevent_zeromq import zmq
+import gevent_zeromq
+gevent_zeromq.monkey_patch()
 from gevent.queue import Queue
+
+import zmq
 import threading
 import uuid
 import time

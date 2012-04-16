@@ -1,7 +1,10 @@
 import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
-from gevent_zeromq import zmq
+import gevent_zeromq
+gevent_zeromq.monkey_patch()
+import zmq
+
 from gevent.queue import Queue
 from gevent.pywsgi import WSGIServer
 
