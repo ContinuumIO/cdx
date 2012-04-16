@@ -16,25 +16,42 @@ pushpull = "inproc://#3"
 
 class ProxyTestCase(unittest.TestCase):
     def echo(self, socket):
+        poller = zmq.Poller()
+        poller.register(socket, zmq.POLLIN)
         try:
-            while True:
-                m = socket.recv_multipart()
-                print 'echo received', m
-                socket.send_multipart(m)
+            while not self.kill:
+                socks = dict(poller.poll(timeout=1000.0))
+                if socket in socks:
+                    m = socket.recv_multipart()
+                    print 'echo received', m
+                    socket.send_multipart(m)
         except zmq.ZMQError as e:
             log.exception(e)
         finally:
-            self.push.close()
-
+            print 'echo shutting down'
+            socket.close()
+            
+    def setUp(self):
+        self.kill = False
+        
+    def tearDown(self):
+        self.kill = True
+        if hasattr(self, 'proxy'):
+            print 'setting kill, proxy'
+            self.proxy.kill = True
+        if hasattr(self, 'client'):
+            print 'setting kill, client'
+            self.client.kill = True
+            
     def test_proxy(self):
         ctx = zmq.Context()
         repsocket = ctx.socket(zmq.REP)
         repsocket.bind(reqrep)
-        proxy = webzmqproxy.Proxy(reqrep, pushpull, pubsub, ctx=ctx)
-        proxy.start()
         t = threading.Thread(target=self.echo, args = (repsocket,))
         t.start()
-
+        proxy = webzmqproxy.Proxy(reqrep, pushpull, pubsub, ctx=ctx)
+        proxy.start()
+        self.proxy = proxy
         push = ctx.socket(zmq.PUSH)
         sub = ctx.socket(zmq.SUB)
         sub.setsockopt(zmq.SUBSCRIBE,'')
@@ -53,8 +70,10 @@ class ProxyTestCase(unittest.TestCase):
         t.start()
         proxy = webzmqproxy.Proxy(reqrep, pushpull, pubsub, ctx=ctx)
         proxy.start()
+        self.proxy = proxy
         client = webzmqproxy.ProxyClient(pushpull, pubsub, ctx=ctx)
         client.start()
+        self.client = client
         result = client.request(['hello'])
         assert result == ['hello']
 

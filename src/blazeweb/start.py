@@ -27,6 +27,10 @@ def start_app():
     http_server = WSGIServer(('', 5000), app)
     http_server.serve_forever()
 
+def shutdown_app():
+    print 'shutting down app!'
+    app.proxy.kill = True
+    app.proxyclient.kill = True
     
 if __name__ == "__main__":
     import sys

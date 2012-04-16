@@ -20,12 +20,24 @@ baseurl = "http://localhost:5000/data/"
 
 class BlazeApiTestCase(unittest.TestCase):
     def echo(self, socket):
-        while True:
-            m = socket.recv_multipart()
-            print 'echo received', m
-            socket.send_multipart(m)
+        poller = zmq.Poller()
+        poller.register(socket, zmq.POLLIN)
+        try:
+            while not self.kill:
+                socks = dict(poller.poll(timeout=1000.0))
+                if socket in socks:
+                    m = socket.recv_multipart()
+                    print 'echo received', m
+                    socket.send_multipart(m)
+        except zmq.ZMQError as e:
+            log.exception(e)
+        finally:
+            print 'echo shutting down'
+            socket.close()
+    
 
     def setUp(self):
+        self.kill = False
         self.ctx = zmq.Context()
         repsocket = self.ctx.socket(zmq.REP)
         repsocket.bind(reqrep)
@@ -38,6 +50,8 @@ class BlazeApiTestCase(unittest.TestCase):
         # self.servert.start()
 
     def tearDown(self):
+        self.kill = True
+        start.shutdown_app()
         self.servert.kill()
         #self.ctx.term()
 

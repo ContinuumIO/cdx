@@ -20,14 +20,14 @@ class ProxyClient(threading.Thread):
         self.send_queue = Queue()
         self.timeout = timeout
         super(ProxyClient, self).__init__()
-        
+        self.kill = False
     def run_send(self):
         print 'runsend'
         self.push = self.ctx.socket(zmq.PUSH)
         self.push.connect(self.pushpulladdr)
         counter = 0.
-        while True:
-            print 'runing send'
+        while not self.kill:
+            print 'running send'
             try:
                 messages = self.send_queue.get(timeout=self.timeout)
             except:
@@ -43,19 +43,24 @@ class ProxyClient(threading.Thread):
         self.sub = self.ctx.socket(zmq.SUB)
         self.sub.setsockopt(zmq.SUBSCRIBE,'')
         self.sub.connect(self.pubsubaddr)
+        poller = zmq.Poller()
+        poller.register(self.sub, zmq.POLLIN)
         print 'subloop'
         try:
-            while True:
-                messages = self.sub.recv_multipart()
-                print 'sub received', messages
-                ident = messages[-1]
-                messages = messages[:-1]
-                if ident in self.queues:
-                    self.queues[ident].put(messages)
+            while not self.kill:
+                socks = dict(poller.poll(timeout=1000.0))
+                if self.sub in socks:
+                    messages = self.sub.recv_multipart()
+                    print 'sub received', messages
+                    ident = messages[-1]
+                    messages = messages[:-1]
+                    if ident in self.queues:
+                        self.queues[ident].put(messages)
         except zmq.ZMQError as e:
             log.exception(e)
         finally:
             self.sub.close()
+            
     def run(self):
         t = threading.Thread(target=self.run_send)
         t.start()
@@ -76,24 +81,33 @@ class Proxy(threading.Thread):
     def __init__(self, reqrepaddr, pushpulladdr, pubsubaddr, ctx=None):
         if ctx is None:
             ctx = zmq.Context()
-        self.dealer = ctx.socket(zmq.DEALER)
-        self.dealer.connect(reqrepaddr)
-
-        self.pull = ctx.socket(zmq.PULL)
-        self.pull.bind(pushpulladdr)
-        print 'pull bound'
-        self.pub = ctx.socket(zmq.PUB)
-        self.pub.bind(pubsubaddr)
-        print 'pub bound'
+        self.ctx = ctx
+        self.reqrepaddr = reqrepaddr
+        self.pushpulladdr = pushpulladdr
+        self.pubsubaddr = pubsubaddr
+        self.kill = False
         super(Proxy, self).__init__()
         
+    def init_sockets(self):
+        self.dealer = self.ctx.socket(zmq.DEALER)
+        self.dealer.connect(self.reqrepaddr)
+
+        self.pull = self.ctx.socket(zmq.PULL)
+        self.pull.bind(self.pushpulladdr)
+        print 'pull bound'
+        self.pub = self.ctx.socket(zmq.PUB)
+        self.pub.bind(self.pubsubaddr)
+        print 'pub bound'
+
+        
     def run(self):
+        self.init_sockets()
         poller = zmq.Poller()
         poller.register(self.dealer, zmq.POLLIN)
         poller.register(self.pull, zmq.POLLIN)
         try:
-            while True:
-                socks = dict(poller.poll())
+            while not self.kill:
+                socks = dict(poller.poll(timeout=1000.0))
                 if self.dealer in socks:
                     msg = self.dealer.recv_multipart()
                     payload = msg[msg.index('')+1:]
