@@ -89,9 +89,11 @@ class BlazeApiTestCase(unittest.TestCase):
 
     def test_create(self):
         s = requests.session()
-        result = s.delete(
+        result = s.post(
             baseurl + "datasets/mydata",
             timeout = 10.0,
+            data = {'message' : 'hello'}            
             )
         result = simplejson.loads(result.content)
         assert result['path'] == "datasets/mydata"
+        assert result['message'] == 'hello'
