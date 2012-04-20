@@ -38,4 +38,4 @@ if __name__ == "__main__":
     import sys
     reqrepaddr = sys.argv[1]
     prepare_app(reqrepaddr)
-    #start_app()
+    start_app()
