@@ -6,94 +6,79 @@ gevent_zeromq.monkey_patch()
 import zmq
 
 import unittest
+import simplejson
+import numpy as np
+import logging
+import time
+import os
+import shelve
+import requests
+
 import continuumweb.webzmqproxy as webzmqproxy
 import continuumweb.test.test_utils as test_utils
-
-import threading
-
-import requests
+import rpc
+import rpc.client
+import rpc.server
+import arrayserver_app as arrayserver
+import blazenode
+import blazeconfig
 import blazeweb.start as start
-import urllib
-import time
-import simplejson
 
-reqrep = "inproc://#4"
-baseurl = "http://localhost:5000/data/"
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+logging.debug("starting")
+
+backaddr = "inproc://#1"
+frontaddr = "inproc://#2"
+addr = "inproc://#3"
+baseurl = "http://localhost:5000/data/"    
 
 class BlazeApiTestCase(unittest.TestCase):
-    def echo(self, socket):
-        poller = zmq.Poller()
-        poller.register(socket, zmq.POLLIN)
-        try:
-            while not self.kill:
-                socks = dict(poller.poll(timeout=1000.0))
-                if socket in socks:
-                    m = socket.recv_multipart()
-                    print 'echo received', m
-                    socket.send_multipart(m)
-        except zmq.ZMQError as e:
-            log.exception(e)
-        finally:
-            print 'echo shutting down'
-            socket.close()
-    
-
-    def setUp(self):
-        self.kill = False
-        self.ctx = zmq.Context()
-        repsocket = self.ctx.socket(zmq.REP)
-        repsocket.bind(reqrep)
-        self.echot = threading.Thread(target=self.echo, args = (repsocket,))
-        self.echot.start()
-        start.prepare_app(reqrep, self.ctx)
-        self.servert = gevent.spawn(start.start_app)
-        time.sleep(0.5)
-        # self.servert = threading.Thread(target=start.start_app)
-        # self.servert.start()
-
     def tearDown(self):
-        self.kill = True
+        if hasattr(self, 'rpcserver'):
+            self.rpcserver.kill = True
+        if hasattr(self, 'broker'):
+            self.broker.kill = True
+        if hasattr(self, 'rpcserver'):
+            test_utils.wait_until(lambda : self.rpcserver.socket.closed)
+            print 'rpcserver closed!'
+        if hasattr(self, 'broker'):
+            def done():
+                return self.broker.frontend.closed and self.broker.backend.closed
+            test_utils.wait_until(done)
+            print 'broker closed!'            
+        #we need this to wait for sockets to close, really annoying
+        time.sleep(1.0)
         start.shutdown_app()
         self.servert.kill()
-        #self.ctx.term()
 
-    def test_get(self):
+    def test_connect(self):
+        testroot = os.path.abspath(os.path.dirname(__file__))
+        hdfpath = os.path.join(testroot, 'gold.hdf5')
+        config = blazeconfig.BlazeConfig(blazeconfig.InMemoryMap(),
+                                         blazeconfig.InMemoryMap())
+        blazeconfig.generate_config_hdf5('myserver', '/hugodata',
+                                         hdfpath, config)
+        broker = arrayserver.Broker(frontaddr, backaddr)
+        broker.start()
+        self.broker = broker
+        rpcserver = blazenode.BlazeNode(backaddr, 'TEST', config)
+        rpcserver.start()
+        self.rpcserver = rpcserver
+        test_utils.wait_until(lambda : len(broker.nodes) > 0)
+        start.prepare_app(frontaddr)
+        self.servert = gevent.spawn(start.start_app)
+        time.sleep(0.5)
+
         s = requests.session()
         result = s.get(
-            baseurl + "datasets/mydata?" + urllib.urlencode({'message' : 'hello'}),
+            baseurl + "hugodata/20100217/names",
             timeout = 1.0
             )
         result = simplejson.loads(result.content)
-        assert result['path'] == "datasets/mydata"
-        assert result['message'] == 'hello'
+        assert result == u'["GDX", "GLD", "USO"]'
 
-    def test_patch(self):
-        s = requests.session()
-        result = s.patch(
-            baseurl + "datasets/mydata",
-            timeout = 10.0,
-            data = {'message' : 'hello'}
-            )
-        result = simplejson.loads(result.content)
-        assert result['path'] == "datasets/mydata"
-        assert result['message'] == 'hello'
 
-    def test_delete(self):
-        s = requests.session()
-        result = s.delete(
-            baseurl + "datasets/mydata",
-            timeout = 10.0,
-            )
-        result = simplejson.loads(result.content)
-        assert result['path'] == "datasets/mydata"
-
-    def test_create(self):
-        s = requests.session()
-        result = s.post(
-            baseurl + "datasets/mydata",
-            timeout = 10.0,
-            data = {'message' : 'hello'}            
-            )
-        result = simplejson.loads(result.content)
-        assert result['path'] == "datasets/mydata"
-        assert result['message'] == 'hello'
+if __name__ == "__main__":
+    unittest.main()
+    
