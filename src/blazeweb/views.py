@@ -4,10 +4,11 @@ import simplejson
 
 @app.route("/data/<path:datapath>", methods=['GET'])
 def get_data(datapath):
-    newmsg = {'path' : datapath,
-              'message' : request.args['message']}
-    retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
-    return retval[0]
+    datapath = "/" + datapath
+    retval, dataobj = current_app.rpcclient.rpc(
+        'get', datapath,
+        data_slice=request.args.get('data_slice', None))
+    return simplejson.dumps(dataobj[0].tolist())
 
 @app.route("/data/<path:datapath>", methods=['DELETE'])
 def delete_data(datapath):

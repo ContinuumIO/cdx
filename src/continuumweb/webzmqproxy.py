@@ -10,12 +10,18 @@ import threading
 import uuid
 import time
 import logging
+import rpc.protocol as protocol
+
 log = logging.getLogger(__name__)
 
 class ProxyClient(threading.Thread):
-    def __init__(self, pushpulladdr, pubsubaddr, timeout=2, ctx=None):
+    def __init__(self, pushpulladdr, pubsubaddr,
+                 timeout=2, ctx=None, protocol_handler=None):
+        if protocol_handler is None:
+            protocol_handler = protocol.ZMQProtocolHelper()
+        self.ph = protocol_handler
         if ctx is None:
-            ctx = zmq.Context()
+            ctx = zmq.Context.instance()
         self.ctx = ctx
         self.pushpulladdr = pushpulladdr
         self.pubsubaddr = pubsubaddr
@@ -24,6 +30,8 @@ class ProxyClient(threading.Thread):
         self.timeout = timeout
         super(ProxyClient, self).__init__()
         self.kill = False
+        self.uuid = str(uuid.uuid4())
+        
     def run_send(self):
         print 'runsend'
         self.push = self.ctx.socket(zmq.PUSH)
@@ -54,11 +62,12 @@ class ProxyClient(threading.Thread):
                 socks = dict(poller.poll(timeout=1000.0))
                 if self.sub in socks:
                     messages = self.sub.recv_multipart()
+                    (clientid, msgid,
+                     msgobj, dataobjs) = self.ph.unpack_blaze(messages)
                     print 'sub received', messages
-                    ident = messages[-1]
-                    messages = messages[:-1]
-                    if ident in self.queues:
-                        self.queues[ident].put(messages)
+                    if msgid in self.queues:
+                        self.queues[msgid].put((clientid, msgid,
+                                                msgobj, dataobjs))
         except zmq.ZMQError as e:
             log.exception(e)
         finally:
@@ -70,20 +79,25 @@ class ProxyClient(threading.Thread):
         self.run_recv()
         t.join()
         
-    def request(self, messages):
-        ident = str(uuid.uuid4())
+    def request(self, msgobj, dataobjs):
+        msgid = str(uuid.uuid4())
         queue = Queue()
-        self.queues[ident] = queue
-        messages.append(ident)
+        self.queues[msgid] = queue
+        messages = self.ph.pack_blaze(self.uuid, msgid, msgobj, dataobjs)
         self.send_queue.put(messages)
-        returnval = self.queues[ident].get()
-        del self.queues[ident]
-        return returnval
+        while True:
+            (clientid, msgid, msgobj, dataobjs) = self.queues[msgid].get()
+            if msgobj.get('msgtype') == 'rpcresponse':
+                break
+            else:
+                log.debug("%s, %s, %s, %s", clientid, msgid, msgobj, dataobjs)
+        del self.queues[msgid]
+        return (msgobj, dataobjs)
     
 class Proxy(threading.Thread):
     def __init__(self, reqrepaddr, pushpulladdr, pubsubaddr, ctx=None):
         if ctx is None:
-            ctx = zmq.Context()
+            ctx = zmq.Context.instance()
         self.ctx = ctx
         self.reqrepaddr = reqrepaddr
         self.pushpulladdr = pushpulladdr
@@ -127,4 +141,13 @@ class Proxy(threading.Thread):
             
             
 
-                    
+import rpc.client as client
+
+class ProxyRPCClient(client.BaseRPCClient):
+    def __init__(self, proxyclient):
+        self.proxyclient = proxyclient
+        self.ph = proxyclient.ph
+    def reqrep(self, requestobj, dataobjs):
+        (responseobj, dataobjs) = self.proxyclient.request(requestobj, dataobjs)
+        return (responseobj, dataobjs)
+    

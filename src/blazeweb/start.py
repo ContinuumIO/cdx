@@ -13,17 +13,16 @@ import views
 import time
 
 import continuumweb.webzmqproxy as webzmqproxy
-pubsub = "inproc://#1"
-pushpull = "inproc://#3"
+pubsub = "inproc://apppub"
+pushpull = "inproc://apppull"
 
 def prepare_app(reqrepaddr, ctx=None):
     app.debug = True
-    if ctx is None:
-        ctx = zmq.Context()
     app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub, ctx=ctx)
     app.proxy.start()
     app.proxyclient = webzmqproxy.ProxyClient(pushpull, pubsub, ctx=ctx)
     app.proxyclient.start()
+    app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
     return app
 
 def start_app():
