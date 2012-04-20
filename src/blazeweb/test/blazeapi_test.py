@@ -54,15 +54,16 @@ class BlazeApiTestCase(unittest.TestCase):
 
     def test_connect(self):
         testroot = os.path.abspath(os.path.dirname(__file__))
+        servername = 'myserver'
         hdfpath = os.path.join(testroot, 'gold.hdf5')
         config = blazeconfig.BlazeConfig(blazeconfig.InMemoryMap(),
                                          blazeconfig.InMemoryMap())
-        blazeconfig.generate_config_hdf5('myserver', '/hugodata',
+        blazeconfig.generate_config_hdf5(servername, '/hugodata',
                                          hdfpath, config)
-        broker = arrayserver.Broker(frontaddr, backaddr)
+        broker = arrayserver.BlazeBroker(frontaddr, backaddr)
         broker.start()
         self.broker = broker
-        rpcserver = blazenode.BlazeNode(backaddr, 'TEST', config)
+        rpcserver = blazenode.BlazeNode(backaddr, servername, config)
         rpcserver.start()
         self.rpcserver = rpcserver
         test_utils.wait_until(lambda : len(broker.nodes) > 0)
@@ -76,8 +77,18 @@ class BlazeApiTestCase(unittest.TestCase):
             timeout = 1.0
             )
         result = simplejson.loads(result.content)
-        assert result == ["GDX", "GLD", "USO"]
+        assert result['data'] == ["GDX", "GLD", "USO"]
 
+        s = requests.session()
+        result = s.get(
+            baseurl + "hugodata/20100217",
+            timeout = 1.0
+            )
+        result = simplejson.loads(result.content)
+        assert 'names' in result['children']
+        print result
+
+        
 
 if __name__ == "__main__":
     unittest.main()

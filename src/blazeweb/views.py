@@ -8,7 +8,11 @@ def get_data(datapath):
     retval, dataobj = current_app.rpcclient.rpc(
         'get', datapath,
         data_slice=request.args.get('data_slice', None))
-    return simplejson.dumps(dataobj[0].tolist())
+    if retval['type'] == 'group':
+        return simplejson.dumps(retval)
+    else:
+        retval['data'] = dataobj[0].tolist()
+        return simplejson.dumps(retval)
 
 @app.route("/data/<path:datapath>", methods=['DELETE'])
 def delete_data(datapath):
