@@ -76,7 +76,7 @@ class BlazeApiTestCase(unittest.TestCase):
             timeout = 1.0
             )
         result = simplejson.loads(result.content)
-        assert result == u'["GDX", "GLD", "USO"]'
+        assert result == ["GDX", "GLD", "USO"]
 
 
 if __name__ == "__main__":
