@@ -36,20 +36,16 @@ class ProxyClient(threading.Thread):
         print 'runsend'
         self.push = self.ctx.socket(zmq.PUSH)
         self.push.connect(self.pushpulladdr)
-        counter = 0.
         while not self.kill:
             print 'running send'
             try:
                 messages = self.send_queue.get(timeout=self.timeout)
             except:
-                counter += 1
-                if counter < 20:
-                    continue
-                else:
-                    break
+                continue
             print 'sending', messages
             self.push.send_multipart(messages)
-    
+        print 'DONE SENDING!'
+        
     def run_recv(self):
         self.sub = self.ctx.socket(zmq.SUB)
         self.sub.setsockopt(zmq.SUBSCRIBE,'')
