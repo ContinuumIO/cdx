@@ -43,6 +43,7 @@ def update_data(datapath):
 @app.route("/dataview/", methods=['GET'])
 @app.route("/dataview/<path:datapath>/", methods=['GET'])
 def get_dataview(datapath=""):
+    import numpy as np
     response = get_data(datapath)
     response = simplejson.loads(response)
     print response
@@ -50,4 +51,13 @@ def get_dataview(datapath=""):
         child_paths = [[x, urlparse.urljoin(request.base_url, x)] for x in response['children']]
         return flask.render_template('simplegroup.html', children=child_paths)
     else:
-        return simplejson.dumps(response['data'])
+        data = np.asarray(response['data'])
+        if len(data.shape) < 2:
+            columns = range(1)
+            data = [[x] for x in data]
+        else:
+            columns = range(data.shape[1])
+            data = data.tolist()
+        #import pdb;pdb.set_trace()
+        return flask.render_template('simpledataset.html', columns=simplejson.dumps(columns),
+                                     data=simplejson.dumps(data))

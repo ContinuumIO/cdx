@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>data</title>
+  <link type="text/css" rel="stylesheet" href="/static/vendor/jquery/css/themes/base/jquery-ui.min.css"/>
+  <link type="text/css" rel="stylesheet" href="/static/lib/css/continuum.css"/>
+  <!-- Your project file goes here -->
+  <script type="text/javascript" src="/static/vendor/d3/d3.v2.js"></script>
+  <script type="text/javascript" src="/static/vendor/jquery/js/jquery-1.6.4.min.js"></script>
+  <script type="text/javascript" src="/static/vendor/jquery/js/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="/static/vendor/underscore/underscore.js"></script>
+  <script type="text/javascript" src="/static/vendor/backbone/backbone.js"></script>
+  <script type="text/javascript" src="/static/vendor/buckets/buckets.js"></script>  
+  <script type="text/javascript" src="/static/lib/js/custom.js"></script>
+  <script type="text/javascript" src="/static/lib/js/continuum.js"></script>
+  <script type="text/javascript" src="/static/js/test.js"></script>
+  <script>
+    {% autoescape false %}
+    columns = '{{columns}}';
+    data = '{{data}}';
+    {% endautoescape %}    
+  </script>
+</head>
+<body>
+</body>
+</html>
+
