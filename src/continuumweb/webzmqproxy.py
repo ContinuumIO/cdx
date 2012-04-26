@@ -57,13 +57,18 @@ class ProxyClient(threading.Thread):
             while not self.kill:
                 socks = dict(poller.poll(timeout=1000.0))
                 if self.sub in socks:
-                    messages = self.sub.recv_multipart()
-                    (clientid, msgid,
-                     msgobj, dataobjs) = self.ph.unpack_blaze(messages)
-                    print 'sub received', messages
-                    if msgid in self.queues:
-                        self.queues[msgid].put((clientid, msgid,
-                                                msgobj, dataobjs))
+                    try:
+                        messages = self.sub.recv_multipart()
+                        (clientid, msgid,
+                         msgobj, dataobjs) = self.ph.unpack_blaze(messages)
+                        print 'sub received', messages
+                        if msgid in self.queues:
+                            self.queues[msgid].put((clientid, msgid,
+                                                    msgobj, dataobjs))
+                    except Exception as e:
+                        import pdb
+                        pdb.set_trace()
+                        log.exception(e)
         except zmq.ZMQError as e:
             log.exception(e)
         finally:

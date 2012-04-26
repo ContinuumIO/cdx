@@ -4,21 +4,17 @@ import flask
 import simplejson
 import logging
 import urlparse
+import blazeclient
 
 log = logging.getLogger(__name__)
 
-
-@app.route("/data/<path:datapath>/", methods=['GET'])
+@app.route("/data/<path:datapath>", methods=['GET'])
 def get_data(datapath):
-    datapath = "/" + datapath
-    retval, dataobj = current_app.rpcclient.rpc(
-        'get', datapath,
-        data_slice=request.args.get('data_slice', None))
-    if retval['type'] == 'group':
-        return simplejson.dumps(retval)
-    else:
-        retval['data'] = dataobj[0].tolist()
-        return simplejson.dumps(retval)
+    data_slice=get_slice(request)
+    response, dataobj = blazeclient.raw_get(
+        current_app.rpcclient, datapath, data_slice=data_slice)
+    if response['type'] != 'group': response['data'] = dataobj[0].tolist()
+    return simplejson.dumps(response)
 
 @app.route("/data/<path:datapath>", methods=['DELETE'])
 def delete_data(datapath):
@@ -39,25 +35,41 @@ def update_data(datapath):
               'message' : request.form['message']}
     retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
     return retval[0]
+    
+# @app.route("/table/<path:datapath>/", methods=['GET'])
+# def get_table(datapath=""):
+#     data_slice=get_slice(request)
+#     response, dataobj = blazeclient.raw_get(
+#         current_app.rpcclient, datapath, data_slice=data_slice)
+#     table_obj = blazeclient.build_table(
+#             data, response['shape'], data_slice, datapath)
+#     return simplejson.dumps(table_obj)
 
 @app.route("/dataview/", methods=['GET'])
-@app.route("/dataview/<path:datapath>/", methods=['GET'])
+@app.route("/dataview/<path:datapath>", methods=['GET'])
+@app.route("/monkey/<path:datapath>", methods=['GET'])
 def get_dataview(datapath=""):
-    import numpy as np
-    response = get_data(datapath)
-    response = simplejson.loads(response)
-    print response
+    data_slice=get_slice(request)
+    response, dataobj = blazeclient.raw_get(
+        current_app.rpcclient, datapath, data_slice=data_slice)
     if response['type'] == 'group':
-        child_paths = [[x, urlparse.urljoin(request.base_url, x)] for x in response['children']]
+        base = request.base_url
+        if not base.endswith('/'): base += "/"
+        child_paths = [[x, urlparse.urljoin(base, x)] \
+                       for x in response['children']]
         return flask.render_template('simplegroup.html', children=child_paths)
     else:
-        data = np.asarray(response['data'])
-        if len(data.shape) < 2:
-            columns = range(1)
-            data = [[x] for x in data]
-        else:
-            columns = range(data.shape[1])
-            data = data.tolist()
-        #import pdb;pdb.set_trace()
-        return flask.render_template('simpledataset.html', columns=simplejson.dumps(columns),
-                                     data=simplejson.dumps(data))
+        data = dataobj[0]
+        table_obj = blazeclient.build_table(
+            data, response['shape'], data_slice, datapath)
+        return flask.render_template('simpledataset.html',
+                                     table_obj=simplejson.dumps(table_obj))
+                                     
+def get_slice(request):
+    data_slice=request.args.get('data_slice', None)
+    if data_slice is None:
+        data_slice = [0, 100]
+    else:
+        data_slice = simplejson.loads(data_slice)
+    return data_slice
+    
