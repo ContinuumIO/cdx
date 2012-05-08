@@ -5,6 +5,7 @@ import simplejson
 import logging
 import urlparse
 import blazeclient
+import stockreport
 
 log = logging.getLogger(__name__)
 
@@ -73,3 +74,4 @@ def get_slice(request):
         data_slice = simplejson.loads(data_slice)
     return data_slice
     
+

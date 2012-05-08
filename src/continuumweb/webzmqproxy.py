@@ -33,18 +33,14 @@ class ProxyClient(threading.Thread):
         self.uuid = str(uuid.uuid4())
         
     def run_send(self):
-        print 'runsend'
         self.push = self.ctx.socket(zmq.PUSH)
         self.push.connect(self.pushpulladdr)
         while not self.kill:
-            print 'running send'
             try:
                 messages = self.send_queue.get(timeout=self.timeout)
             except:
                 continue
-            print 'sending', messages
             self.push.send_multipart(messages)
-        print 'DONE SENDING!'
         
     def run_recv(self):
         self.sub = self.ctx.socket(zmq.SUB)
@@ -52,7 +48,6 @@ class ProxyClient(threading.Thread):
         self.sub.connect(self.pubsubaddr)
         poller = zmq.Poller()
         poller.register(self.sub, zmq.POLLIN)
-        print 'subloop'
         try:
             while not self.kill:
                 socks = dict(poller.poll(timeout=1000.0))
@@ -61,7 +56,6 @@ class ProxyClient(threading.Thread):
                         messages = self.sub.recv_multipart()
                         (clientid, msgid,
                          msgobj, dataobjs) = self.ph.unpack_blaze(messages)
-                        print 'sub received', messages
                         if msgid in self.queues:
                             self.queues[msgid].put((clientid, msgid,
                                                     msgobj, dataobjs))
@@ -112,10 +106,8 @@ class Proxy(threading.Thread):
 
         self.pull = self.ctx.socket(zmq.PULL)
         self.pull.bind(self.pushpulladdr)
-        print 'pull bound'
         self.pub = self.ctx.socket(zmq.PUB)
         self.pub.bind(self.pubsubaddr)
-        print 'pub bound'
 
         
     def run(self):
