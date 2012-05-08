@@ -112,7 +112,13 @@ def stock_compare_plot(models, data_source, container, name1, name2):
     scatter = models.create('ScatterRenderer', data_source=data_source.ref(),
                             xfield=name1, yfield=name2, xmapper=xmapper.ref(),
                             ymapper=ymapper.ref(), parent=plot.ref())
+    xaxis = models.create('D3LinearAxis', orientation='bottom',
+                          mapper=xmapper.ref(), parent=plot.ref())
+    yaxis = models.create('D3LinearAxis', orientation='left',
+                          mapper=ymapper.ref(), parent=plot.ref())
     plot.set('renderers', [scatter.ref()])
-    return (plot, datarange1, datarange2, xr, yr, xmapper, ymapper, scatter)
+    plot.set('axes', [xaxis.ref(), yaxis.ref()])
+    
+    return (plot, datarange1, datarange2, xr, yr, xaxis, yaxis, xmapper, ymapper, scatter)
 
 
