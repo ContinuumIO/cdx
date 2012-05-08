@@ -37,5 +37,7 @@ def shutdown_app():
 if __name__ == "__main__":
     import sys
     reqrepaddr = sys.argv[1]
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
     prepare_app(reqrepaddr)
     start_app()
