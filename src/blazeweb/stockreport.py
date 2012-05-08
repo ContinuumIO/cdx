@@ -107,8 +107,8 @@ def stock_report(date):
 
             
 def stock_compare_plot(models, data_source, container, name1, name2):
-    xr = models.create('Range1d', start=0, end=200)
-    yr = models.create('Range1d', start=0, end=200)
+    xr = models.create('Range1d', start=0, end=300)
+    yr = models.create('Range1d', start=0, end=300)
     plot = models.create('Plot', data_sources={'prices' : data_source.ref()},
                          xrange=xr.ref(), yrange=yr.ref(), parent=container.ref())
     datarange1 = models.create('DataRange1d', data_source=data_source.ref(),
@@ -122,17 +122,17 @@ def stock_compare_plot(models, data_source, container, name1, name2):
     scatter = models.create('ScatterRenderer', data_source=data_source.ref(),
                             xfield=name1, yfield=name2, xmapper=xmapper.ref(),
                             ymapper=ymapper.ref(), parent=plot.ref())
-    xaxis = models.create('D3LinearAxis', orientation='bottom',
+    xaxis = models.create('D3LinearAxis', orientation='bottom', ticks=3,
                           mapper=xmapper.ref(), parent=plot.ref())
-    yaxis = models.create('D3LinearAxis', orientation='left',
+    yaxis = models.create('D3LinearAxis', orientation='left', ticks=3,
                           mapper=ymapper.ref(), parent=plot.ref())
     plot.set('renderers', [scatter.ref()])
     plot.set('axes', [xaxis.ref(), yaxis.ref()])
     return (plot, datarange1, datarange2, xr, yr, xaxis, yaxis, xmapper, ymapper, scatter)
 
 def stock_line_plot(models, data_source, container, name1, name2):
-    xr = models.create('Range1d', start=0, end=400)
-    yr = models.create('Range1d', start=0, end=200)
+    xr = models.create('Range1d', start=0, end=600)
+    yr = models.create('Range1d', start=0, end=300)
     plot = models.create('Plot', data_sources={'prices' : data_source.ref()},
                          xrange=xr.ref(), yrange=yr.ref(), parent=container.ref())
     stockrange = models.create('DataRange1d', data_source=data_source.ref(),
@@ -145,14 +145,14 @@ def stock_line_plot(models, data_source, container, name1, name2):
                             screen_range=plot.attributes['yrange'])
     line1 = models.create('LineRenderer', data_source=data_source.ref(),
                           xfield='date', yfield=name1, xmapper=xmapper.ref(),
-                          ymapper=ymapper.ref(), parent=plot.ref())
+                          ymapper=ymapper.ref(), parent=plot.ref(), color='#00F')
     line2 = models.create('LineRenderer', data_source=data_source.ref(),
                           xfield='date', yfield=name2, xmapper=xmapper.ref(),
-                          ymapper=ymapper.ref(), parent=plot.ref())
+                          ymapper=ymapper.ref(), parent=plot.ref(), color='#0F0')
     xaxis = models.create('D3LinearAxis', orientation='bottom',
-                          mapper=xmapper.ref(), parent=plot.ref())
+                          mapper=xmapper.ref(), parent=plot.ref(), ticks=3)
     yaxis = models.create('D3LinearAxis', orientation='left',
-                          mapper=ymapper.ref(), parent=plot.ref())
+                          mapper=ymapper.ref(), parent=plot.ref(), ticks=3)
     plot.set('renderers', [line1.ref(), line2.ref()])
     plot.set('axes', [xaxis.ref(), yaxis.ref()])
     return (plot, timerange, stockrange, xr, yr, xaxis, yaxis,
