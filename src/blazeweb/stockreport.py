@@ -131,7 +131,7 @@ def stock_compare_plot(models, data_source, container, name1, name2):
     return (plot, datarange1, datarange2, xr, yr, xaxis, yaxis, xmapper, ymapper, scatter)
 
 def stock_line_plot(models, data_source, container, name1, name2):
-    xr = models.create('Range1d', start=0, end=200)
+    xr = models.create('Range1d', start=0, end=400)
     yr = models.create('Range1d', start=0, end=200)
     plot = models.create('Plot', data_sources={'prices' : data_source.ref()},
                          xrange=xr.ref(), yrange=yr.ref(), parent=container.ref())
