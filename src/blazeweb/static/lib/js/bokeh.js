@@ -1318,7 +1318,8 @@
         pos = ymapper.map_screen(d[yfield]);
         return _this.model.ypos(pos);
       });
-      return node.attr('stroke', this.mget('color')).attr('d', line);
+      node.attr('stroke', this.mget('color')).attr('d', line);
+      return node.attr('fill', 'none');
     };
 
     LineRendererView.prototype.render = function() {
