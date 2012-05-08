@@ -764,7 +764,7 @@
       }, 0);
       y_coords.reverse();
       x_coords = [0];
-      _.reduce(col_widths.slice(1), function(x, y) {
+      _.reduce(col_widths.slice(0), function(x, y) {
         var val;
         val = x + y;
         x_coords.push(val);
