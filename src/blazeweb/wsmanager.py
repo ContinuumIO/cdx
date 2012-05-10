@@ -39,10 +39,15 @@ class WebSocketManager(object):
             clientid = str(uuid.uuid4())
         self.subscribe(clientid, topic)
         self.add_socket(socket, clientid)
-        
+
+    def can_subscribe(self, clientid, topic):
+        #auth goes here
+        return True
+    
     def subscribe(self, clientid, topic):
-        self.topic_clientid_map.add(topic, clientid)
-        self.clientid_topic_map.add(clientid, topic)
+        if self.can_subscribe(clientid, topic):
+            self.topic_clientid_map.add(topic, clientid)
+            self.clientid_topic_map.add(clientid, topic)
         
     def add_socket(self, socket, clientid):
         self.sockets[clientid] = socket
