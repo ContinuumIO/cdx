@@ -16,12 +16,9 @@ import requests
 
 import continuumweb.webzmqproxy as webzmqproxy
 import continuumweb.test.test_utils as test_utils
-import rpc
-import rpc.client
-import rpc.server
-import arrayserver_app as arrayserver
-import blazenode
-import blazeconfig
+import blaze.server.arrayserver_app as arrayserver
+import blaze.server.blazenode as blazenode
+import blaze.server.blazeconfig as blazeconfig
 import blazeweb.start as start
 
 logging.basicConfig(level=logging.DEBUG)

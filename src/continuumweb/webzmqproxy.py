@@ -10,7 +10,7 @@ import threading
 import uuid
 import time
 import logging
-import rpc.protocol as protocol
+import blaze.server.rpc.protocol as protocol
 
 log = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ class Proxy(threading.Thread):
             
             
 
-import rpc.client as client
+import blaze.server.rpc.client as client
 
 class ProxyRPCClient(client.BaseRPCClient):
     def __init__(self, proxyclient):
