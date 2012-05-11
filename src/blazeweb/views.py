@@ -6,6 +6,7 @@ import logging
 import urlparse
 import blazeclient
 import stockreport
+import wsmanager
 
 log = logging.getLogger(__name__)
 
@@ -75,3 +76,10 @@ def get_slice(request):
     return data_slice
     
 
+@app.route('/sub')
+def sub():
+
+    if request.environ.get('wsgi.websocket'):
+        ws = request.environ['wsgi.websocket']
+        wsmanager.run_socket(ws, current_app.wsmanager,
+                             lambda auth, topic : True, current_app.ph)

@@ -1,4 +1,7 @@
 import uuid
+import simplejson
+import logging
+log = logging.getLogger(__name__)
 
 class MultiDictionary(object):
     def __init__(self):
@@ -58,6 +61,30 @@ class WebSocketManager(object):
     def send(self, topic, msg):
         for clientid in self.topic_clientid_map.get(topic):
             socket = self.sockets[clientid]
-            socket.send(msg)
+            try:
+                socket.send(msg)
+            except Exception as e: #what exception is this?if a client disconnects
+                log.exception(e)
+                self.remove_socket(clientid)
+                self.remove_clientid(clientid)
 
+def run_socket(socket, manager, auth_function, protocol_helper):
+    ph = protocol_helper
+    clientid = str(uuid.uuid4())
+    while True:
+        msg = socket.receive()
+        if msg is None:
+            self.close()
+            break
+        msgobj = ph.deserialize_msg(msg)
+        if msgobj['msgtype'] == 'subscribe':
+            if auth_function(msgobj.get('auth'), msgobj['topic']):
+                manager.add_socket(socket, clientid)
+                manager.subscribe(clientid, msgobj['topic'])
+                socket.send(ph.serialize_msg(
+                    ph.status_obj(
+                        ['subscribesuccess', msgobj['topic']])))
+            else:
+                socket.send(ph.serialize_msg(ph.error_obj('unauthorized')))
+                
         

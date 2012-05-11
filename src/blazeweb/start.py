@@ -11,8 +11,11 @@ from gevent.pywsgi import WSGIServer
 from app import app
 import views
 import time
-
+from geventwebsocket.handler import WebSocketHandler
 import continuumweb.webzmqproxy as webzmqproxy
+import wsmanager
+import blaze.server.rpc.protocol as protocol
+
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
 
@@ -23,10 +26,12 @@ def prepare_app(reqrepaddr, ctx=None):
     app.proxyclient = webzmqproxy.ProxyClient(pushpull, pubsub, ctx=ctx)
     app.proxyclient.start()
     app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
+    app.wsmanager = wsmanager.WebSocketManager()
+    app.ph = protocol.ProtocolHelper()
     return app
 
+http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 def start_app():
-    http_server = WSGIServer(('', 5000), app)
     http_server.serve_forever()
 
 def shutdown_app():
