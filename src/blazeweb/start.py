@@ -15,7 +15,7 @@ from geventwebsocket.handler import WebSocketHandler
 import continuumweb.webzmqproxy as webzmqproxy
 import wsmanager
 import blaze.server.rpc.protocol as protocol
-
+import continuumweb.bbmodel as bbmodel
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
 
@@ -31,6 +31,7 @@ def prepare_app(reqrepaddr, timeout=1.0, ctx=None):
     app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
     app.wsmanager = wsmanager.WebSocketManager()
     app.ph = protocol.ProtocolHelper()
+    app.collections = bbmodel.ContinuumModels()
     return app
 
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)

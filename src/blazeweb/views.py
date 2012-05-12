@@ -6,6 +6,7 @@ import logging
 import urlparse
 import blazeclient
 import stockreport
+import continuumweb.bbmodel as bbmodel
 import wsmanager
 
 log = logging.getLogger(__name__)
@@ -38,15 +39,6 @@ def update_data(datapath):
     retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
     return retval[0]
     
-# @app.route("/table/<path:datapath>/", methods=['GET'])
-# def get_table(datapath=""):
-#     data_slice=get_slice(request)
-#     response, dataobj = blazeclient.raw_get(
-#         current_app.rpcclient, datapath, data_slice=data_slice)
-#     table_obj = blazeclient.build_table(
-#             data, response['shape'], data_slice, datapath)
-#     return simplejson.dumps(table_obj)
-
 @app.route("/dataview/", methods=['GET'])
 @app.route("/dataview/<path:datapath>", methods=['GET'])
 @app.route("/monkey/<path:datapath>", methods=['GET'])
@@ -83,3 +75,26 @@ def sub():
         wsmanager.run_socket(ws, current_app.wsmanager,
                              lambda auth, topic : True, current_app.ph)
     return
+
+
+@app.route("/bb/<docid>/<typename>", methods=['POST'])
+def create(docid, typename):
+    log.debug("create, %s, %s", docid, typename)
+    modeldata = current_app.ph.deserialize_web(request.data)
+    model = bbmodel.ContinuumModel(typename, **modeldata)
+    current_app.collections.add(typename, model)
+    return app.ph.serialize_web(model.to_json())
+
+# @app.route("/bb/<docid>/<typename>/<id>", methods=['GET'])
+# def get(docid, typename, id=None):
+#     pass
+
+# @app.route("/bb/<docid>/<typename>/<id>", methods=['PUT'])
+# def put(docid, typename, id):
+#     pass
+
+# @app.route("/bb/<docid></typename>/<id>", methods=['DELETE'])
+# def delete(docid, typename, id):
+#     pass
+
+
