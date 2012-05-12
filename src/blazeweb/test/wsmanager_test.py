@@ -2,12 +2,12 @@ import time
 import unittest
 import mock
 import websocket
-import start
 import gevent
 
 import blazeweb.wsmanager as wsmanager
 import blaze.server.tests.test_utils as test_utils
-from app import app
+from blazeweb.app import app
+import blazeweb.start as start
 
 class WSmanagerTestCase(unittest.TestCase):
     def test_some_topics(self):
