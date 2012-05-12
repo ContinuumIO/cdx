@@ -45,4 +45,10 @@ if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)
     prepare_app(reqrepaddr)
+    # def wstest():
+    #     while True:
+    #         app.wsmanager.send('mytopic', 'testmessage')
+    #         time.sleep(1)
+    # gevent.spawn(wstest)
     start_app()
+        

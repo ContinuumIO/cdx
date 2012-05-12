@@ -18,8 +18,8 @@ class MultiDictionary(object):
     def remove(self, k):
         del self.dict[k]
 
-    def get(self, k):
-        return self.dict[k]
+    def get(self, *args):
+        return self.dict.get(*args)
         
 class WebSocketManager(object):
     def __init__(self):
@@ -59,7 +59,7 @@ class WebSocketManager(object):
         del self.sockets[clientid]
         
     def send(self, topic, msg):
-        for clientid in self.topic_clientid_map.get(topic):
+        for clientid in self.topic_clientid_map.get(topic, []):
             socket = self.sockets[clientid]
             try:
                 socket.send(msg)
