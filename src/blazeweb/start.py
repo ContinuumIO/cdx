@@ -19,11 +19,14 @@ import blaze.server.rpc.protocol as protocol
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
 
-def prepare_app(reqrepaddr, ctx=None):
+def prepare_app(reqrepaddr, timeout=1.0, ctx=None):
     app.debug = True
-    app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub, ctx=ctx)
+    app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub,
+                                  timeout=timeout, ctx=ctx)
     app.proxy.start()
-    app.proxyclient = webzmqproxy.ProxyClient(pushpull, pubsub, ctx=ctx)
+    app.proxyclient = webzmqproxy.ProxyClient(pushpull, pubsub,
+                                              timeout=timeout,
+                                              ctx=ctx)
     app.proxyclient.start()
     app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
     app.wsmanager = wsmanager.WebSocketManager()
