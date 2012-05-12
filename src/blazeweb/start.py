@@ -31,7 +31,7 @@ def prepare_app(reqrepaddr, timeout=1.0, ctx=None):
     app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
     app.wsmanager = wsmanager.WebSocketManager()
     app.ph = protocol.ProtocolHelper()
-    app.collections = bbmodel.ContinuumModels()
+    app.collections = bbmodel.ContinuumModelsStorage()
     return app
 
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)

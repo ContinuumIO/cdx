@@ -34,8 +34,12 @@ class ContinuumModel(object):
     
     def to_json(self):
         return self.attributes
-        
-class ContinuumModels(object):
+"""
+In our python interface to the backbone system, we separate the local collection
+which stores models, from the http client which interacts with a remote store
+In applications, we would use a class that combines both
+"""
+class ContinuumModelsStorage(object):
     def __init__(self):
         self.collections = {}
 
@@ -45,7 +49,7 @@ class ContinuumModels(object):
     def add(self, typename, model):
         self.collections[typename, model.attributes['id']] = model
         
-class ContinuumModelsClient(ContinuumModels):
+class ContinuumModelsClient(object):
     def __init__(self, docid, baseurl, ph):
         self.ph = ph
         self.baseurl = baseurl
@@ -60,4 +64,25 @@ class ContinuumModelsClient(ContinuumModels):
         log.debug("create %s", url)
         self.s.post(url, data=self.ph.serialize_msg(model.to_json()))
         return model
+
+    def update(self, typename, **kwargs):
+        model =  ContinuumModel(typename, **kwargs)
+        self.add(typename, model)
+        url = utils.urljoin(self.baseurl, self.docid +"/", typename)
+        log.debug("create %s", url)
+        self.s.put(url, data=self.ph.serialize_msg(model.to_json()))
+        return model
+
+class ContinuumModels(ContinuumModelsClient, ContinuumModelsStorage):
+    def create(self, typename, **kwargs):
+        model = super(ContinuumModels, self).create(typename, **kwargs)
+        self.add(typename, model)
+
+    def update(self, typename, id, **kwargs):
+        model = self.get(typename, id)
+        for k,v in kwargs.iteritems():
+            model.set(k, v)
+        super(ContinuumModels, self).update(typename, id, **kwargs)
+        return model
     
+        

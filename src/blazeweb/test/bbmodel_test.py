@@ -21,12 +21,12 @@ class TestSubscribeWebSocket(unittest.TestCase):
         self.servert.kill()
         time.sleep(1.0)
 
-
     def test_create(self):
         test_utils.wait_until(lambda : start.http_server.started)
-        client = bbmodel.ContinuumModelsClient("mydoc",
-                                               "http://localhost:5000/bb/",
-                                               app.ph)
+        client = bbmodel.ContinuumModels("mydoc",
+                                         "http://localhost:5000/bb/",
+                                         app.ph)
         client.create('Test', testval=1, id='foo')
         test_utils.wait_until(lambda : app.collections.get('Test', 'foo'))
         assert app.collections.get('Test', 'foo').get('testval') == 1
+        assert client.get('Test', 'foo').get('testval') == 1
