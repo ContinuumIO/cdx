@@ -16,7 +16,7 @@ import requests
 
 import continuumweb.webzmqproxy as webzmqproxy
 import continuumweb.test.test_utils as test_utils
-import blaze.server.arrayserver_app as arrayserver
+import blaze.server.blazebroker as blazebroker
 import blaze.server.blazenode as blazenode
 import blaze.server.blazeconfig as blazeconfig
 import blazeweb.start as start
@@ -45,9 +45,9 @@ class BlazeApiTestCase(unittest.TestCase):
             test_utils.wait_until(done)
             print 'broker closed!'            
         #we need this to wait for sockets to close, really annoying
-        time.sleep(1.0)
         start.shutdown_app()
         self.servert.kill()
+        time.sleep(1.0)
 
     def test_connect(self):
         testroot = os.path.abspath(os.path.dirname(__file__))
@@ -57,7 +57,7 @@ class BlazeApiTestCase(unittest.TestCase):
                                          blazeconfig.InMemoryMap())
         blazeconfig.generate_config_hdf5(servername, '/hugodata',
                                          hdfpath, config)
-        broker = arrayserver.BlazeBroker(frontaddr, backaddr)
+        broker = blazebroker.BlazeBroker(frontaddr, backaddr)
         broker.start()
         self.broker = broker
         rpcserver = blazenode.BlazeNode(backaddr, servername, config)

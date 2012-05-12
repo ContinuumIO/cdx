@@ -1,9 +1,11 @@
+import time
 import unittest
-import blazeweb.wsmanager as wsmanager
 import mock
 import websocket
 import start
 import gevent
+
+import blazeweb.wsmanager as wsmanager
 import blaze.server.tests.test_utils as test_utils
 from app import app
 
@@ -30,6 +32,7 @@ class TestSubscribeWebSocket(unittest.TestCase):
         self.servert = gevent.spawn(start.start_app)
 
     def tearDown(self):
+        time.sleep(1.0)
         start.shutdown_app()
         self.servert.kill()
         

@@ -78,8 +78,8 @@ def get_slice(request):
 
 @app.route('/sub')
 def sub():
-
     if request.environ.get('wsgi.websocket'):
         ws = request.environ['wsgi.websocket']
         wsmanager.run_socket(ws, current_app.wsmanager,
                              lambda auth, topic : True, current_app.ph)
+    return

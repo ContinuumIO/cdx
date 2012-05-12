@@ -74,7 +74,8 @@ def run_socket(socket, manager, auth_function, protocol_helper):
     while True:
         msg = socket.receive()
         if msg is None:
-            self.close()
+            manager.remove_socket(clientid)
+            manager.remove_clientid(clientid)
             break
         msgobj = ph.deserialize_msg(msg)
         if msgobj['msgtype'] == 'subscribe':
