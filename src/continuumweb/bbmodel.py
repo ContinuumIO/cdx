@@ -48,7 +48,14 @@ class ContinuumModelsStorage(object):
 
     def add(self, typename, model):
         self.collections[typename, model.attributes['id']] = model
-        
+
+    def update(self, typename, attributes):
+        id = attributes['id']
+        model = self.get(typename, id)
+        for k,v in attributes.iteritems():
+            model.set(k, v)
+        return model
+    
 class ContinuumModelsClient(object):
     def __init__(self, docid, baseurl, ph):
         self.ph = ph
@@ -57,32 +64,37 @@ class ContinuumModelsClient(object):
         self.s = requests.session()
         super(ContinuumModelsClient, self).__init__()
         
-    def create(self, typename, **kwargs):
-        model =  ContinuumModel(typename, **kwargs)
-        self.add(typename, model)
+    def create(self, typename, attributes):
+        model =  ContinuumModel(typename, **attributes)
         url = utils.urljoin(self.baseurl, self.docid +"/", typename)
         log.debug("create %s", url)
         self.s.post(url, data=self.ph.serialize_msg(model.to_json()))
         return model
 
-    def update(self, typename, **kwargs):
-        model =  ContinuumModel(typename, **kwargs)
-        self.add(typename, model)
-        url = utils.urljoin(self.baseurl, self.docid +"/", typename)
+    def update(self, typename, attributes):
+        id = attributes['id']
+        model =  ContinuumModel(typename, **attributes)
+        url = utils.urljoin(self.baseurl, self.docid +"/", typename + "/", id)
         log.debug("create %s", url)
         self.s.put(url, data=self.ph.serialize_msg(model.to_json()))
         return model
 
-class ContinuumModels(ContinuumModelsClient, ContinuumModelsStorage):
-    def create(self, typename, **kwargs):
-        model = super(ContinuumModels, self).create(typename, **kwargs)
-        self.add(typename, model)
+class ContinuumModels(object):
+    def __init__(self, storage, client):
+        self.storage = storage
+        self.client = client
+        
+    def create(self, typename, attributes):
+        model = self.client.create(typename, attributes)        
+        self.storage.add(typename, model)        
 
-    def update(self, typename, id, **kwargs):
-        model = self.get(typename, id)
-        for k,v in kwargs.iteritems():
-            model.set(k, v)
-        super(ContinuumModels, self).update(typename, id, **kwargs)
+    def update(self, typename, attributes):
+        id = attributes['id']
+        model = self.client.update(typename, attributes)
+        self.storage.update(typename, model.attributes)
         return model
     
+    def get(self, typename, id):
+        return self.storage.get(typename, id)
+        
         

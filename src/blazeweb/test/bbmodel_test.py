@@ -23,10 +23,26 @@ class TestSubscribeWebSocket(unittest.TestCase):
 
     def test_create(self):
         test_utils.wait_until(lambda : start.http_server.started)
-        client = bbmodel.ContinuumModels("mydoc",
-                                         "http://localhost:5000/bb/",
-                                         app.ph)
-        client.create('Test', testval=1, id='foo')
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc", "http://localhost:5000/bb/", app.ph))
+        client.create('Test', dict(testval=1, id='foo'))
         test_utils.wait_until(lambda : app.collections.get('Test', 'foo'))
         assert app.collections.get('Test', 'foo').get('testval') == 1
         assert client.get('Test', 'foo').get('testval') == 1
+
+    def test_update(self):
+        test_utils.wait_until(lambda : start.http_server.started)
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc", "http://localhost:5000/bb/", app.ph))
+        client.create('Test', dict(testval=1, id='foo'))
+        client.update('Test', dict(id='foo', testval=2))
+        test_utils.wait_until(
+            lambda : app.collections.get('Test', 'foo').get('testval') == 2
+            )
+        assert app.collections.get('Test', 'foo').get('testval') == 2
+        assert client.get('Test', 'foo').get('testval') == 2
+        

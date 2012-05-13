@@ -85,12 +85,15 @@ def create(docid, typename):
     current_app.collections.add(typename, model)
     return app.ph.serialize_web(model.to_json())
 
+@app.route("/bb/<docid>/<typename>/<id>", methods=['PUT'])
+def put(docid, typename, id):
+    log.debug("put, %s, %s", docid, typename)
+    modeldata = current_app.ph.deserialize_web(request.data)
+    model = bbmodel.ContinuumModel(typename, **modeldata)
+    current_app.collections.add(typename, model)
+    return app.ph.serialize_web(model.to_json())
 # @app.route("/bb/<docid>/<typename>/<id>", methods=['GET'])
 # def get(docid, typename, id=None):
-#     pass
-
-# @app.route("/bb/<docid>/<typename>/<id>", methods=['PUT'])
-# def put(docid, typename, id):
 #     pass
 
 # @app.route("/bb/<docid></typename>/<id>", methods=['DELETE'])
