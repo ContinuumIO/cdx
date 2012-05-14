@@ -46,3 +46,68 @@ class TestSubscribeWebSocket(unittest.TestCase):
         assert app.collections.get('Test', 'foo').get('testval') == 2
         assert client.get('Test', 'foo').get('testval') == 2
         
+    def test_fetch_type(self):
+        test_utils.wait_until(lambda : start.http_server.started)
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc", "http://localhost:5000/bb/", app.ph))
+        client.create('Test', dict(testval=1, id='foo'))
+        client.create('Test2', dict(testval=1, id='foo2'))
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc", "http://localhost:5000/bb/", app.ph))
+        assert client.get('Test', 'foo') is None
+        client.fetch(typename='Test')
+        assert client.get('Test', 'foo').get('testval') == 1
+        assert client.get('Test2', 'foo2') is None
+        
+    def test_fetch_docid(self):
+        test_utils.wait_until(lambda : start.http_server.started)
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc", "http://localhost:5000/bb/", app.ph))
+        client.create('Test', dict(testval=1, id='foo'))
+        client.create('Test2', dict(testval=1, id='foo2'))
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc2", "http://localhost:5000/bb/", app.ph))
+        client.create('Test', dict(testval=1, id='foo3'))
+        client.create('Test2', dict(testval=1, id='foo4'))
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc", "http://localhost:5000/bb/", app.ph))
+        client.fetch()
+        assert client.get('Test', 'foo').get('testval') == 1
+        assert client.get('Test', 'foo3') is None
+        
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc2", "http://localhost:5000/bb/", app.ph))
+        client.fetch()        
+        assert client.get('Test2', 'foo2') is None
+        assert client.get('Test', 'foo3').get('testval') == 1
+    def test_delete(self):
+        test_utils.wait_until(lambda : start.http_server.started)
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc", "http://localhost:5000/bb/", app.ph))
+        client.create('Test', dict(testval=1, id='foo'))
+        client.create('Test', dict(testval=1, id='foo2'))
+        client.delete('Test', 'foo')
+        assert client.get('Test', 'foo') is None
+        assert client.get('Test', 'foo2') is not None
+        client = bbmodel.ContinuumModels(
+            bbmodel.ContinuumModelsStorage(),
+            bbmodel.ContinuumModelsClient(
+                "mydoc", "http://localhost:5000/bb/", app.ph))
+        client.fetch()
+        assert client.get('Test', 'foo') is None
+        assert client.get('Test', 'foo2') is not None
+        

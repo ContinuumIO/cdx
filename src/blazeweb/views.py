@@ -82,7 +82,7 @@ def create(docid, typename):
     log.debug("create, %s, %s", docid, typename)
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
-    current_app.collections.add(typename, model)
+    current_app.collections.add(model)
     return app.ph.serialize_web(model.to_json())
 
 @app.route("/bb/<docid>/<typename>/<id>", methods=['PUT'])
@@ -90,14 +90,31 @@ def put(docid, typename, id):
     log.debug("put, %s, %s", docid, typename)
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
-    current_app.collections.add(typename, model)
+    current_app.collections.add(model)
     return app.ph.serialize_web(model.to_json())
-# @app.route("/bb/<docid>/<typename>/<id>", methods=['GET'])
-# def get(docid, typename, id=None):
-#     pass
 
-# @app.route("/bb/<docid></typename>/<id>", methods=['DELETE'])
-# def delete(docid, typename, id):
-#     pass
+@app.route("/bb/<docid>/", methods=['GET'])
+@app.route("/bb/<docid>/<typename>", methods=['GET'])
+@app.route("/bb/<docid>/<typename>/<id>", methods=['GET'])
+def get(docid, typename=None, id=None):
+    if typename is not None and id is not None:
+        model = current_app.collections.get(typename, id)
+        if docid in model.get('docs'):
+            return app.ph.serialize_web(model.to_json())
+        else:
+            return None
+    else:
+        models = current_app.collections.get_bulk(docid, typename=typename, id=id)
+        if typename is not None:
+            return app.ph.serialize_web([x.to_json() for x in models])
+        else:
+            return app.ph.serialize_web([x.to_broadcast_json() for x in models])
+        
+@app.route("/bb/<docid>/<typename>/<id>", methods=['DELETE'])
+def delete(docid, typename, id):
+    model = current_app.collections.get(typename, id)
+    if docid in model.get('docs'):
+        current_app.collections.delete(typename, id)
+    return app.ph.serialize_web(model.to_json())
 
 
