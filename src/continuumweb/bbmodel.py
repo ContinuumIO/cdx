@@ -77,18 +77,28 @@ class ContinuumModelsClient(object):
         self.docid = docid
         self.s = requests.session()
         super(ContinuumModelsClient, self).__init__()
+        self.buffer = []
         
     def delete(self, typename, id):
         url = utils.urljoin(self.baseurl, self.docid +"/", typename + "/", id)
         self.s.delete(url)
         
-    def create(self, typename, attributes):
+    def buffer_sync(self):
+        data = self.ph.serialize_web([x.to_broadcast_json() for x in self.buffer])
+        url = utils.urljoin(self.baseurl, self.docid + "/", 'bulkcreate')
+        self.s.post(url, data=data)
+        self.buffer = []
+        
+    def create(self, typename, attributes, defer=False):
         if 'docs' not in attributes:
             attributes['docs'] = [self.docid]
         model =  ContinuumModel(typename, **attributes)
-        url = utils.urljoin(self.baseurl, self.docid +"/", typename)
-        log.debug("create %s", url)
-        self.s.post(url, data=self.ph.serialize_msg(model.to_json()))
+        if defer:
+            self.buffer.append(model)
+        else:
+            url = utils.urljoin(self.baseurl, self.docid +"/", typename)
+            log.debug("create %s", url)
+            self.s.post(url, data=self.ph.serialize_msg(model.to_json()))
         return model
 
     def update(self, typename, attributes):
@@ -120,13 +130,20 @@ class ContinuumModelsClient(object):
             model = ContinuumModel(typename, attr)
             return model
         
+    def make_view(self, ref):
+        url = utils.urljoin(self.baseurl,
+                            self.docid +"/",
+                            ref['type'] + "/",
+                            ref['id'] + "/", 'render')
+        self.s.get(url)
+        
 class ContinuumModels(object):
     def __init__(self, storage, client):
         self.storage = storage
         self.client = client
         
-    def create(self, typename, attributes):
-        model = self.client.create(typename, attributes)        
+    def create(self, typename, attributes, defer=False):
+        model = self.client.create(typename, attributes, defer=defer)        
         self.storage.add(model)        
 
     def update(self, typename, attributes):
@@ -152,4 +169,14 @@ class ContinuumModels(object):
     def delete(self, typename, id):
         self.storage.delete(typename, id)
         self.client.delete(typename, id)
+        
+    def create_all(self, models):
+        for m in models:
+            self.create(m.typename, m.attributes, defer=True)
+        self.client.buffer_sync()
+        
+    def make_view(self, ref):
+        self.client.make_view(ref)
+        
+        
         

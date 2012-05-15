@@ -76,13 +76,34 @@ def sub():
                              lambda auth, topic : True, current_app.ph)
     return
 
-
+@app.route("/bb/<docid>/bulkcreate", methods=['POST'])
+def bulk_create(docid):
+    data = current_app.ph.deserialize_web(request.data)
+    models = [bbmodel.ContinuumModel(x['type'], **x['attributes']) \
+              for x in data]
+    for m in models:
+        current_app.collections.add(m)
+    docs = set()
+    for m in models:
+        docs.update(m.get('docs'))
+    for doc in docs:
+        relevant_models = [x for x in models if doc in x.get('docs')]
+        current_app.wsmanager.send(doc, app.ph.serialize_web(
+            {'msgtype' : 'modelpush',
+             'modelspecs' : [x.to_broadcast_json() for x in relevant_models]}))
+    return app.ph.serialize_web(
+        {'msgtype' : 'modelpush',
+         'modelspecs' : [x.to_broadcast_json() for x in relevant_models]})
 @app.route("/bb/<docid>/<typename>", methods=['POST'])
 def create(docid, typename):
     log.debug("create, %s, %s", docid, typename)
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
     current_app.collections.add(model)
+    for doc in model.get('docs'):
+        current_app.wsmanager.send(doc, app.ph.serialize_web(
+            {'msgtype' : 'modelpush',
+             'modelspecs' : [model.to_broadcast_json()]}))
     return app.ph.serialize_web(model.to_json())
 
 @app.route("/bb/<docid>/<typename>/<id>", methods=['PUT'])
@@ -91,6 +112,10 @@ def put(docid, typename, id):
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
     current_app.collections.add(model)
+    for doc in model.get('docs'):
+        current_app.wsmanager.send(doc, app.ph.serialize_web(
+            {'msgtype' : 'modelpush',
+             'modelspecs' : [model.to_broadcast_json()]}))
     return app.ph.serialize_web(model.to_json())
 
 @app.route("/bb/<docid>/", methods=['GET'])
@@ -117,4 +142,16 @@ def delete(docid, typename, id):
         current_app.collections.delete(typename, id)
     return app.ph.serialize_web(model.to_json())
 
+@app.route("/interactive/<docid>")
+def interact(docid):
+    return flask.render_template('blank.html', topic=docid)
 
+@app.route("/bb/<docid>/<typename>/<id>/render")
+def render(docid, typename, id):
+    model = current_app.collections.get(typename, id)    
+    msg = {'msgtype' : 'renderpush',
+           'ref' : model.ref()}
+    for doc in model.get('docs'):
+        current_app.wsmanager.send(doc, app.ph.serialize_web(msg))
+
+        
