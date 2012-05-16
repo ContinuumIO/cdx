@@ -1,6 +1,8 @@
 import continuumweb.plot as plot
 import continuumweb.bbmodel as bbmodel
 import blaze.server.rpc.protocol as protocol
+import numpy as np
+
 ph = protocol.ProtocolHelper()
 ctx = bbmodel.ContinuumModels(
     bbmodel.ContinuumModelsStorage(),

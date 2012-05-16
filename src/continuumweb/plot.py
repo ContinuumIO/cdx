@@ -11,16 +11,19 @@ def make_source(**kwargs):
     return bbmodel.ContinuumModel('ObjectArrayDataSource', data=output)
 
 def make_plot(width, height, parent=None):
-    xr = bbmodel.ContinuumModel('Range1d', start=0, end=300)
-    yr = bbmodel.ContinuumModel('Range1d', start=0, end=300)
-    plot = bbmodel.ContinuumModel(
-        'Plot', xrange=xr.ref(), yrange=yr.ref())
+    plot = bbmodel.ContinuumModel('Plot')
     if parent is not None:
         plot.set('parent', parent.ref())
-    return (plot, xr, yr)
+    return (plot)
 
 def scatter(width, height, data_source, xfield, yfield, container=None):
-    plot, xr, yr = make_plot(300, 300, parent=container)
+    if container:
+        plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
+                                      parent=container.ref())
+    else:
+        plot = bbmodel.ContinuumModel('Plot', width=width, height=height)
+    xr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(), attribute='width')
+    yr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(), attribute='height')
     datarange1 = bbmodel.ContinuumModel(
         'DataRange1d', data_source=data_source.ref(),
         columns=[xfield])
@@ -28,10 +31,10 @@ def scatter(width, height, data_source, xfield, yfield, container=None):
         'DataRange1d', data_source=data_source.ref(), columns=[yfield])
     xmapper = bbmodel.ContinuumModel(
         'LinearMapper', data_range=datarange1.ref(),
-        screen_range=plot.get('xrange'))
+        screen_range=xr.ref())
     ymapper = bbmodel.ContinuumModel(
         'LinearMapper', data_range=datarange2.ref(),
-        screen_range=plot.get('yrange'))
+        screen_range=yr.ref())
     scatter = bbmodel.ContinuumModel(
         'ScatterRenderer', data_source=data_source.ref(),
         xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
