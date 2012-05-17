@@ -157,7 +157,7 @@ def interact(docid):
     return flask.render_template(
         'blank.html', topic=docid,
         all_components=current_app.ph.serialize_web(models),
-        main = interactive_context.ref()
+        main = current_app.ph.serialize_web(interactive_context.ref())
         )
 
 @app.route("/bb/<docid>/<typename>/<id>/render")

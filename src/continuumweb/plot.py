@@ -9,7 +9,7 @@ class PlotClient(bbmodel.ContinuumModels):
         super(PlotClient, self).__init__(storage, client)
         self.fetch()
         interactive_context = self.get_bulk(typename='InteractiveContext')
-        self.ic = interactive_context
+        self.ic = interactive_context[0]
         
     def make_source(self, **kwargs):
         output = []
@@ -22,12 +22,12 @@ class PlotClient(bbmodel.ContinuumModels):
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
 
-    def scatter(width, height, data_source, xfield, yfield, container=None):
+    def scatter(self, width, height, data_source, xfield, yfield, container=None):
         if container:
             plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
                                           parent=container.ref())
         else:
-            plot = bbmodel.ContinuumModel('Plot', width=width, height=height)
+            plot = bbmodel.ContinuumModel('Plot', width=width, height=height, parent=self.ic.ref())
         xr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(), attribute='width')
         yr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(), attribute='height')
         datarange1 = bbmodel.ContinuumModel(
@@ -53,6 +53,16 @@ class PlotClient(bbmodel.ContinuumModels):
             mapper=ymapper.ref(), parent=plot.ref())
         plot.set('renderers', [scatter.ref()])
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
-        return (plot, xr, yr, datarange1, datarange2,
-                xaxis, yaxis, xmapper, ymapper, scatter)
-
+        self.create_all([plot, xr, yr, datarange1, datarange2,
+                         xaxis, yaxis, xmapper, ymapper, scatter])
+        if container is None:
+            self.show(plot)
+        return plot
+    
+    def show(self, plot):
+        children = self.ic.get('children')
+        if children is None: children = []
+        children.append(plot.ref())
+        self.ic.set('children', children)
+        self.update(self.ic.typename, self.ic.attributes)
+        

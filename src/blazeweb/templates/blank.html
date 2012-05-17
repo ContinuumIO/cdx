@@ -19,6 +19,7 @@
       all_components = {{ all_components }}
       {% endautoescape %}        
       topic = "{{ topic }}";
+      $(function(){
       Continuum.load_models(all_components)
 
       ws_conn_string = "ws://localhost:5000/sub"
@@ -26,7 +27,9 @@
       
       main = Continuum.resolve_ref(main['collections'], main['type'], main['id'])
       mainview = new main.default_view({'model' : main})
+      console.log('RENDERING')
       mainview.render()
+      });
     </script>
   </head>
   <body>

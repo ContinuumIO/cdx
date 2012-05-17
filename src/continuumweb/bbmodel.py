@@ -19,8 +19,8 @@ class ContinuumModel(object):
             'type' : self.typename,
             'id' : self.attributes['id']
             }
-    def get(self, key):
-        return self.attributes.get(key)
+    def get(self, key, default=None):
+        return self.attributes.get(key, default)
     
     def set(self, key, val):
         self.attributes[key] = val
@@ -145,7 +145,8 @@ class ContinuumModels(object):
     def create(self, typename, attributes, defer=False):
         model = self.client.create(typename, attributes, defer=defer)        
         self.storage.add(model)        
-
+        return model
+    
     def update(self, typename, attributes):
         id = attributes['id']
         model = self.client.update(typename, attributes)
