@@ -11,7 +11,7 @@ import continuumweb.bbmodel as bbmodel
 
 frontaddr = "tcp://127.0.0.1:6000"
 
-class TestSubscribeWebSocket(unittest.TestCase):
+class TestBBModel(unittest.TestCase):
     def setUp(self):
         start.prepare_app(frontaddr, timeout=0.1)        
         self.servert = gevent.spawn(start.start_app)

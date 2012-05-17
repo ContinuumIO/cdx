@@ -178,5 +178,6 @@ class ContinuumModels(object):
     def make_view(self, ref):
         self.client.make_view(ref)
         
-        
+    def get_bulk(self, typename=None, id=None):
+        return self.storage.get_bulk(self.client.docid, typename=typename, id=id)
         

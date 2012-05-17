@@ -144,7 +144,21 @@ def delete(docid, typename, id):
 
 @app.route("/interactive/<docid>")
 def interact(docid):
-    return flask.render_template('blank.html', topic=docid)
+    models = current_app.collections.get_bulk(docid)
+    interactive_context = [x for x in models if x.typename == 'InteractiveContext']
+    if len(interactive_context) == 0:
+        interactive_context = bbmodel.ContinuumModel(
+            'InteractiveContext', docs=[docid])
+        current_app.collections.add(interactive_context)
+        models.insert(0, interactive_context)
+    else:
+        interactive_context = interactive_context[0]
+    models = [x.to_broadcast_json() for x in models]
+    return flask.render_template(
+        'blank.html', topic=docid,
+        all_components=current_app.ph.serialize_web(models),
+        main = interactive_context.ref()
+        )
 
 @app.route("/bb/<docid>/<typename>/<id>/render")
 def render(docid, typename, id):
