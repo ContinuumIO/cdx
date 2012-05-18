@@ -1,5 +1,5 @@
 import bbmodel
-import blaze.server.rpc.protocol as protocol
+import protocol
 
 class PlotClient(bbmodel.ContinuumModels):
     def __init__(self, docid, url):
