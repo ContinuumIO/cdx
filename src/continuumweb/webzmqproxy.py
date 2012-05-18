@@ -18,7 +18,7 @@ class ProxyClient(threading.Thread):
     def __init__(self, pushpulladdr, pubsubaddr,
                  timeout=2, ctx=None, protocol_handler=None):
         if protocol_handler is None:
-            protocol_handler = protocol.ZMQProtocolHelper()
+            protocol_handler = protocol.ProtocolHelper()
         self.ph = protocol_handler
         if ctx is None:
             ctx = zmq.Context.instance()
