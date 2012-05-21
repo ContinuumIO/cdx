@@ -22,15 +22,15 @@ class PlotClient(bbmodel.ContinuumModels):
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
 
-    def scatter(self, width, height, x, y, data_source=None, container=None):
+    def scatter(self, x, y, width=300, height=300,
+                data_source=None, container=None):
         """
         Parameters
         ----------
-        width : int width, pixels
-        height : int height, pixels
         x : string of fieldname in data_source, or 1d vector
         y : string of fieldname in data_source or 1d_vector
-        data_source : optional if x,y are not strings, backbonemodel of a data source
+        data_source : optional if x,y are not strings,
+            backbonemodel of a data source
         container : bbmodel of container viewmodel
 
         Returns
