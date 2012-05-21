@@ -38,9 +38,11 @@
 import plot
 import numpy as np
 
-client = plot.PlotClient('{{topic}}', "http://{{request.host}}/")
-datasource = client.make_source(x=np.random.random(10), y = np.random.random(10))
-client.scatter(300, 300, datasource, 'x', 'y')
+client = plot.PlotClient('{{topic}}', "http://{{request.host}}/bb/")
+plot_model, source = client.scatter(300, 300, np.random.random(100), np.random.random(100))
+client.scatter(300, 300, 'x', 'y', data_source=source)
+
+
 </pre>
 
   </body>
