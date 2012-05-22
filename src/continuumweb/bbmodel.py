@@ -1,4 +1,3 @@
-import websocket
 import requests
 import urlparse
 import utils
