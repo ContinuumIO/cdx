@@ -72,10 +72,13 @@ class PlotClient(bbmodel.ContinuumModels):
         yr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(),
                                     attribute='height')
         datarange1 = bbmodel.ContinuumModel(
-            'DataRange1d', data_source=data_source.ref(),
-            columns=[xfield])
+            'DataRange1d',
+            sources=[{'ref' : data_source.ref(),
+                      'columns' : [xfield]}])
         datarange2 = bbmodel.ContinuumModel(
-            'DataRange1d', data_source=data_source.ref(), columns=[yfield])
+            'DataRange1d',
+            sources=[{'ref' : data_source.ref(),
+                      'columns' : [yfield]}])
         xmapper = bbmodel.ContinuumModel(
             'LinearMapper', data_range=datarange1.ref(),
             screen_range=xr.ref())
@@ -102,6 +105,7 @@ class PlotClient(bbmodel.ContinuumModels):
             container = self.ic
         return ScatterPlot(self, plot, data_source, xr, yr, datarange1, datarange2,
                            xmapper, ymapper, scatter, container)
+
     
     def show(self, plot):
         children = self.ic.get('children')
