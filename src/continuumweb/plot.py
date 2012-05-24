@@ -200,7 +200,7 @@ class PlotClient(bbmodel.ContinuumModels):
                                      data_source=data_source, container=container)
         else:
             return self.addline(lineplot, x, y, data_source=data_source)
-    def _add_source_to_range(data_source, columns, range):
+    def _add_source_to_range(self, data_source, columns, range):
         sources = range.get('sources')
         added = False
         for source in sources:
@@ -219,15 +219,15 @@ class PlotClient(bbmodel.ContinuumModels):
             xfield, yfield = x, y
         self._add_source_to_range(data_source, [xfield], lineplot.data_xrange)
         self.update(lineplot.data_xrange.typename, lineplot.data_xrange.attributes)
-        self._add_source_to_range(data_source, [xfield], lineplot.data_yrange)
+        self._add_source_to_range(data_source, [yfield], lineplot.data_yrange)
         self.update(lineplot.data_yrange.typename, lineplot.data_yrange.attributes)
         line = bbmodel.ContinuumModel(
             'LineRenderer', data_source=data_source.ref(),
             xfield=xfield, yfield=yfield, xmapper=lineplot.xmapper.ref(),
-            ymapper=lineplot.ymapper.ref(), parent=lineplot.ref())
-        self.create(line)
-        lineplot.get('renderers').append(line.ref())
-        self.update(lineplot.typename, lineplot.attributes)        
+            ymapper=lineplot.ymapper.ref(), parent=lineplot.plot.ref())
+        self.create(line.typename, line.attributes)
+        lineplot.plot.get('renderers').append(line.ref())
+        self.update(lineplot.plot.typename, lineplot.plot.attributes)        
 
     def show(self, plot):
         children = self.ic.get('children')
@@ -244,4 +244,7 @@ if __name__ == "__main__":
     xdata = np.arange(0, 10, 0.01)
     ydata = np.sin(xdata)
     lineplot = client.line(xdata, ydata)
+    xdata = np.arange(0, 15, 0.01)
+    ydata = 2 * np.cos(xdata)
+    client.line(xdata, ydata, lineplot=lineplot)
     
