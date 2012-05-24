@@ -39,8 +39,8 @@ import plot
 import numpy as np
 
 client = plot.PlotClient('{{topic}}', "http://{{request.host}}/bb/")
-plot_model, source = client.scatter(np.random.random(100), np.random.random(100))
-client.scatter('x', 'y', data_source=source)
+scatterplot = client.scatter(np.random.random(100), np.random.random(100))
+client.scatter('x', 'y', data_source=scatterplot.data_source)
 </pre>
   </body>
 </html>

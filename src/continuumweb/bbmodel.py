@@ -33,6 +33,12 @@ class ContinuumModel(object):
     
     def to_json(self):
         return self.attributes
+
+    def __str__(self):
+        return "Model:%s" % self.typename
+    
+    def __repr__(self):
+        return self.__str__()
 """
 In our python interface to the backbone system, we separate the local collection
 which stores models, from the http client which interacts with a remote store
