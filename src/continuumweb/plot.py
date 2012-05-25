@@ -114,7 +114,7 @@ class PlotClient(bbmodel.ContinuumModels):
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
         tocreate.extend([xr, yr, datarange1, datarange2,
                          xaxis, yaxis, xmapper, ymapper, scatter])
-        self.create_all(tocreate)
+        self.upsert_all(tocreate)
         if container is None:
             self.show(plot)
             container = self.ic
@@ -171,7 +171,7 @@ class PlotClient(bbmodel.ContinuumModels):
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
         tocreate.extend([xr, yr, datarange1, datarange2,
                          xaxis, yaxis, xmapper, ymapper, line])
-        self.create_all(tocreate)
+        self.upsert_all(tocreate)
         if container is None:
             self.show(plot)
             container = self.ic
@@ -227,8 +227,35 @@ class PlotClient(bbmodel.ContinuumModels):
             ymapper=lineplot.ymapper.ref(), parent=lineplot.plot.ref())
         self.create(line.typename, line.attributes)
         lineplot.plot.get('renderers').append(line.ref())
-        self.update(lineplot.plot.typename, lineplot.plot.attributes)        
+        self.update(lineplot.plot.typename, lineplot.plot.attributes)
+        return lineplot
+    
+    def grid(self, plots):
 
+        container = bbmodel.ContinuumModel(
+            'GridPlotContainer',
+            parent=self.ic.ref())
+        
+        #remove plots from the interactive context if they are present
+        flatplots = []
+        toremove = set()
+        for row in plots:
+            for plot in row:
+                flatplots.append(plot.plot)
+                
+        for plot in flatplots:
+            plot.set('parent', container.ref())            
+            toremove.add(plot.get('id'))
+        children = [x for x in self.ic.get('children') if x['id'] not in toremove]
+        self.ic.set('children', children)
+        
+        plotrefs = [[x.plot.ref() for x in row] for row in plots]
+        container.set('children', plotrefs)
+        to_update = [container, self.ic]
+        to_update.extend(flatplots)
+        self.upsert_all(to_update)
+        self.show(container)
+        
     def show(self, plot):
         children = self.ic.get('children')
         if children is None: children = []
@@ -239,12 +266,12 @@ class PlotClient(bbmodel.ContinuumModels):
 if __name__ == "__main__":
     import numpy as np
     client = PlotClient('test', "http://localhost:5000/bb/")
-    #scatterplot = client.scatter(np.random.random(100), np.random.random(100))
+    scatterplot = client.scatter(np.random.random(100), np.random.random(100))
     #client.scatter('x', 'y', data_source=scatterplot.data_source)
     xdata = np.arange(0, 10, 0.01)
     ydata = np.sin(xdata)
     lineplot = client.line(xdata, ydata)
     xdata = np.arange(0, 15, 0.01)
     ydata = 2 * np.cos(xdata)
-    client.line(xdata, ydata, lineplot=lineplot)
+    lineplot=client.line(xdata, ydata, lineplot=lineplot)
     

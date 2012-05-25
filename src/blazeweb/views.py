@@ -76,8 +76,8 @@ def sub():
                              lambda auth, topic : True, current_app.ph)
     return
 
-@app.route("/bb/<docid>/bulkcreate", methods=['POST'])
-def bulk_create(docid):
+@app.route("/bb/<docid>/bulkupsert", methods=['POST'])
+def bulk_upsert(docid):
     data = current_app.ph.deserialize_web(request.data)
     models = [bbmodel.ContinuumModel(x['type'], **x['attributes']) \
               for x in data]

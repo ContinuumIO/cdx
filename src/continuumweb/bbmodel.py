@@ -90,7 +90,7 @@ class ContinuumModelsClient(object):
         
     def buffer_sync(self):
         data = self.ph.serialize_web([x.to_broadcast_json() for x in self.buffer])
-        url = utils.urljoin(self.baseurl, self.docid + "/", 'bulkcreate')
+        url = utils.urljoin(self.baseurl, self.docid + "/", 'bulkupsert')
         self.s.post(url, data=data)
         self.buffer = []
         
@@ -106,14 +106,17 @@ class ContinuumModelsClient(object):
             self.s.post(url, data=self.ph.serialize_msg(model.to_json()))
         return model
 
-    def update(self, typename, attributes):
+    def update(self, typename, attributes, defer=False):
         if 'docs' not in attributes:
             attributes['docs'] = [self.docid]
         id = attributes['id']
         model =  ContinuumModel(typename, **attributes)
-        url = utils.urljoin(self.baseurl, self.docid +"/", typename + "/", id)
-        log.debug("create %s", url)
-        self.s.put(url, data=self.ph.serialize_web(model.to_json()))
+        if defer:
+            self.buffer.append(model)
+        else:
+            url = utils.urljoin(self.baseurl, self.docid +"/", typename + "/", id)
+            log.debug("create %s", url)
+            self.s.put(url, data=self.ph.serialize_web(model.to_json()))
         return model
 
     def fetch(self, typename=None, id=None):
@@ -152,9 +155,9 @@ class ContinuumModels(object):
         self.storage.add(model)        
         return model
     
-    def update(self, typename, attributes):
+    def update(self, typename, attributes, defer=False):
         id = attributes['id']
-        model = self.client.update(typename, attributes)
+        model = self.client.update(typename, attributes, defer=defer)
         self.storage.update(typename, model.attributes)
         return model
     
@@ -176,9 +179,12 @@ class ContinuumModels(object):
         self.storage.delete(typename, id)
         self.client.delete(typename, id)
         
-    def create_all(self, models):
+    def upsert_all(self, models):
         for m in models:
-            self.create(m.typename, m.attributes, defer=True)
+            if self.get(m.typename, m.get('id')):
+                self.update(m.typename, m.attributes, defer=True)
+            else:
+                self.create(m.typename, m.attributes, defer=True)
         self.client.buffer_sync()
         
     def make_view(self, ref):
