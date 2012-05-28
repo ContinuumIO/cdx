@@ -21,6 +21,10 @@ class ContinuumModel(object):
     def get(self, key, default=None):
         return self.attributes.get(key, default)
     
+    def get_ref(self, field, client):
+        ref = self.get(field)
+        return client.get(ref['type'], ref['id'])
+    
     def set(self, key, val):
         self.attributes[key] = val
         

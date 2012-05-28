@@ -230,32 +230,42 @@ class PlotClient(bbmodel.ContinuumModels):
         self.update(lineplot.plot.typename, lineplot.plot.attributes)
         return lineplot
     
-    def grid(self, plots):
-
-        container = bbmodel.ContinuumModel(
-            'GridPlotContainer',
-            parent=self.ic.ref())
-        
-        #remove plots from the interactive context if they are present
-        flatplots = []
+    def _remove_from_ic(self, plots):
         toremove = set()
-        for row in plots:
-            for plot in row:
-                flatplots.append(plot.plot)
-                
-        for plot in flatplots:
-            plot.set('parent', container.ref())            
+        for plot in plots:
             toremove.add(plot.get('id'))
         children = [x for x in self.ic.get('children') if x['id'] not in toremove]
         self.ic.set('children', children)
+        self.update(self.ic.typename, self.ic.attributes)
         
+    def _remove_all_grid_parents(self, plots):
+        for plot in plots:
+            if plot.get('parent')['type'] == 'GridPlotContainer':
+                parent = plot.get_ref('parent', self)
+                if parent:
+                    self._remove_from_ic([parent])
+                    self.delete(parent.typename, parent.get('id'))
+
+    def grid(self, plots):
+        container = bbmodel.ContinuumModel(
+            'GridPlotContainer',
+            parent=self.ic.ref())
+        flatplots = []
+        for row in plots:
+            for plot in row:
+                flatplots.append(plot.plot)
+        self._remove_from_ic(flatplots)
+        self._remove_all_grid_parents(flatplots)
+        for plot in flatplots:
+            plot.set('parent', container.ref())
         plotrefs = [[x.plot.ref() for x in row] for row in plots]
         container.set('children', plotrefs)
-        to_update = [container, self.ic]
+        to_update = [container]
         to_update.extend(flatplots)
         self.upsert_all(to_update)
         self.show(container)
-        
+        return container
+    
     def show(self, plot):
         children = self.ic.get('children')
         if children is None: children = []

@@ -138,9 +138,16 @@ def get(docid, typename=None, id=None):
 @app.route("/bb/<docid>/<typename>/<id>", methods=['DELETE'])
 def delete(docid, typename, id):
     model = current_app.collections.get(typename, id)
+    log.debug("DELETE, %s, %s", docid, typename)    
     if docid in model.get('docs'):
         current_app.collections.delete(typename, id)
-    return app.ph.serialize_web(model.to_json())
+        for doc in model.get('docs'):
+            current_app.wsmanager.send(doc, app.ph.serialize_web(
+                {'msgtype' : 'modeldel',
+                 'modelspecs' : [model.to_broadcast_json()]}))
+        return app.ph.serialize_web(model.to_json())
+    else:
+        return "INVALID"
 
 @app.route("/interactive/<docid>")
 def interact(docid):
