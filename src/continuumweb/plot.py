@@ -69,10 +69,16 @@ class PlotClient(bbmodel.ContinuumModels):
         """
         tocreate = []
         if container:
+            xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
+            yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
             plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
+                                          xrange=xr.ref(), yrange=yr.ref(),
                                           parent=container.ref())
         else:
+            xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
+            yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
             plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
+                                          xrange=xr.ref(), yrange=yr.ref(),                                          
                                           parent=self.ic.ref())
         tocreate.append(plot)
         if data_source is None:
@@ -82,10 +88,6 @@ class PlotClient(bbmodel.ContinuumModels):
         else:
             xfield = x
             yfield = y
-        xr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(),
-                                    attribute='width')
-        yr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(),
-                                    attribute='height')
         datarange1 = bbmodel.ContinuumModel(
             'DataRange1d',
             sources=[{'ref' : data_source.ref(),
@@ -125,10 +127,16 @@ class PlotClient(bbmodel.ContinuumModels):
                      data_source=None, container=None):
         tocreate = []
         if container:
+            xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
+            yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
             plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
+                                          xrange=xr.ref(), yrange=yr.ref(),
                                           parent=container.ref())
         else:
+            xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
+            yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
             plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
+                                          xrange=xr.ref(), yrange=yr.ref(),
                                           parent=self.ic.ref())
         tocreate.append(plot)
         if data_source is None:
@@ -138,11 +146,6 @@ class PlotClient(bbmodel.ContinuumModels):
         else:
             xfield = x
             yfield = y
-        
-        xr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(),
-                                    attribute='width')
-        yr = bbmodel.ContinuumModel('PlotRange1d', plot=plot.ref(),
-                                    attribute='height')
         datarange1 = bbmodel.ContinuumModel(
             'DataRange1d',
             sources=[{'ref' : data_source.ref(),
