@@ -4,7 +4,7 @@ import protocol
 class ScatterPlot(object):
     def __init__(self, client, plot, data_source, screen_xrange,
                  screen_yrange, data_xrange, data_yrange,
-                 xmapper, ymapper, renderer, parent):
+                 xmapper, ymapper, renderer, pantool, parent):
         self.plot = plot
         self.data_source = data_source
         self.screen_xrange = screen_xrange
@@ -14,12 +14,13 @@ class ScatterPlot(object):
         self.xmapper = xmapper
         self.ymapper = ymapper
         self.renderer = renderer
+        self.pantool = pantool
         self.parent = parent
 
 class LinePlot(object):
     def __init__(self, client, plot, data_source, screen_xrange,
                  screen_yrange, data_xrange, data_yrange,
-                 xmapper, ymapper, renderer, parent):
+                 xmapper, ymapper, renderer, pantool, parent):
         self.plot = plot
         self.data_source = data_source
         self.screen_xrange = screen_xrange
@@ -29,6 +30,7 @@ class LinePlot(object):
         self.xmapper = xmapper
         self.ymapper = ymapper
         self.renderer = renderer
+        self.pantool = pantool
         self.parent = parent
 
 class PlotClient(bbmodel.ContinuumModels):
@@ -102,6 +104,10 @@ class PlotClient(bbmodel.ContinuumModels):
         ymapper = bbmodel.ContinuumModel(
             'LinearMapper', data_range=datarange2.ref(),
             screen_range=yr.ref())
+        pantool = bbmodel.ContinuumModel(
+            'PanTool',
+            xmappers=[xmapper.ref()],
+            ymappers=[ymapper.ref()])
         scatter = bbmodel.ContinuumModel(
             'ScatterRenderer', data_source=data_source.ref(),
             xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
@@ -114,14 +120,16 @@ class PlotClient(bbmodel.ContinuumModels):
             mapper=ymapper.ref(), parent=plot.ref())
         plot.set('renderers', [scatter.ref()])
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
+        plot.set('tools', [pantool.ref()])
         tocreate.extend([xr, yr, datarange1, datarange2,
-                         xaxis, yaxis, xmapper, ymapper, scatter])
+                         xaxis, yaxis, xmapper, ymapper, pantool, scatter])
+                 
         self.upsert_all(tocreate)
         if container is None:
             self.show(plot)
             container = self.ic
         return ScatterPlot(self, plot, data_source, xr, yr, datarange1, datarange2,
-                           xmapper, ymapper, scatter, container)
+                           xmapper, ymapper, scatter, pantool, container)
     
     def _newlineplot(self, x, y, width=300, height=300, lineplot=None,
                      data_source=None, container=None):
@@ -160,6 +168,10 @@ class PlotClient(bbmodel.ContinuumModels):
         ymapper = bbmodel.ContinuumModel(
             'LinearMapper', data_range=datarange2.ref(),
             screen_range=yr.ref())
+        pantool = bbmodel.ContinuumModel(
+            'PanTool',
+            xmappers=[xmapper.ref()],
+            ymappers=[ymapper.ref()])
         line = bbmodel.ContinuumModel(
             'LineRenderer', data_source=data_source.ref(),
             xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
@@ -172,14 +184,15 @@ class PlotClient(bbmodel.ContinuumModels):
             mapper=ymapper.ref(), parent=plot.ref())
         plot.set('renderers', [line.ref()])
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
+        plot.set('tools', [pantool.ref()])
         tocreate.extend([xr, yr, datarange1, datarange2,
-                         xaxis, yaxis, xmapper, ymapper, line])
+                         xaxis, yaxis, xmapper, ymapper, pantool, line])
         self.upsert_all(tocreate)
         if container is None:
             self.show(plot)
             container = self.ic
         return LinePlot(self, plot, data_source, xr, yr, datarange1, datarange2,
-                           xmapper, ymapper, line, container)
+                           xmapper, ymapper, line, pantool, container)
         
                     
     def line(self, x, y, width=300, height=300, lineplot=None,
