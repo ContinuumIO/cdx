@@ -1,6 +1,7 @@
 from app import app
-from flask import request, current_app
+from flask import request, current_app, send_from_directory
 import flask
+import os
 import simplejson
 import logging
 import urlparse
@@ -11,6 +12,10 @@ import wsmanager
 
 log = logging.getLogger(__name__)
 
+@app.route('/favicon.ico')
+def favicon():
+	return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/x-icon')
+	
 @app.route("/data/<path:datapath>", methods=['GET'])
 def get_data(datapath):
     data_slice=get_slice(request)
