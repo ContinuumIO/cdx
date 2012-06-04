@@ -2,7 +2,7 @@
 (function() {
 
   test('test_interactive', function() {
-    var container, data_source1, pantool, plot1, scatterrenderer;
+    var container, data_source1, pantool, plot1, scatterrenderer, selectoverlay, selecttool, zoomtool;
     expect(0);
     data_source1 = Bokeh.Collections['ObjectArrayDataSource'].create({
       data: [
@@ -41,7 +41,27 @@
     }, {
       'local': true
     });
-    plot1.set('tools', [pantool.ref()]);
+    zoomtool = Bokeh.Collections['ZoomTool'].create({
+      'xmappers': [scatterrenderer.get('xmapper')],
+      'ymappers': [scatterrenderer.get('ymapper')]
+    }, {
+      'local': true
+    });
+    selecttool = Bokeh.Collections['SelectionTool'].create({
+      'renderers': [scatterrenderer.ref()],
+      'data_source_options': {
+        'local': true
+      }
+    }, {
+      'local': true
+    });
+    selectoverlay = Bokeh.Collections['ScatterSelectionOverlay'].create({
+      'renderers': [scatterrenderer.ref()]
+    }, {
+      'local': true
+    });
+    plot1.set('tools', [pantool.ref(), zoomtool.ref(), selecttool.ref()]);
+    plot1.set('overlays', [selectoverlay.ref()]);
     window.plot1 = plot1;
     window.myrender = function() {
       var view;
