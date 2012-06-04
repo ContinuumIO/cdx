@@ -4,7 +4,9 @@ import protocol
 class ScatterPlot(object):
     def __init__(self, client, plot, data_source, screen_xrange,
                  screen_yrange, data_xrange, data_yrange,
-                 xmapper, ymapper, renderer, pantool, parent):
+                 xmapper, ymapper, renderer,
+                 pantool, zoomtool, selectiontool, selectionoverlay,
+                 parent):
         self.plot = plot
         self.data_source = data_source
         self.screen_xrange = screen_xrange
@@ -15,12 +17,15 @@ class ScatterPlot(object):
         self.ymapper = ymapper
         self.renderer = renderer
         self.pantool = pantool
+        self.zoomtool = zoomtool
+        self.selectiontool = selectiontool
+        self.selectionoverlay = selectionoverlay
         self.parent = parent
 
 class LinePlot(object):
     def __init__(self, client, plot, data_source, screen_xrange,
                  screen_yrange, data_xrange, data_yrange,
-                 xmapper, ymapper, renderer, pantool, parent):
+                 xmapper, ymapper, renderer, pantool, zoomtool, parent):
         self.plot = plot
         self.data_source = data_source
         self.screen_xrange = screen_xrange
@@ -31,6 +36,7 @@ class LinePlot(object):
         self.ymapper = ymapper
         self.renderer = renderer
         self.pantool = pantool
+        self.zoomtool = zoomtool
         self.parent = parent
 
 class PlotClient(bbmodel.ContinuumModels):
@@ -80,7 +86,7 @@ class PlotClient(bbmodel.ContinuumModels):
             xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
             yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
             plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
-                                          xrange=xr.ref(), yrange=yr.ref(),                                          
+                                          xrange=xr.ref(), yrange=yr.ref(),
                                           parent=self.ic.ref())
         tocreate.append(plot)
         if data_source is None:
@@ -108,10 +114,20 @@ class PlotClient(bbmodel.ContinuumModels):
             'PanTool',
             xmappers=[xmapper.ref()],
             ymappers=[ymapper.ref()])
+        zoomtool = bbmodel.ContinuumModel(
+            'ZoomTool',
+            xmappers=[xmapper.ref()],
+            ymappers=[ymapper.ref()])
         scatter = bbmodel.ContinuumModel(
             'ScatterRenderer', data_source=data_source.ref(),
             xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
             ymapper=ymapper.ref(), parent=plot.ref())
+        selecttool = bbmodel.ContinuumModel(
+            'SelectionTool',
+            renderers=[scatter.ref()])
+        selectoverlay = bbmodel.ContinuumModel(
+            'ScatterSelectionOverlay',
+            renderers=[scatter.ref()])
         xaxis = bbmodel.ContinuumModel(
             'D3LinearAxis', orientation='bottom', ticks=3,
             mapper=xmapper.ref(), parent=plot.ref())
@@ -120,16 +136,22 @@ class PlotClient(bbmodel.ContinuumModels):
             mapper=ymapper.ref(), parent=plot.ref())
         plot.set('renderers', [scatter.ref()])
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
-        plot.set('tools', [pantool.ref()])
+        plot.set('tools', [pantool.ref(), zoomtool.ref(), selecttool.ref()])
+        plot.set('overlays', [selectoverlay.ref()])
         tocreate.extend([xr, yr, datarange1, datarange2,
-                         xaxis, yaxis, xmapper, ymapper, pantool, scatter])
+                         xaxis, yaxis, xmapper, ymapper,
+                         pantool, zoomtool, selecttool, selectoverlay,
+                         scatter])
                  
         self.upsert_all(tocreate)
         if container is None:
             self.show(plot)
             container = self.ic
-        return ScatterPlot(self, plot, data_source, xr, yr, datarange1, datarange2,
-                           xmapper, ymapper, scatter, pantool, container)
+        return ScatterPlot(self, plot, data_source, xr, yr,
+                           datarange1, datarange2,
+                           xmapper, ymapper, scatter,
+                           pantool, zoomtool, selecttool, selectoverlay,
+                           container)
     
     def _newlineplot(self, x, y, width=300, height=300, lineplot=None,
                      data_source=None, container=None):
@@ -172,6 +194,10 @@ class PlotClient(bbmodel.ContinuumModels):
             'PanTool',
             xmappers=[xmapper.ref()],
             ymappers=[ymapper.ref()])
+        zoomtool = bbmodel.ContinuumModel(
+            'ZoomTool',
+            xmappers=[xmapper.ref()],
+            ymappers=[ymapper.ref()])
         line = bbmodel.ContinuumModel(
             'LineRenderer', data_source=data_source.ref(),
             xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
@@ -184,15 +210,19 @@ class PlotClient(bbmodel.ContinuumModels):
             mapper=ymapper.ref(), parent=plot.ref())
         plot.set('renderers', [line.ref()])
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
-        plot.set('tools', [pantool.ref()])
+        plot.set('tools', [pantool.ref(), zoomtool.ref()])
         tocreate.extend([xr, yr, datarange1, datarange2,
-                         xaxis, yaxis, xmapper, ymapper, pantool, line])
+                         xaxis, yaxis, xmapper, ymapper,
+                         pantool, zoomtool,
+                         line])
         self.upsert_all(tocreate)
         if container is None:
             self.show(plot)
             container = self.ic
-        return LinePlot(self, plot, data_source, xr, yr, datarange1, datarange2,
-                           xmapper, ymapper, line, pantool, container)
+        return LinePlot(self, plot, data_source, xr, yr,
+                        datarange1, datarange2,
+                        xmapper, ymapper, line, pantool, zoomtool,
+                        container)
         
                     
     def line(self, x, y, width=300, height=300, lineplot=None,
@@ -292,7 +322,12 @@ class PlotClient(bbmodel.ContinuumModels):
 if __name__ == "__main__":
     import numpy as np
     client = PlotClient('test', "http://localhost:5000/bb/")
-    scatterplot = client.scatter(np.random.random(100), np.random.random(100))
+    x = np.random.random(100)
+    y = np.random.random(100)
+    data_source = client.make_source(idx=range(100), x=x, y=y)
+    scatterplot1 = client.scatter(x='idx', y='x', data_source=data_source)
+    scatterplot2 = client.scatter(x='idx', y='y', data_source=data_source)
+    
     #client.scatter('x', 'y', data_source=scatterplot.data_source)
     xdata = np.arange(0, 10, 0.01)
     ydata = np.sin(xdata)
