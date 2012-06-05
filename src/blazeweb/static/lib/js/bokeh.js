@@ -663,7 +663,7 @@
 
     ObjectArrayDataSource.prototype.select = function(fields, func, options) {
       var args, idx, selected, val, x, _i, _len, _ref;
-      selected = this.get('selected');
+      selected = [];
       if (selected === null) {
         selected = [];
       }
@@ -686,17 +686,20 @@
       selected.sort();
       selected = _.uniq(selected);
       this.set('selected', selected);
-      return this.save(null, options);
+      this.save(null, options);
+      return null;
     };
 
     ObjectArrayDataSource.prototype.unselect = function(options) {
       this.set('selected', []);
-      return this.save(null, options);
+      this.save(null, options);
+      return null;
     };
 
     ObjectArrayDataSource.prototype.stopselect = function(options) {
       this.set('selected', null);
-      return this.save(null, options);
+      this.save(null, options);
+      return null;
     };
 
     return ObjectArrayDataSource;
@@ -2087,16 +2090,11 @@
     };
 
     SelectionToolView.prototype._select_data = function() {
-      var renderer, xrange, yrange, _i, _j, _len, _len1, _ref, _ref1, _ref2;
+      var renderer, xrange, yrange, _i, _len, _ref, _ref1;
       _ref = this._get_selection_range(), xrange = _ref[0], yrange = _ref[1];
       _ref1 = this.mget('renderers');
       for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
         renderer = _ref1[_i];
-        this.model.resolve_ref(renderer).unselect(this.mget('data_source_options'));
-      }
-      _ref2 = this.mget('renderers');
-      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-        renderer = _ref2[_j];
         this.model.resolve_ref(renderer).select(xrange, yrange, this.mget('data_source_options'));
       }
       return null;
