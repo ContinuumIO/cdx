@@ -75,8 +75,7 @@ def sub():
         ws = request.environ['wsgi.websocket']
         wsmanager.run_socket(
             ws, current_app.wsmanager,
-            lambda auth, topic : True, current_app.ph,
-            clientid=request.headers.get('continuum_clientid', None))
+            lambda auth, topic : True, current_app.ph)
     return
 
 @app.route("/bb/<docid>/bulkupsert", methods=['POST'])
@@ -89,7 +88,7 @@ def bulk_upsert(docid):
     docs = set()
     for m in models:
         docs.update(m.get('docs'))
-    clientid = request.headers.get('continuum_clientid', None)    
+    clientid = request.headers.get('Continuum-Clientid', None)    
     for doc in docs:
         relevant_models = [x for x in models if doc in x.get('docs')]
         current_app.wsmanager.send(doc, app.ph.serialize_web(
@@ -105,7 +104,7 @@ def create(docid, typename):
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
     current_app.collections.add(model)
-    clientid=request.headers.get('continuum_clientid', None)        
+    clientid=request.headers.get('Continuum-Clientid', None)        
     for doc in model.get('docs'):
         current_app.wsmanager.send(doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',
@@ -119,8 +118,7 @@ def put(docid, typename, id):
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
     current_app.collections.add(model)
-    clientid=request.headers.get('continuum_clientid', None)
-    print 'CLIENTID', clientid
+    clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
         current_app.wsmanager.send(doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',
@@ -149,7 +147,7 @@ def get(docid, typename=None, id=None):
 def delete(docid, typename, id):
     model = current_app.collections.get(typename, id)
     log.debug("DELETE, %s, %s", docid, typename)
-    clientid = request.headers.get('continuum_clientid', None)
+    clientid = request.headers.get('Continuum-Clientid', None)
     if docid in model.get('docs'):
         current_app.collections.delete(typename, id)
         for doc in model.get('docs'):

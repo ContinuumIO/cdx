@@ -75,8 +75,8 @@ class WebSocketManager(object):
 def run_socket(socket, manager, auth_function,
                protocol_helper, clientid=None):
     ph = protocol_helper
-    log.debug("CLIENTID %s", clientid)     
     clientid = clientid if clientid is not None else str(uuid.uuid4())
+    log.debug("CLIENTID %s", clientid)     
     while True:
         msg = socket.receive()
         if msg is None:
