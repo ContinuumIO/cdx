@@ -245,7 +245,7 @@ class PlotClient(bbmodel.ContinuumModels):
             return self._newlineplot(x, y, width=width, height=height,
                                      data_source=data_source, container=container)
         else:
-            return self.addline(lineplot, x, y, data_source=data_source)
+            return self._addline(lineplot, x, y, data_source=data_source)
     def _add_source_to_range(self, data_source, columns, range):
         sources = range.get('sources')
         added = False
@@ -257,7 +257,7 @@ class PlotClient(bbmodel.ContinuumModels):
         if not added:
             sources.append({'ref' : data_source.ref(), 'columns' : columns})
         
-    def addline(self, lineplot, x, y, data_source=None):
+    def _addline(self, lineplot, x, y, data_source=None):
         if data_source is None:
             data_source = self.make_source(x=x, y=y)
             xfield, yfield = 'x', 'y'
