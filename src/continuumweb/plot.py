@@ -59,8 +59,56 @@ class PlotClient(bbmodel.ContinuumModels):
             output.append(point)
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
+    
+    def scatter(self, x, y, width=300, height=300, color="#000",
+                data_source=None, container=None, scatterplot=None):
+        """
+        Parameters
+        ----------
+        x : string of fieldname in data_source, or 1d vector
+        y : string of fieldname in data_source or 1d_vector
+        data_source : optional if x,y are not strings,
+            backbonemodel of a data source
+        container : bbmodel of container viewmodel
 
-    def scatter(self, x, y, width=300, height=300,
+        Returns
+        ----------
+        (plotmodel, data_source)
+        """
+        if scatterplot is None:
+            return self._newscatter(x, y, width=width, height=height, color=color,
+                                    data_source=data_source, container=container)
+        else:
+            return self._addscatter(scatterplot, x, y, color=color,
+                                    data_source=data_source)
+        
+    def _addscatter(self, scatterplot, x, y, color="#000", data_source=None):
+        if data_source is None:
+            data_source = self.make_source(x=x, y=y)
+            xfield, yfield = 'x', 'y'
+        else:
+            xfield, yfield = x, y
+        self._add_source_to_range(data_source, [xfield], scatterplot.data_xrange)
+        self.update(scatterplot.data_xrange.typename, scatterplot.data_xrange.attributes)
+        self._add_source_to_range(data_source, [yfield], scatterplot.data_yrange)
+        self.update(scatterplot.data_yrange.typename, scatterplot.data_yrange.attributes)
+        scatter = bbmodel.ContinuumModel(
+            'ScatterRenderer', foreground_color=color, data_source=data_source.ref(),
+            xfield=xfield, yfield=yfield, xmapper=scatterplot.xmapper.ref(),
+            ymapper=scatterplot.ymapper.ref(), parent=scatterplot.plot.ref())
+        self.create(scatter.typename, scatter.attributes)
+
+        scatterplot.selectiontool.get('renderers').append(scatter.ref())
+        self.update(scatterplot.selectiontool.typename,
+                    scatterplot.selectiontool.attributes)
+        scatterplot.selectionoverlay.get('renderers').append(scatter.ref())
+        self.update(scatterplot.selectionoverlay.typename,
+                    scatterplot.selectionoverlay.attributes)
+        scatterplot.plot.get('renderers').append(scatter.ref())
+        self.update(scatterplot.plot.typename, scatterplot.plot.attributes)
+        return scatterplot
+
+    def _newscatter(self, x, y, width=300, height=300, color="#000",
                 data_source=None, container=None):
         """
         Parameters
@@ -119,7 +167,7 @@ class PlotClient(bbmodel.ContinuumModels):
             xmappers=[xmapper.ref()],
             ymappers=[ymapper.ref()])
         scatter = bbmodel.ContinuumModel(
-            'ScatterRenderer', data_source=data_source.ref(),
+            'ScatterRenderer', foreground_color=color, data_source=data_source.ref(),
             xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
             ymapper=ymapper.ref(), parent=plot.ref())
         selecttool = bbmodel.ContinuumModel(
@@ -325,10 +373,8 @@ if __name__ == "__main__":
     x = np.random.random(100)
     y = np.random.random(100)
     data_source = client.make_source(idx=range(100), x=x, y=y)
-    scatterplot1 = client.scatter(x='idx', y='x', data_source=data_source)
-    scatterplot2 = client.scatter(x='idx', y='y', data_source=data_source)
-    
-    #client.scatter('x', 'y', data_source=scatterplot.data_source)
+    scatterplot1 = client.scatter(x='idx', y='x', color='#F00', data_source=data_source)
+    client.scatter(x='idx', y='y', color='#0F0', data_source=data_source, scatterplot=scatterplot1)
     xdata = np.arange(0, 10, 0.01)
     ydata = np.sin(xdata)
     lineplot = client.line(xdata, ydata)
