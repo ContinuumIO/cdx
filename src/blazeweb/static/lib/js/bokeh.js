@@ -1389,7 +1389,8 @@
         return _this.model.ypos(pos);
       });
       node.attr('stroke', this.mget('color')).attr('d', line);
-      return node.attr('fill', 'none');
+      node.attr('fill', 'none');
+      return null;
     };
 
     LineRendererView.prototype.render = function() {
@@ -1401,7 +1402,8 @@
       }
       path = node.selectAll('path').data([this.model.get_ref('data_source').get('data')]);
       this.render_line(path);
-      return this.render_line(path.enter().append('path'));
+      this.render_line(path.enter().append('path'));
+      return null;
     };
 
     return LineRendererView;
@@ -1474,7 +1476,14 @@
         _this.position_marks(newcircles);
         return null;
       });
-      safebind(this, this.mget_ref('ymapper'), 'change', this.render);
+      safebind(this, this.mget_ref('ymapper'), 'change', function() {
+        var circles, newcircles;
+        circles = _this.get_marks();
+        _this.position_marks(circles);
+        newcircles = _this.get_new_marks(circles);
+        _this.position_marks(newcircles);
+        return null;
+      });
       safebind(this, this.mget_ref('data_source'), 'change:data', this.render);
       return safebind(this, this.mget_ref('data_source'), 'change:selected', function() {
         var circles, newcircles;
@@ -1697,13 +1706,15 @@
       });
     };
 
-    PanToolView.prototype._drag = function() {
-      var plot, x, xdiff, xmap, xmappers, y, ydiff, ymap, ymappers, _i, _j, _len, _len1, _ref, _ref1, _results;
+    PanToolView.prototype._drag = function(xdiff, ydiff) {
+      var plot, x, xmap, xmappers, y, ymap, ymappers, _i, _j, _len, _len1, _ref, _ref1, _results;
       plot = this.tag_d3('plotwindow', this.plot_id);
-      _ref = this.mouse_coords(), x = _ref[0], y = _ref[1];
-      xdiff = x - this.x;
-      ydiff = y - this.y;
-      _ref1 = [x, y], this.x = _ref1[0], this.y = _ref1[1];
+      if (_.isUndefined(xdiff) || _.isUndefined(ydiff)) {
+        _ref = this.mouse_coords(), x = _ref[0], y = _ref[1];
+        xdiff = x - this.x;
+        ydiff = y - this.y;
+        _ref1 = [x, y], this.x = _ref1[0], this.y = _ref1[1];
+      }
       xmappers = (function() {
         var _i, _len, _ref2, _results;
         _ref2 = this.mget('xmappers');
