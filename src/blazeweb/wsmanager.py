@@ -58,8 +58,12 @@ class WebSocketManager(object):
     def remove_socket(self, clientid):
         del self.sockets[clientid]
         
-    def send(self, topic, msg):
+    def send(self, topic, msg, exclude=None):
+        if exclude is None:
+            exclude = set()
         for clientid in self.topic_clientid_map.get(topic, []):
+            if clientid in exclude:
+                continue
             socket = self.sockets[clientid]
             try:
                 socket.send(msg)
@@ -68,9 +72,11 @@ class WebSocketManager(object):
                 self.remove_socket(clientid)
                 self.remove_clientid(clientid)
 
-def run_socket(socket, manager, auth_function, protocol_helper):
+def run_socket(socket, manager, auth_function,
+               protocol_helper, clientid=None):
     ph = protocol_helper
-    clientid = str(uuid.uuid4())
+    clientid = clientid if clientid is not None else str(uuid.uuid4())
+    log.debug("CLIENTID %s", clientid)     
     while True:
         msg = socket.receive()
         if msg is None:
@@ -84,7 +90,7 @@ def run_socket(socket, manager, auth_function, protocol_helper):
                 manager.subscribe(clientid, msgobj['topic'])
                 socket.send(ph.serialize_msg(
                     ph.status_obj(
-                        ['subscribesuccess', msgobj['topic']])))
+                        ['subscribesuccess', msgobj['topic'], clientid])))
             else:
                 socket.send(ph.serialize_msg(ph.error_obj('unauthorized')))
                 

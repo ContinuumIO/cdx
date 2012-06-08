@@ -1,9 +1,10 @@
 from app import app
-from flask import render_template, request, current_app, send_from_directory
+from flask import render_template, request, current_app, send_from_directory, make_response
 import flask
 import os
 import simplejson
 import logging
+import uuid
 import urlparse
 import blazeclient
 import stockreport
@@ -87,8 +88,9 @@ def get_slice(request):
 def sub():
     if request.environ.get('wsgi.websocket'):
         ws = request.environ['wsgi.websocket']
-        wsmanager.run_socket(ws, current_app.wsmanager,
-                             lambda auth, topic : True, current_app.ph)
+        wsmanager.run_socket(
+            ws, current_app.wsmanager,
+            lambda auth, topic : True, current_app.ph)
     return
 
 @app.route("/bb/<docid>/bulkupsert", methods=['POST'])
@@ -101,11 +103,13 @@ def bulk_upsert(docid):
     docs = set()
     for m in models:
         docs.update(m.get('docs'))
+    clientid = request.headers.get('Continuum-Clientid', None)    
     for doc in docs:
         relevant_models = [x for x in models if doc in x.get('docs')]
         current_app.wsmanager.send(doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',
-             'modelspecs' : [x.to_broadcast_json() for x in relevant_models]}))
+             'modelspecs' : [x.to_broadcast_json() for x in relevant_models]}),
+            exclude={clientid})
     return app.ph.serialize_web(
         {'msgtype' : 'modelpush',
          'modelspecs' : [x.to_broadcast_json() for x in relevant_models]})
@@ -115,10 +119,12 @@ def create(docid, typename):
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
     current_app.collections.add(model)
+    clientid=request.headers.get('Continuum-Clientid', None)        
     for doc in model.get('docs'):
         current_app.wsmanager.send(doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',
-             'modelspecs' : [model.to_broadcast_json()]}))
+             'modelspecs' : [model.to_broadcast_json()]}),
+            exclude={clientid})
     return app.ph.serialize_web(model.to_json())
 
 @app.route("/bb/<docid>/<typename>/<id>", methods=['PUT'])
@@ -127,10 +133,12 @@ def put(docid, typename, id):
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
     current_app.collections.add(model)
+    clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
         current_app.wsmanager.send(doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',
-             'modelspecs' : [model.to_broadcast_json()]}))
+             'modelspecs' : [model.to_broadcast_json()]}),
+                                   exclude={clientid})
     return app.ph.serialize_web(model.to_json())
 
 @app.route("/bb/<docid>/", methods=['GET'])
@@ -153,13 +161,15 @@ def get(docid, typename=None, id=None):
 @app.route("/bb/<docid>/<typename>/<id>", methods=['DELETE'])
 def delete(docid, typename, id):
     model = current_app.collections.get(typename, id)
-    log.debug("DELETE, %s, %s", docid, typename)    
+    log.debug("DELETE, %s, %s", docid, typename)
+    clientid = request.headers.get('Continuum-Clientid', None)
     if docid in model.get('docs'):
         current_app.collections.delete(typename, id)
         for doc in model.get('docs'):
             current_app.wsmanager.send(doc, app.ph.serialize_web(
                 {'msgtype' : 'modeldel',
-                 'modelspecs' : [model.to_broadcast_json()]}))
+                 'modelspecs' : [model.to_broadcast_json()]}),
+                                       exclude={clientid})
         return app.ph.serialize_web(model.to_json())
     else:
         return "INVALID"
@@ -176,11 +186,14 @@ def interact(docid):
     else:
         interactive_context = interactive_context[0]
     models = [x.to_broadcast_json() for x in models]
-    return flask.render_template(
+    
+    resp = make_response(flask.render_template(
         'blank.html', topic=docid,
         all_components=current_app.ph.serialize_web(models),
         main = current_app.ph.serialize_web(interactive_context.ref())
-        )
+        ))
+    #resp.set_cookie('clientid', str(uuid.uuid4()))
+    return resp
 
 @app.route("/bb/<docid>/<typename>/<id>/render")
 def render(docid, typename, id):
@@ -190,4 +203,8 @@ def render(docid, typename, id):
     for doc in model.get('docs'):
         current_app.wsmanager.send(doc, app.ph.serialize_web(msg))
 
-        
+@app.route("/TEST/")
+def test():
+    print request.headers
+    return 'hello'
+
