@@ -1,0 +1,3 @@
+#!/bin/bash
+python cloudblaze/blazeweb/start.py tcp://127.0.0.1:5555
+
