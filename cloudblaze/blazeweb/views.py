@@ -8,7 +8,7 @@ import uuid
 import urlparse
 import blazeclient
 import stockreport
-import continuumweb.bbmodel as bbmodel
+import cloudblaze.continuumweb.bbmodel as bbmodel
 import wsmanager
 
 log = logging.getLogger(__name__)

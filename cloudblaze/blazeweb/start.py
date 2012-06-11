@@ -12,10 +12,10 @@ from app import app
 import views
 import time
 from geventwebsocket.handler import WebSocketHandler
-import continuumweb.webzmqproxy as webzmqproxy
+import cloudblaze.continuumweb.webzmqproxy as webzmqproxy
 import wsmanager
 import blaze.server.rpc.protocol as protocol
-import continuumweb.bbmodel as bbmodel
+import cloudblaze.continuumweb.bbmodel as bbmodel
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
 
