@@ -4,10 +4,10 @@ import mock
 import websocket
 import gevent
 
-import blazeweb.wsmanager as wsmanager
+import cloudblaze.blazeweb.wsmanager as wsmanager
 import blaze.server.tests.test_utils as test_utils
-from blazeweb.app import app
-import blazeweb.start as start
+from cloudblaze.blazeweb.app import app
+import cloudblaze.blazeweb.start as start
 
 class WSmanagerTestCase(unittest.TestCase):
     def test_some_topics(self):
@@ -66,4 +66,4 @@ def connect(sock, addr, topic):
     sock.send(ph.serialize_msg(msgobj))
     msg = sock.recv()
     msgobj = ph.deserialize_msg(msg)
-    assert msgobj['status'] == ['subscribesuccess', topic]
+    assert msgobj['status'][:2] == ['subscribesuccess', topic]

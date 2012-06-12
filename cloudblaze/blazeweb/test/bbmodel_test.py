@@ -5,9 +5,9 @@ import websocket
 import gevent
 
 import blaze.server.tests.test_utils as test_utils
-from blazeweb.app import app
-import blazeweb.start as start
-import continuumweb.bbmodel as bbmodel
+from cloudblaze.blazeweb.app import app
+import cloudblaze.blazeweb.start as start
+import cloudblaze.continuumweb.bbmodel as bbmodel
 
 frontaddr = "tcp://127.0.0.1:6000"
 

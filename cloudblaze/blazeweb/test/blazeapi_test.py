@@ -14,12 +14,12 @@ import os
 import shelve
 import requests
 
-import continuumweb.webzmqproxy as webzmqproxy
-import continuumweb.test.test_utils as test_utils
+import cloudblaze.continuumweb.webzmqproxy as webzmqproxy
+import cloudblaze.continuumweb.test.test_utils as test_utils
 import blaze.server.blazebroker as blazebroker
 import blaze.server.blazenode as blazenode
 import blaze.server.blazeconfig as blazeconfig
-import blazeweb.start as start
+import cloudblaze.blazeweb.start as start
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
