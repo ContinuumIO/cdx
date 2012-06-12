@@ -7,12 +7,12 @@ import logging
 import uuid
 import urlparse
 import blazeclient
-import stockreport
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import wsmanager
 
 log = logging.getLogger(__name__)
 
+#main pages
 @app.route('/')
 def index():
 	return render_template('index.html') 
@@ -27,6 +27,7 @@ def pageRender(filename):
     # Note the corresponding html file must be in the templates folder.
 	return render_template(filename + '.html') 
 
+#http api for blaze server
 @app.route("/data/<path:datapath>", methods=['GET'])
 def get_data(datapath):
     data_slice=get_slice(request)
@@ -54,10 +55,10 @@ def update_data(datapath):
               'message' : request.form['message']}
     retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
     return retval[0]
-    
+
+#dummy pages for browsing hdf5 data sets in blaze
 @app.route("/dataview/", methods=['GET'])
 @app.route("/dataview/<path:datapath>", methods=['GET'])
-@app.route("/monkey/<path:datapath>", methods=['GET'])
 def get_dataview(datapath=""):
     data_slice=get_slice(request)
     response, dataobj = blazeclient.raw_get(
@@ -83,7 +84,7 @@ def get_slice(request):
         data_slice = simplejson.loads(data_slice)
     return data_slice
     
-
+#web socket subscriber
 @app.route('/sub')
 def sub():
     if request.environ.get('wsgi.websocket'):
@@ -93,6 +94,7 @@ def sub():
             lambda auth, topic : True, current_app.ph)
     return
 
+#backbone model apis
 @app.route("/bb/<docid>/bulkupsert", methods=['POST'])
 def bulk_upsert(docid):
     data = current_app.ph.deserialize_web(request.data)
@@ -174,6 +176,7 @@ def delete(docid, typename, id):
     else:
         return "INVALID"
 
+#main page for interactive plotting
 @app.route("/interactive/<docid>")
 def interact(docid):
     models = current_app.collections.get_bulk(docid)
@@ -194,17 +197,3 @@ def interact(docid):
         ))
     #resp.set_cookie('clientid', str(uuid.uuid4()))
     return resp
-
-@app.route("/bb/<docid>/<typename>/<id>/render")
-def render(docid, typename, id):
-    model = current_app.collections.get(typename, id)    
-    msg = {'msgtype' : 'renderpush',
-           'ref' : model.ref()}
-    for doc in model.get('docs'):
-        current_app.wsmanager.send(doc, app.ph.serialize_web(msg))
-
-@app.route("/TEST/")
-def test():
-    print request.headers
-    return 'hello'
-
