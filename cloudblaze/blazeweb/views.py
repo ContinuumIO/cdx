@@ -115,13 +115,15 @@ def bulk_upsert(docid):
     return app.ph.serialize_web(
         {'msgtype' : 'modelpush',
          'modelspecs' : [x.to_broadcast_json() for x in relevant_models]})
+
+@app.route("/bb/<docid>/<typename>/", methods=['POST'])
 @app.route("/bb/<docid>/<typename>", methods=['POST'])
 def create(docid, typename):
     log.debug("create, %s, %s", docid, typename)
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
     current_app.collections.add(model)
-    clientid=request.headers.get('Continuum-Clientid', None)        
+    clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
         current_app.wsmanager.send(doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',

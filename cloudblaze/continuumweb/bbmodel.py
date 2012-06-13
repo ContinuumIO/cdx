@@ -84,7 +84,7 @@ class ContinuumModelsClient(object):
         self.ph = ph
         self.baseurl = baseurl
         self.docid = docid
-        self.s = requests.session()
+        self.s = requests.session(headers={'content-type':'application/json'})
         super(ContinuumModelsClient, self).__init__()
         self.buffer = []
         
