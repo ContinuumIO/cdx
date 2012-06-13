@@ -374,7 +374,7 @@ if __name__ == "__main__":
     y = np.random.random(100)
     data_source = client.make_source(idx=range(100), x=x, y=y)
     scatterplot1 = client.scatter(x='idx', y='x', color='#F00', data_source=data_source)
-    client.scatter(x='idx', y='y', color='#0F0', data_source=data_source, scatterplot=scatterplot1)
+    client.scatter(x='idx', y='y', color='#0F0', data_source=data_source)#, scatterplot=scatterplot1)
     xdata = np.arange(0, 10, 0.01)
     ydata = np.sin(xdata)
     lineplot = client.line(xdata, ydata)
