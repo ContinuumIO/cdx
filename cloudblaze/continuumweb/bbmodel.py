@@ -219,5 +219,5 @@ class ContinuumModelsClient(object):
     def upsert_all(self, models):
         for m in models:
             self.update(m.typename, m.attributes, defer=True)
-        self.client.buffer_sync()
+        self.buffer_sync()
         
