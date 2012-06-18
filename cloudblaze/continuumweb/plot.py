@@ -39,14 +39,11 @@ class LinePlot(object):
         self.zoomtool = zoomtool
         self.parent = parent
 
-class PlotClient(bbmodel.ContinuumModels):
+class PlotClient(bbmodel.ContinuumModelsClient):
     def __init__(self, docid, url):
         self.ph = protocol.ProtocolHelper()
-        client = bbmodel.ContinuumModelsClient(docid, url, self.ph)
-        storage = bbmodel.ContinuumModelsStorage()
-        super(PlotClient, self).__init__(storage, client)
-        self.fetch()
-        interactive_context = self.get_bulk(typename='InteractiveContext')
+        super(PlotClient, self).__init__(docid, url, self.ph)
+        interactive_context = self.fetch(typename='InteractiveContext')
         self.ic = interactive_context[0]
         
     def make_source(self, **kwargs):

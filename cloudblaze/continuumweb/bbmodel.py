@@ -3,6 +3,9 @@ import urlparse
 import utils
 import uuid
 import logging
+import cPickle as pickle
+import redis
+import numpy as np
 log = logging.getLogger(__name__)
 
 class ContinuumModel(object):
@@ -11,6 +14,7 @@ class ContinuumModel(object):
         self.attributes = kwargs
         self.typename = typename
         self.attributes.setdefault('id', str(uuid.uuid4()))
+        self.id = self.get('id')
         
     def ref(self):
         return {
@@ -48,36 +52,101 @@ In our python interface to the backbone system, we separate the local collection
 which stores models, from the http client which interacts with a remote store
 In applications, we would use a class that combines both
 """
-
+import simplejson
+def serialize(obj):
+    return simplejson.dumps(obj)
+        
+def deserialize(strdata):
+    if strdata is None:
+        return None
+    else:
+        return simplejson.loads(strdata)
     
-class ContinuumModelsStorage(object):
-    def __init__(self):
-        self.collections = {}
+def bbget(client, key):
+    typename, modelid = parse_modelkey(key)
+    attrs = deserialize(client.get(key))
+    if attrs is None:
+        return None
+    else:
+        return ContinuumModel(typename, **attrs)
 
-    def get_bulk(self, docid, typename=None, id=None):
+def bbset(client, key, model):
+    return client.set(key, serialize(model.attributes))
+
+def dockey(docid):
+    return 'doc:' + docid
+
+def modelkey(typename, modelid):
+    return 'model:%s:%s' % (typename, modelid)
+
+def parse_modelkey(modelkey):
+    _, typename, modelid = modelkey.split(":")
+    return (typename, modelid)
+
+class ContinuumModelsStorage(object):
+    def __init__(self, client):
+        self.client = client
+        
+    
+    def get_bulk(self, docid, typename=None):
+        doc_keys = self.client.smembers(dockey(docid))
         result = []
-        for k,v in self.collections.iteritems():
-            if docid in v.get('docs') and \
-               (typename is None or k[0] == typename) and \
-               (id is None or k[1] == id):
-                result.append(v)
+        for k in doc_keys:
+            m = bbget(self.client, k)
+            if docid in m.get('docs') and \
+               (typename is None or m.typename == typename):
+                result.append(m)
         return result
     
     def get(self, typename, id):
-        return self.collections.get((typename, id))
-
+        return bbget(self.client, modelkey(typename, id))
+    
     def add(self, model):
-        self.collections[model.typename, model.attributes['id']] = model
+        with self.client.pipeline() as pipe:
+            self._upsert(pipe, model)
+            pipe.execute()
+            
+    def _upsert(self, pipe, model):
+        mkey = modelkey(model.typename, model.id)
+        pipe.watch(mkey)
+        for doc in model.get('docs'):
+            pipe.watch(dockey(doc))
+        oldmodel = bbget(self.client, mkey)
+        if oldmodel is None:
+            olddocs = []
+        else:
+            olddocs = oldmodel.get('docs')
+        for doc in olddocs:
+            pipe.watch(dockey(doc))
+        pipe.multi()
+        docs_to_remove = set(olddocs).difference(model.get('docs'))        
+        for doc in docs_to_remove:
+            pipe.srem(dockey(doc), mkey)
+        docs_to_add = set(model.get('docs')).difference(olddocs)
+        for doc in docs_to_add:
+            pipe.sadd(dockey(doc), mkey)
+        bbset(pipe, mkey, model)
 
-    def update(self, typename, attributes):
+    def attrupdate(self, typename, attributes):
         id = attributes['id']
-        model = self.get(typename, id)
-        for k,v in attributes.iteritems():
-            model.set(k, v)
+        mkey = modelkey(typename, id)        
+        with self.client.pipeline() as pipe:
+            pipe.watch(mkey)
+            model = self.get(typename, id)
+            for k,v in attributes.iteritems():
+                model.set(k, v)
+            self._upsert(pipe, model)
+            pipe.execute()
         return model
     
     def delete(self, typename, id):
-        del self.collections[typename, id]
+        mkey = modelkey(typename, id)
+        oldmodel = bbget(self.client, mkey)
+        olddocs = oldmodel.get('docs')
+        for doc in olddocs:
+            self.client.srem(dockey(doc), mkey)
+        self.client.delete(mkey)
+    
         
 class ContinuumModelsClient(object):
     def __init__(self, docid, baseurl, ph):
@@ -122,7 +191,10 @@ class ContinuumModelsClient(object):
             log.debug("create %s", url)
             self.s.put(url, data=self.ph.serialize_web(model.to_json()))
         return model
-
+    
+    def get(self, typename=None, id=None):
+        return self.fetch(typename=typename, id=id)
+    
     def fetch(self, typename=None, id=None):
         if typename is None:
             url = utils.urljoin(self.baseurl, self.docid)
@@ -139,61 +211,13 @@ class ContinuumModelsClient(object):
         elif typename is not None and id is not None:
             url = utils.urljoin(self.baseurl, self.docid +"/", typename + "/", id)
             attr = self.ph.deserialize_web(self.s.get(url).content)
-            model = ContinuumModel(typename, attr)
+            if attr is None:
+                return None
+            model = ContinuumModel(typename, **attr)
             return model
-        
-    def make_view(self, ref):
-        url = utils.urljoin(self.baseurl,
-                            self.docid +"/",
-                            ref['type'] + "/",
-                            ref['id'] + "/", 'render')
-        self.s.get(url)
-        
-class ContinuumModels(object):
-    def __init__(self, storage, client):
-        self.storage = storage
-        self.client = client
-        
-    def create(self, typename, attributes, defer=False):
-        model = self.client.create(typename, attributes, defer=defer)        
-        self.storage.add(model)        
-        return model
-    
-    def update(self, typename, attributes, defer=False):
-        id = attributes['id']
-        model = self.client.update(typename, attributes, defer=defer)
-        self.storage.update(typename, model.attributes)
-        return model
-    
-    def get(self, typename, id):
-        return self.storage.get(typename, id)
-
-    def fetch(self, typename=None, id=None):
-        if typename is None or id is None:        
-            models = self.client.fetch(typename=typename, id=id)
-            for m in models:
-                self.storage.add(m)
-            return models
-        else:
-            model = self.client.fetch(typename=typename, id=id)
-            self.storage.add(model)
-            return model
-        
-    def delete(self, typename, id):
-        self.storage.delete(typename, id)
-        self.client.delete(typename, id)
         
     def upsert_all(self, models):
         for m in models:
-            if self.get(m.typename, m.get('id')):
-                self.update(m.typename, m.attributes, defer=True)
-            else:
-                self.create(m.typename, m.attributes, defer=True)
+            self.update(m.typename, m.attributes, defer=True)
         self.client.buffer_sync()
-        
-    def make_view(self, ref):
-        self.client.make_view(ref)
-        
-    def get_bulk(self, typename=None, id=None):
-        return self.storage.get_bulk(self.client.docid, typename=typename, id=id)
         

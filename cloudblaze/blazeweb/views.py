@@ -154,17 +154,16 @@ def put(docid, typename, id):
     return app.ph.serialize_web(model.to_json())
 
 @app.route("/bb/<docid>/", methods=['GET'])
-@app.route("/bb/<docid>/<typename>/bb", methods=['GET'])
+@app.route("/bb/<docid>/<typename>/", methods=['GET'])
 @app.route("/bb/<docid>/<typename>/<id>", methods=['GET'])
 def get(docid, typename=None, id=None):
     if typename is not None and id is not None:
         model = current_app.collections.get(typename, id)
-        if docid in model.get('docs'):
+        if model is not None and docid in model.get('docs'):
             return app.ph.serialize_web(model.to_json())
-        else:
-            return None
+        return app.ph.serialize_web(None)
     else:
-        models = current_app.collections.get_bulk(docid, typename=typename, id=id)
+        models = current_app.collections.get_bulk(docid, typename=typename)
         if typename is not None:
             return app.ph.serialize_web([x.to_json() for x in models])
         else:

@@ -16,8 +16,12 @@ import cloudblaze.continuumweb.webzmqproxy as webzmqproxy
 import wsmanager
 import blaze.server.rpc.protocol as protocol
 import cloudblaze.continuumweb.bbmodel as bbmodel
+import redis
+
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
+rhost = 'localhost'
+rport = 6379
 
 def prepare_app(reqrepaddr, timeout=1.0, ctx=None):
     app.debug = True
@@ -31,7 +35,9 @@ def prepare_app(reqrepaddr, timeout=1.0, ctx=None):
     app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
     app.wsmanager = wsmanager.WebSocketManager()
     app.ph = protocol.ProtocolHelper()
-    app.collections = bbmodel.ContinuumModelsStorage()
+    app.collections = bbmodel.ContinuumModelsStorage(
+        redis.Redis(host=rhost, port=rport, db=2)
+        )
     return app
 
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)

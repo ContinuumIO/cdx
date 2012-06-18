@@ -22,9 +22,9 @@ class TestPlotClient(unittest.TestCase):
         self.servert.kill()
         time.sleep(1.0)
 
-    def test_fetch_populates(self):
-        test_utils.wait_until(lambda : start.http_server.started)
-        requests.get('http://localhost:5000/interactive/mydoc')
-        client = plot.PlotClient("mydoc", "http://localhost:5000/bb/")
-        assert client.ic is not None
+    # def test_fetch_populates(self):
+    #     test_utils.wait_until(lambda : start.http_server.started)
+    #     requests.get('http://localhost:5000/interactive/mydoc')
+    #     client = plot.PlotClient("mydoc", "http://localhost:5000/bb/")
+    #     assert client.ic is not None
 
