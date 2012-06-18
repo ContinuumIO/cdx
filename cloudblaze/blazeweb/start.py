@@ -17,6 +17,7 @@ import wsmanager
 import blaze.server.rpc.protocol as protocol
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import redis
+import uuid
 
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
@@ -36,6 +37,9 @@ def prepare_app(reqrepaddr, rhost='localhost', rport=6379, timeout=1.0, ctx=None
     app.collections = bbmodel.ContinuumModelsStorage(
         redis.Redis(host=rhost, port=rport, db=2)
         )
+    #for non-backbone models
+    app.model_redis = redis.Redis(host=rhost, port=rport, db=3)
+    app.secret_key = str(uuid.uuid4())
     return app
 
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
