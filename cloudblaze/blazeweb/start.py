@@ -20,10 +20,8 @@ import redis
 
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
-rhost = 'localhost'
-rport = 6379
 
-def prepare_app(reqrepaddr, timeout=1.0, ctx=None):
+def prepare_app(reqrepaddr, rhost='localhost', rport=6379, timeout=1.0, ctx=None):
     app.debug = True
     app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub,
                                   timeout=timeout, ctx=ctx)
@@ -50,15 +48,9 @@ def shutdown_app():
     app.proxyclient.kill = True
     
 if __name__ == "__main__":
-    import sys
-    reqrepaddr = sys.argv[1]
-    import logging
     logging.basicConfig(level=logging.DEBUG)
     prepare_app(reqrepaddr)
-    # def wstest():
-    #     while True:
-    #         app.wsmanager.send('mytopic', 'testmessage')
-    #         time.sleep(1)
-    # gevent.spawn(wstest)
     start_app()
+
+
         
