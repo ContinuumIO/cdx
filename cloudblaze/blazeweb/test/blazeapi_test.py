@@ -52,7 +52,7 @@ class BlazeApiTestCase(unittest.TestCase):
             print 'broker closed!'            
         #we need this to wait for sockets to close, really annoying
         start.shutdown_app()
-        del self.redisproc
+        self.redisproc.close()
         self.servert.kill()
         time.sleep(1.0)
         
