@@ -77,7 +77,7 @@ def dockey(docid):
     return 'doc:' + docid
 
 def modelkey(typename, modelid):
-    return 'model:%s:%s' % (typename, modelid)
+    return 'bbmodel:%s:%s' % (typename, modelid)
 
 def parse_modelkey(modelkey):
     _, typename, modelid = modelkey.split(":")
@@ -87,7 +87,6 @@ class ContinuumModelsStorage(object):
     def __init__(self, client):
         self.client = client
         
-    
     def get_bulk(self, docid, typename=None):
         doc_keys = self.client.smembers(dockey(docid))
         result = []
