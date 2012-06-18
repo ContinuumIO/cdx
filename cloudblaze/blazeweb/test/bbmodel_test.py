@@ -59,6 +59,7 @@ class TestBBModel(unittest.TestCase):
             bbmodel.ContinuumModelsClient(
                 "mydoc", "http://localhost:5000/bb/", app.ph))
         assert client.get('Test', 'foo') is None
+        import pdb;pdb.set_trace()
         client.fetch(typename='Test')
         assert client.get('Test', 'foo').get('testval') == 1
         assert client.get('Test2', 'foo2') is None

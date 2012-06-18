@@ -101,6 +101,7 @@ def bulk_upsert(docid):
     models = [bbmodel.ContinuumModel(x['type'], **x['attributes']) \
               for x in data]
     for m in models:
+	m.set('created', True)	    
         current_app.collections.add(m)
     docs = set()
     for m in models:
@@ -122,6 +123,7 @@ def create(docid, typename):
     log.debug("create, %s, %s", docid, typename)
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
+    model.set('created', True)
     current_app.collections.add(model)
     clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
@@ -146,7 +148,7 @@ def put(docid, typename, id):
     return app.ph.serialize_web(model.to_json())
 
 @app.route("/bb/<docid>/", methods=['GET'])
-@app.route("/bb/<docid>/<typename>", methods=['GET'])
+@app.route("/bb/<docid>/<typename>/", methods=['GET'])
 @app.route("/bb/<docid>/<typename>/<id>", methods=['GET'])
 def get(docid, typename=None, id=None):
     if typename is not None and id is not None:
