@@ -7,6 +7,7 @@ import gevent_zeromq
 gevent_zeromq.monkey_patch()
 import zmq
 
+import blaze.server.tests
 import blaze.server.redisutils as redisutils
 import blaze.server.blazeconfig as blazeconfig
 import blaze.server.blazeconfig.orderedyaml as orderedyaml
@@ -73,7 +74,10 @@ def main():
     args = parser.parse_args()
     print args
     servername = args.server_name
-    datapath = os.path.abspath(args.datapath)
+    if args.datapath is None:
+        datapath = os.path.abspath(os.path.dirname(blaze.server.tests.__file__))
+    else:
+        datapath = os.path.abspath(args.datapath)
     print 'datapath', datapath
     if not args.no_redis:
         assert args.redis_host == 'localhost', 'cannot start redis on another host'
