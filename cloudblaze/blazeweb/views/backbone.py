@@ -1,98 +1,18 @@
-from app import app
-from flask import render_template, request, current_app, send_from_directory, make_response
+from cloudblaze.blazeweb.app import app
+from flask import (
+	render_template, request, current_app,
+	send_from_directory, make_response)
 import flask
 import os
 import simplejson
 import logging
 import uuid
 import urlparse
-import blazeclient
+import cloudblaze.blazeweb.blazeclient as blazeclient
 import cloudblaze.continuumweb.bbmodel as bbmodel
-import wsmanager
+import cloudblaze.blazeweb.wsmanager as wsmanager
 
 log = logging.getLogger(__name__)
-
-#main pages
-@app.route('/')
-def index():
-	return render_template('index.html') 
-
-@app.route('/favicon.ico')
-def favicon():
-	return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/x-icon')
-	
-@app.route('/pageRender/<filename>')
-def pageRender(filename):
-	app.logger.debug('pageRender filename=[%s]',filename)
-    # Note the corresponding html file must be in the templates folder.
-	return render_template(filename + '.html') 
-
-#http api for blaze server
-@app.route("/data/<path:datapath>", methods=['GET'])
-def get_data(datapath):
-    data_slice=get_slice(request)
-    response, dataobj = blazeclient.raw_get(
-        current_app.rpcclient, datapath, data_slice=data_slice)
-    if response['type'] != 'group': response['data'] = dataobj[0].tolist()
-    return simplejson.dumps(response)
-
-@app.route("/data/<path:datapath>", methods=['DELETE'])
-def delete_data(datapath):
-    newmsg = {'path' : datapath}
-    retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
-    return retval[0]
-
-@app.route("/data/<path:datapath>", methods=['POST'])
-def create_data(datapath):
-    newmsg = {'path' : datapath,
-              'message' : request.form['message']}
-    retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
-    return retval[0]
-    
-@app.route("/data/<path:datapath>", methods=['PATCH'])
-def update_data(datapath):
-    newmsg = {'path' : datapath,
-              'message' : request.form['message']}
-    retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
-    return retval[0]
-
-#dummy pages for browsing hdf5 data sets in blaze
-@app.route("/dataview/", methods=['GET'])
-@app.route("/dataview/<path:datapath>", methods=['GET'])
-def get_dataview(datapath=""):
-    data_slice=get_slice(request)
-    response, dataobj = blazeclient.raw_get(
-        current_app.rpcclient, datapath, data_slice=data_slice)
-    if response['type'] == 'group':
-        base = request.base_url
-        if not base.endswith('/'): base += "/"
-        child_paths = [[x, urlparse.urljoin(base, x)] \
-                       for x in response['children']]
-        return flask.render_template('simplegroup.html', children=child_paths)
-    else:
-        data = dataobj[0]
-        table_obj = blazeclient.build_table(
-            data, response['shape'], data_slice, datapath)
-        return flask.render_template('simpledataset.html',
-                                     table_obj=simplejson.dumps(table_obj))
-                                     
-def get_slice(request):
-    data_slice=request.args.get('data_slice', None)
-    if data_slice is None:
-        data_slice = [0, 100]
-    else:
-        data_slice = simplejson.loads(data_slice)
-    return data_slice
-    
-#web socket subscriber
-@app.route('/sub')
-def sub():
-    if request.environ.get('wsgi.websocket'):
-        ws = request.environ['wsgi.websocket']
-        wsmanager.run_socket(
-            ws, current_app.wsmanager,
-            lambda auth, topic : True, current_app.ph)
-    return
 
 #backbone model apis
 @app.route("/bb/<docid>/bulkupsert", methods=['POST'])
@@ -184,25 +104,3 @@ def delete(docid, typename, id):
         return app.ph.serialize_web(model.to_json())
     else:
         return "INVALID"
-
-#main page for interactive plotting
-@app.route("/interactive/<docid>")
-def interact(docid):
-    models = current_app.collections.get_bulk(docid)
-    interactive_context = [x for x in models if x.typename == 'InteractiveContext']
-    if len(interactive_context) == 0:
-        interactive_context = bbmodel.ContinuumModel(
-            'InteractiveContext', docs=[docid])
-        current_app.collections.add(interactive_context)
-        models.insert(0, interactive_context)
-    else:
-        interactive_context = interactive_context[0]
-    models = [x.to_broadcast_json() for x in models]
-    
-    resp = make_response(flask.render_template(
-        'blank.html', topic=docid,
-        all_components=current_app.ph.serialize_web(models),
-        main = current_app.ph.serialize_web(interactive_context.ref())
-        ))
-    #resp.set_cookie('clientid', str(uuid.uuid4()))
-    return resp

@@ -9,7 +9,7 @@ from gevent.queue import Queue
 from gevent.pywsgi import WSGIServer
 
 from app import app
-import views
+import views.deps
 import time
 from geventwebsocket.handler import WebSocketHandler
 import cloudblaze.continuumweb.webzmqproxy as webzmqproxy
