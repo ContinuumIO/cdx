@@ -11,6 +11,20 @@
     this.Continuum = Continuum;
   }
 
+  Continuum.Collection = (function(_super) {
+
+    __extends(Collection, _super);
+
+    Collection.name = 'Collection';
+
+    function Collection() {
+      return Collection.__super__.constructor.apply(this, arguments);
+    }
+
+    return Collection;
+
+  })(Backbone.Collection);
+
   Collections = {};
 
   Continuum.Collections = Collections;
@@ -227,6 +241,10 @@
         }
         return _results;
       }
+    };
+
+    HasProperties.prototype.isNew = function() {
+      return !this.get('created');
     };
 
     HasProperties.prototype.initialize = function(attrs, options) {
@@ -476,6 +494,10 @@
       }
     };
 
+    HasProperties.prototype.defaults = {
+      docs: [window.topic]
+    };
+
     return HasProperties;
 
   })(Backbone.Model);
@@ -654,7 +676,10 @@
       var _this = this;
       DeferredParent.__super__.initialize.call(this, options);
       if (this.mget('render_loop')) {
-        this.render_loop();
+        console.log('loop');
+        _.defer(function() {
+          return _this.render_loop();
+        });
       }
       return safebind(this, this.model, 'change:render_loop', function() {
         if (_this.mget('render_loop') && !_this.looping) {
