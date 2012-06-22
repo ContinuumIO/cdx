@@ -7,22 +7,26 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<!-- Vendor scripts -->
+    <script type=text/javascript src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='vendor/d3/d3.v2.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='vendor/underscore/underscore.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='vendor/backbone/backbone.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='vendor/buckets/buckets.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.js') }}"></script>
-	<script src="http://d3js.org/d3.v2.js"></script>
 
+	<!-- Continuum scripts -->
+    <script type=text/javascript src="{{ url_for('static', filename='lib/js/custom.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='lib/js/continuum.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='lib/js/bokeh.js') }}"></script>
+
+	<!-- Vendor Styles -->
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/fontAwesome/css/font-awesome.css') }}" rel="stylesheet">
 
-    <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 40px;
-      }
-      .sidebar-nav {
-        padding: 9px 0;
-      }
-    </style>
+	<!-- Continuum Styles -->
+    <link href="{{ url_for('static', filename='css/cdx.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/cdx.css') }}" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -32,12 +36,13 @@
   </head>
 
   <script type=text/javascript>
+	var $ = jQuery.noConflict();
 		$(document).ready(function() {
-			$('#mainContainer').load($SCRIPT_ROOT + 'pageRender/home')
+			$('#mainContainer').load($SCRIPT_ROOT + 'pageRender/cdx')
 		});
   </script>
-  <body>
 
+  <body>
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container-fluid">
@@ -60,7 +65,7 @@
           </div>
           <div class="nav-collapse">
             <ul class="nav">
-              <li id="homeLink" class="active"><a href="#">Home</a></li>
+              <li id="homeLink" class="active"><a href="#">CDX</a></li>
               <li><a href="#about">About</a></li>
               <li><a href="#contact">Contact</a></li>
             </ul>
@@ -69,42 +74,18 @@
       </div>
     </div>
 
-    <div class="container-fluid">
-      <div class="row-fluid">
-        <div class="span2">
-          <div class="well sidebar-nav">
-            <ul class="nav nav-list">
-              <li class="nav-header">Tools</li>
-              <li id="dataLink"><a href="#"><i class="icon-camera-retro"></i> Dataview</a></li>
-              <li class="nav-header">Links</li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li class="nav-header">Help</li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-            </ul>
-          </div><!--/.well -->
-        </div><!--/span-->
-		<div id=mainContainer class="span10">
-		</div> <!--mainContainer-->
-      </div><!--/row-->
+	<div id="mainContainer"></div>
 
-      <hr>
-
-      <footer>
-        <p>&copy; Continuum Analytics 2012</p>
-      </footer>
-
-    </div><!--/.fluid-container-->
+	<footer class="row-fluid">
+		<p>&copy; Continuum Analytics 2012</p>
+	</footer>
 
 	<script type=text/javascript>
 		$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 		$('#homeLink').click(function() {
-			$('#mainContainer').load($SCRIPT_ROOT + '/pageRender/home')
-		});
-		$('#dataLink').bind('click', function() {
-			$('#mainContainer').load($SCRIPT_ROOT + '/pageRender/dataview', function () {});
+			$('#mainContainer').load($SCRIPT_ROOT + '/pageRender/cdx')
 		});
 	</script>
+
   </body>
 </html>
