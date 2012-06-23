@@ -11,7 +11,8 @@ import gevent
 import blaze.server.tests.test_utils as test_utils
 import blaze.server.redisutils as redisutils
 import redis
-import cloudblaze.blazeweb.start as start
+
+import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.models.user as user
 import requests
@@ -46,13 +47,13 @@ class TestUser(unittest.TestCase):
             
 class TestUserModelWeb(unittest.TestCase):
     def setUp(self):
-        start.prepare_app(frontaddr, timeout=0.1)        
-        self.servert = gevent.spawn(start.start_app)
+        maincontroller.prepare_app(frontaddr, timeout=0.1)        
+        self.servert = gevent.spawn(maincontroller.start_app)
         self.redisproc = redisutils.RedisProcess(6379, '/tmp', save=False)
         time.sleep(0.1)
         
     def tearDown(self):
-        start.shutdown_app()
+        maincontroller.shutdown_app()
         self.servert.kill()
         self.redisproc.close()        
         time.sleep(1.0)
