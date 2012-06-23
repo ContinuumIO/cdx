@@ -1,8 +1,6 @@
+import cloudblaze.blazeweb.models as models
 import simplejson
 from werkzeug import generate_password_hash, check_password_hash
-
-class UnauthorizedException(Exception):
-    pass
 
 def new_user(client, email, password, docs=None):
     key = User.modelkey(email)
@@ -10,7 +8,7 @@ def new_user(client, email, password, docs=None):
         pipe.watch(key)
         pipe.multi()
         if client.exists(key):
-            raise UnauthorizedException
+            raise models.UnauthorizedException
         passhash = generate_password_hash(password, method='sha256')
         user = User(email, passhash, docs=docs)
         user.save(pipe)
@@ -20,13 +18,15 @@ def new_user(client, email, password, docs=None):
 def auth_user(client, email, password):
     user = User.load(client, email)
     if user is None:
-        raise UnauthorizedException        
+        raise models.UnauthorizedException        
     if check_password_hash(user.passhash, password):
         return user
     else:
-        raise UnauthorizedException
+        raise models.UnauthorizedException
     
-class User(object):
+class User(models.ServerModel):
+    idfield = 'email'
+    typename = 'user'
     #we're using email as the id for now...
     def __init__(self, email, passhash, docs=None):
         self.email = email
@@ -34,33 +34,22 @@ class User(object):
         if docs is None:
             docs = []
         self.docs = docs
-        
-    @staticmethod
-    def modelkey(email):
-        return "model:user:%s " % email
-    
-    def mykey(self):
-        return self.modelkey(self.email)
 
     def to_json(self):
         return {'email' : self.email,
                 'passhash' : self.passhash,
                 'docs' : self.docs}
     
-    def save(self, client):
-        client.set(self.mykey(), simplejson.dumps(self.to_json()))
-    
     @staticmethod
     def from_json(obj):
         return User(obj['email'], obj['passhash'], obj['docs'])
         
-    @staticmethod
-    def load(client, email):
-        data = client.get(User.modelkey(email))
-        if data is None:
-            return None
-        attrs = simplejson.loads(data)
-        return User.from_json(attrs)
+    
+def get_current_user(session):
+    if 'username' in session:
+        return User.load(current_app.model_redis, session['username'])
+    else:
+        return None
     
         
         
