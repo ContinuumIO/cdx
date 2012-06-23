@@ -17,6 +17,7 @@ import blaze.server.rpc.protocol as protocol
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.models.user as user
 import cloudblaze.blazeweb.models.docs as docs
+import cloudblaze.ipython.runnotebook as runnotebook
 
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
@@ -65,4 +66,5 @@ def ensure_default_user(app):
     
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 def start_app():
+    gevent.spawn(runnotebook.launch_new_instance)
     http_server.serve_forever()
