@@ -12,9 +12,9 @@ from cloudblaze.blazeweb.app import app
 
 import cloudblaze.blazeweb.blazeclient
 import cloudblaze.continuumweb.bbmodel as bbmodel
-import cloudblaze.blazeweb.views.common as common
 import cloudblaze.blazeweb.wsmanager as wsmanager
 import cloudblaze.blazeweb.models.user as user
+import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
 
 #main pages
 @app.route('/')
@@ -22,11 +22,13 @@ def index():
     current_user = user.get_current_user(session)
     if current_user is None:
         if current_app.desktopmode:
-            return render_template('index.html')         
+            current_user = maincontroller.ensure_default_user(current_app)
+            return render_template('cdx.html', user=current_user.email)         
         else:
             raise NotImplementedError
     else:
-        return render_template('index.html')
+        return render_template('cdx.html', user=current_user.email)                 
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),

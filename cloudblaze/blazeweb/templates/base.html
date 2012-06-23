@@ -34,14 +34,6 @@
     <![endif]-->
 
   </head>
-
-  <script type=text/javascript>
-	var $ = jQuery.noConflict();
-		$(document).ready(function() {
-			$('#mainContainer').load($SCRIPT_ROOT + 'pageRender/cdx')
-		});
-  </script>
-
   <body>
     <div class="navbar">
       <div class="navbar-inner">
@@ -54,13 +46,13 @@
           <a class="brand" href="#">Continuum Analytics</a>
           <div class="btn-group pull-right">
             <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-              <i class="icon-user"></i> Username
+              <i class="icon-user"></i> {{ user }}
               <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
               <li><a href="#">Profile</a></li>
               <li class="divider"></li>
-              <li><a href="#">Sign Out</a></li>
+              <li><a href="/logout">Sign Out</a></li>
             </ul>
           </div>
           <div class="nav-collapse">
@@ -74,18 +66,13 @@
       </div>
     </div>
 
-	<div id="mainContainer"></div>
-
+	<div id="mainContainer">
+	  {% block main %}
+	  {% endblock %}
+	</div>
 	<footer class="row-fluid">
 		<p>&copy; Continuum Analytics 2012</p>
 	</footer>
-
-	<script type=text/javascript>
-		$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-		$('#homeLink').click(function() {
-			$('#mainContainer').load($SCRIPT_ROOT + '/pageRender/cdx')
-		});
-	</script>
 
   </body>
 </html>

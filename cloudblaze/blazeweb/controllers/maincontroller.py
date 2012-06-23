@@ -15,7 +15,6 @@ from cloudblaze.blazeweb.app import app
 import cloudblaze.blazeweb.wsmanager as wsmanager
 import blaze.server.rpc.protocol as protocol
 import cloudblaze.continuumweb.bbmodel as bbmodel
-import cloudblaze.blazeweb.views.deps
 import cloudblaze.blazeweb.models.user as user
 import cloudblaze.blazeweb.models.docs as docs
 
@@ -24,6 +23,8 @@ pushpull = "inproc://apppull"
 
 def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
                 rport=6379, timeout=1.0, ctx=None):
+    #must import views before running apps
+    import cloudblaze.blazeweb.views.deps
     app.debug = True
     app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub,
                                   timeout=timeout, ctx=ctx)
@@ -49,15 +50,18 @@ def shutdown_app():
     app.proxy.kill = True
     app.proxyclient.kill = True
 
-def init_default_user(app):
+def ensure_default_user(app):
     email = 'default@continuum.com'
     password = 'blazeon'
-    docid = str(uuid.uuid4())
-    doc = docs.Doc(docid, [email], [])
-    doc.save(app.model_redis)
-    user.new_user(app.model_redis, email, password, docs=[doc.docid])
-    user.save(app.model_redis)
-    return user
+    defaultuser = user.User.load(app.model_redis, email)
+    if defaultuser is None:
+        docid = str(uuid.uuid4())
+        doc = docs.Doc(docid, 'main', [email], [])
+        doc.save(app.model_redis)
+        defaultuser = user.new_user(app.model_redis,
+                                    email, password, docs=[doc.docid])
+        defaultuser.save(app.model_redis)
+    return defaultuser
     
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 def start_app():

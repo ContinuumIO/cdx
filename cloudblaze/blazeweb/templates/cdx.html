@@ -1,228 +1,231 @@
+{% extends "base.html" %}
+{% block main %}
 <div id="cdxRoot" class="container-fluid cdx-root">
-	<div id="cdxTopMsg" class="row-fluid"></div>
-	
-	<div id="cdxMenu" class="subnav">
-    	<ul class="nav nav-pills">
-      	<li class="dropdown active">
-        	<a class="dropdown-toggle" data-toggle="dropdown" href="#">Data <b class="caret"></b></a>
-        	<ul class="dropdown-menu">
-       		   	<li class="active"><a href="#buttonGroups">Select</a></li>
-          		<li class=""><a href="#buttonDropdowns">Import</a></li>
-        	</ul>
-      	</li>
-      	<li class="dropdown">
-        	<a class="dropdown-toggle" data-toggle="dropdown" href="#">Edit <b class="caret"></b></a>
-        	<ul class="dropdown-menu">
-          		<li class=""><a href="#navs">Edit 1</a></li>
-          		<li class=""><a href="#navbar">Edit 2</a></li>
-          		<li class=""><a href="#breadcrumbs">Edit 3</a></li>
-          		<li class=""><a href="#pagination">Edit 4</a></li>
-        	</ul>
-      	</li>
-      	<li class=""><a href="#plots">Plot</a></li>
-      	<li class=""><a href="#analyze">Analyze</a></li>
-      	<li class=""><a href="#share">Share</a></li>
-      	<li class=""><a href="#help">Help</a></li>
-    	</ul>
-  	</div>
+  <div id="cdxTopMsg" class="row-fluid"></div>
+  
+  <div id="cdxMenu" class="subnav">
+    <ul class="nav nav-pills">
+      <li class="dropdown active">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Data <b class="caret"></b></a>
+        <ul class="dropdown-menu">
+       	  <li class="active"><a href="#buttonGroups">Select</a></li>
+          <li class=""><a href="#buttonDropdowns">Import</a></li>
+        </ul>
+      </li>
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Edit <b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li class=""><a href="#navs">Edit 1</a></li>
+          <li class=""><a href="#navbar">Edit 2</a></li>
+          <li class=""><a href="#breadcrumbs">Edit 3</a></li>
+          <li class=""><a href="#pagination">Edit 4</a></li>
+        </ul>
+      </li>
+      <li class=""><a href="#plots">Plot</a></li>
+      <li class=""><a href="#analyze">Analyze</a></li>
+      <li class=""><a href="#share">Share</a></li>
+      <li class=""><a href="#help">Help</a></li>
+    </ul>
+  </div>
 
-	<div id="cdxMidContainer" class="container span12">
+  <div id="cdxMidContainer" class="container span12">
     <div id="cdxMid" class="row-fluid">
-	  	<div class="tabbable span2 cdx-panel-root">
-			<ul class="nav nav-tabs">
-				<li class="active"><a href="#dep-tabs1-pane1" data-toggle="tab">Cols</a></li>
-				<li><a href="#dep-tabs1-pane2" data-toggle="tab">Func</a></li>
-				<li><a href="#dep-tabs1-pane3" data-toggle="tab">Vars</a></li>
-			</ul>
-			<div class="tab-content">
-				<div class="tab-pane active midPanel" id="dep-tabs1-pane1">
-					<table class="table-bordered">
-						<thead><th>name</th><th>range</th></thead>
-						<tr><td>blah</td><td>0-100</td></tr>
-						<tr><td>blah</td><td>0-100</td></tr>
-						<tr><td>blah</td><td>0-100</td></tr>
-						<tr><td>blah</td><td>0-100</td></tr>
-						<tr><td>blah</td><td>0-100</td></tr>
-					</table>
-				</div>
-				<div class="tab-pane midPanel" id="dep-tabs1-pane2">
-					<h4>Pane 2 Content</h4>
-					<p>Duis congue viverra arcu, ac aliquet turpis rutrum a. Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
-				</div>
-				<div class="tab-pane midPanel" id="dep-tabs1-pane3">
-						<h4>Pane 3 Content</h4>
-						<p>Phasellus eget justo lacus. Vivamus pharetra ullamcorper massa, nec ultricies metus gravida egestas. Duis congue viverra arcu, ac aliquet turpis rutrum a. Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
-				</div>
-			</div><!-- /.tab-content -->
-		</div>
-  		<div class="tabbable span8 cdx-panel-root">
-			<ul class="nav nav-tabs">
-				<li class="active"><a href="#dvp-tabs1-pane1" data-toggle="tab">All</a></li>
-				<li><a href="#dvp-tabs1-pane2" data-toggle="tab">Viz</a></li>
-			</ul>
-			<div class="tab-content">
-				<div class="tab-pane active midPanel" id="dvp-tabs1-pane1">
-						<p>black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
-						</p>
-					</div>
-					<div class="tab-pane midPanel" id="dvp-tabs1-pane2">
-						<h4>Pane 2 Content</h4>
-						<p>Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
-					</div>
-				</div><!-- /.tab-content -->
-			</div>
-		  	<div class="tabbable span2 cdx-panel-root">
-				<ul class="nav nav-tabs">
-					<li class="active"><a href="#dsp-tabs1-pane1" data-toggle="tab">View</a></li>
-					<li><a href="#dsp-tabs1-pane2" data-toggle="tab">Quick</a></li>
-				</ul>
-				<div class="tab-content">
-					<div class="tab-pane active midPanel" id="dsp-tabs1-pane1">
-						<table class="table-bordered">
-							<thead><th>name</th><th>range</th></thead>
-							<tr><td>blah</td><td>0-100</td></tr>
-							<tr><td>blah</td><td>0-100</td><tr>
-						</table>
-					</div>
-					<div class="tab-pane midPanel" id="dsp-tabs1-pane2">
-						<h4>Pane 2 Content</h4>
-						<p>Phasellus eget justo lacus. Vivamus pharetra ullamcorper massa, nec ultricies metus gravida egestas. Duis congue viverra arcu, ac aliquet turpis rutrum a. Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
-					</div>
-				</div><!-- /.tab-content -->
-			</div>
- 		</div>
-	</div>
+      <div class="tabbable span2 cdx-panel-root">
+	<ul class="nav nav-tabs">
+	  <li class="active"><a href="#dep-tabs1-pane1" data-toggle="tab">Cols</a></li>
+	  <li><a href="#dep-tabs1-pane2" data-toggle="tab">Func</a></li>
+	  <li><a href="#dep-tabs1-pane3" data-toggle="tab">Vars</a></li>
+	</ul>
+	<div class="tab-content">
+	  <div class="tab-pane active midPanel" id="dep-tabs1-pane1">
+	    <table class="table-bordered">
+	      <thead><th>name</th><th>range</th></thead>
+	      <tr><td>blah</td><td>0-100</td></tr>
+	      <tr><td>blah</td><td>0-100</td></tr>
+	      <tr><td>blah</td><td>0-100</td></tr>
+	      <tr><td>blah</td><td>0-100</td></tr>
+	      <tr><td>blah</td><td>0-100</td></tr>
+	    </table>
+	  </div>
+	  <div class="tab-pane midPanel" id="dep-tabs1-pane2">
+	    <h4>Pane 2 Content</h4>
+	    <p>Duis congue viverra arcu, ac aliquet turpis rutrum a. Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
+	  </div>
+	  <div class="tab-pane midPanel" id="dep-tabs1-pane3">
+	    <h4>Pane 3 Content</h4>
+	    <p>Phasellus eget justo lacus. Vivamus pharetra ullamcorper massa, nec ultricies metus gravida egestas. Duis congue viverra arcu, ac aliquet turpis rutrum a. Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
+	  </div>
+	</div><!-- /.tab-content -->
+      </div>
+      <div class="tabbable span8 cdx-panel-root">
+	<ul class="nav nav-tabs">
+	  <li class="active"><a href="#dvp-tabs1-pane1" data-toggle="tab">All</a></li>
+	  <li><a href="#dvp-tabs1-pane2" data-toggle="tab">Viz</a></li>
+	</ul>
+	<div class="tab-content">
+	  <div class="tab-pane active midPanel" id="dvp-tabs1-pane1">
+	    <p>black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	      black ad a df adf a df ad f blah blahl blah blah blahl blah blah blah blah
+	    </p>
+	  </div>
+	  <div class="tab-pane midPanel" id="dvp-tabs1-pane2">
+	    <h4>Pane 2 Content</h4>
+	    <p>Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
+	  </div>
+	</div><!-- /.tab-content -->
+      </div>
+      <div class="tabbable span2 cdx-panel-root">
+	<ul class="nav nav-tabs">
+	  <li class="active"><a href="#dsp-tabs1-pane1" data-toggle="tab">View</a></li>
+	  <li><a href="#dsp-tabs1-pane2" data-toggle="tab">Quick</a></li>
+	</ul>
+	<div class="tab-content">
+	  <div class="tab-pane active midPanel" id="dsp-tabs1-pane1">
+	    <table class="table-bordered">
+	      <thead><th>name</th><th>range</th></thead>
+	      <tr><td>blah</td><td>0-100</td></tr>
+	      <tr><td>blah</td><td>0-100</td><tr>
+	    </table>
+	  </div>
+	  <div class="tab-pane midPanel" id="dsp-tabs1-pane2">
+	    <h4>Pane 2 Content</h4>
+	    <p>Phasellus eget justo lacus. Vivamus pharetra ullamcorper massa, nec ultricies metus gravida egestas. Duis congue viverra arcu, ac aliquet turpis rutrum a. Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
+	  </div>
+	</div><!-- /.tab-content -->
+      </div>
+    </div>
+  </div>
 
-   	<div id="cdxPyPane" class="span12 cdx-py-pane">
-		<textarea id="cdxPyEditor" class=cdx-py-editor>&gt&gt&gt </textarea>
-	</div>
+  <div id="cdxPyPane" class="span12 cdx-py-pane">
+    <textarea id="cdxPyEditor" class=cdx-py-editor>&gt&gt&gt </textarea>
+  </div>
 
-	<div id="cdxBottomMsg" class="row-fluid"></div>
+  <div id="cdxBottomMsg" class="row-fluid"></div>
 </div><!-- cdxRoot container-fluid -->
 
 <script type="text/javascript">
-	//alert('cdx script block');
-	$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  //alert('cdx script block');
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
-	$.getScript("{{ url_for('static', filename='js/cdx.js') }}")
-		.done(function(script, textStatus) {
-  		console.log( textStatus );
-		})
-		.fail(function(jqxhr, settings, exception) {
-  			$( "div.log" ).text( "Triggered ajaxError handler." );
-		});  
+  $.getScript("{{ url_for('static', filename='js/cdx.js') }}")
+  .done(function(script, textStatus) {
+  console.log( textStatus );
+  })
+  .fail(function(jqxhr, settings, exception) {
+  $( "div.log" ).text( "Triggered ajaxError handler." );
+  });  
 
-	// Adjust layout / pane sizes.
-	function resizeRoot() {
-		var winHeight = $(window).height();
-		var winWidth = $(window).width();
-		var cdxRootHeight=(winHeight * .95);
-		var midPanelHeight = (cdxRootHeight * .65);
-		var pyEdPaneHeight = (cdxRootHeight * .10);
-		//alert('resize'+cdxRootHeight);
-    	$(cdxRoot).height(cdxRootHeight);
-		$('.midPanel').height(midPanelHeight);
-		$(cdxMidContainer).width(winWidth * .95);
-		$('.cdx-py-editor').width(winWidth * .85);
-		$('.cdx-py-editor').height(pyEdPaneHeight);
-	};
+  // Adjust layout / pane sizes.
+  function resizeRoot() {
+  var winHeight = $(window).height();
+  var winWidth = $(window).width();
+  var cdxRootHeight=(winHeight * .95);
+  var midPanelHeight = (cdxRootHeight * .65);
+  var pyEdPaneHeight = (cdxRootHeight * .10);
+  //alert('resize'+cdxRootHeight);
+  $(cdxRoot).height(cdxRootHeight);
+  $('.midPanel').height(midPanelHeight);
+  $(cdxMidContainer).width(winWidth * .95);
+  $('.cdx-py-editor').width(winWidth * .85);
+  $('.cdx-py-editor').height(pyEdPaneHeight);
+  };
 
-	$(window).resize(function() {
-		var resizeTimer;
-    	clearTimeout(resizeTimer);
-    	resizeTimer = setTimeout(resizeRoot, 500);
-	});
+  $(window).resize(function() {
+  var resizeTimer;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resizeRoot, 500);
+  });
 
-	// Init root pane size.
-	resizeRoot();
+  // Init root pane size.
+  resizeRoot();
 
 </script>
+{% endblock %}
