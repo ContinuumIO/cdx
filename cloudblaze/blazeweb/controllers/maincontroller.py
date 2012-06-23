@@ -16,6 +16,8 @@ import cloudblaze.blazeweb.wsmanager as wsmanager
 import blaze.server.rpc.protocol as protocol
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.views.deps
+import cloudblaze.blazeweb.models.user as user
+import cloudblaze.blazeweb.models.docs as docs
 
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
@@ -47,6 +49,16 @@ def shutdown_app():
     app.proxy.kill = True
     app.proxyclient.kill = True
 
+def init_default_user(app):
+    email = 'default@continuum.com'
+    password = 'blazeon'
+    docid = str(uuid.uuid4())
+    doc = docs.Doc(docid, [email], [])
+    doc.save(app.model_redis)
+    user.new_user(app.model_redis, email, password, docs=[doc.docid])
+    user.save(app.model_redis)
+    return user
+    
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 def start_app():
     http_server.serve_forever()
