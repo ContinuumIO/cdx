@@ -40,9 +40,8 @@ def init_dir(datadir):
             f.write(config)
 
 import os.path
-    
-            
 import argparse
+
 def main():
     parser = argparse.ArgumentParser(description='Start blaze')
     parser.add_argument('datapath', nargs="?")
