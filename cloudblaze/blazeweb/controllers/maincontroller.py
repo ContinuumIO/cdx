@@ -63,8 +63,18 @@ def ensure_default_user(app):
                                     email, password, docs=[doc.docid])
         defaultuser.save(app.model_redis)
     return defaultuser
-    
+
+def get_current_user(app, session):
+    current_user = None
+    if 'username' in session:
+        current_user = user.User.load(app.model_redis, session['username'])
+    if current_user is None:
+        if app.desktopmode:
+            current_user = ensure_default_user(app)
+    return current_user
+
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 def start_app():
     gevent.spawn(runnotebook.launch_new_instance)
     http_server.serve_forever()
+    

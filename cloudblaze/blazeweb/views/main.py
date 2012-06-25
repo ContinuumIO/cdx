@@ -15,19 +15,17 @@ import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.wsmanager as wsmanager
 import cloudblaze.blazeweb.models.user as user
 import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
+import cloudblaze.blazeweb.controllers.namespaces as namespaces
 
 #main pages
+    
 @app.route('/')
 def index():
-    current_user = user.get_current_user(session)
-    if current_user is None:
-        if current_app.desktopmode:
-            current_user = maincontroller.ensure_default_user(current_app)
-            return render_template('cdx.html', user=current_user.email)         
-        else:
-            raise NotImplementedError
-    else:
-        return render_template('cdx.html', user=current_user.email)                 
+    current_user = maincontroller.get_current_user(current_app, session)
+    kernel_id = namespaces.create_or_load_namespace_for_user(
+        current_app, current_user, session)
+    print 'KERNEL', kernel_id
+    return render_template('cdx.html', user=current_user.email)         
 
 @app.route('/favicon.ico')
 def favicon():

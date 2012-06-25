@@ -45,11 +45,13 @@ class User(models.ServerModel):
         return User(obj['email'], obj['passhash'], obj['docs'])
         
     
-def get_current_user(session):
+def get_current_user(app, session):
+    current_user = None
     if 'username' in session:
-        return User.load(current_app.model_redis, session['username'])
-    else:
-        return None
-    
+        current_user = User.load(app.model_redis, session['username'])
+    if current_user is None:
+        if app.desktopmode:
+            current_user = maincontroller.ensure_default_user(app)
+    return current_user
         
         
