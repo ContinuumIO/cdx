@@ -17,7 +17,7 @@ var IPython = (function (IPython) {
         this.kernel_id = null;
         this.shell_channel = null;
         this.iopub_channel = null;
-        this.base_url = $('body').data('baseKernelUrl') + "kernels";
+	this.base_url = "ws://" + $('#notebookdata').attr('baseurl') + "/kernels"
         this.running = false;
         this.username = "username";
         this.session_id = utils.uuid();
@@ -44,47 +44,6 @@ var IPython = (function (IPython) {
             parent_header : {}
         };
         return msg;
-    };
-
-    Kernel.prototype.start = function (notebook_id, callback) {
-        var that = this;
-        if (!this.running) {
-            var qs = $.param({notebook:notebook_id});
-            var url = this.base_url + '?' + qs;
-            $.post(url,
-                function (kernel_id) {
-                    that._handle_start_kernel(kernel_id, callback);
-                }, 
-                'json'
-            );
-        };
-    };
-
-
-    Kernel.prototype.restart = function (callback) {
-        IPython.kernel_status_widget.status_restarting();
-        var url = this.kernel_url + "/restart";
-        var that = this;
-        if (this.running) {
-            this.stop_channels();
-            $.post(url,
-                function (kernel_id) {
-                    that._handle_start_kernel(kernel_id, callback);
-                },
-                'json'
-            );
-        };
-    };
-
-
-    Kernel.prototype._handle_start_kernel = function (json, callback) {
-        this.running = true;
-        this.kernel_id = json.kernel_id;
-        this.ws_url = json.ws_url;
-        this.kernel_url = this.base_url + "/" + this.kernel_id;
-        this.start_channels();
-        callback();
-        IPython.kernel_status_widget.status_idle();
     };
 
     Kernel.prototype._websocket_closed = function(ws_url, early){
@@ -119,7 +78,8 @@ var IPython = (function (IPython) {
     Kernel.prototype.start_channels = function () {
         var that = this;
         this.stop_channels();
-        var ws_url = this.ws_url + this.kernel_url;
+	var kernelid = $('#notebookdata').attr('kernelid')
+        var ws_url = this.base_url + "/" + kernelid
         console.log("Starting WS:", ws_url);
         this.shell_channel = new this.WebSocket(ws_url + "/shell");
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");

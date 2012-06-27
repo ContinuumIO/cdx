@@ -22,13 +22,15 @@ import cloudblaze.blazeweb.controllers.namespaces as namespaces
 @app.route('/')
 def index():
     current_user = maincontroller.get_current_user(current_app, session)
-    docid, kernel_id = namespaces.create_or_load_namespace_for_user(
+    docid, kernel_id, notebook_id = namespaces.create_or_load_namespace_for_user(
         current_app, current_user, session)
     print 'KERNEL', kernel_id
     return render_template(
         'cdx.html',
         user=current_user.email,
-        notebookid=docid)
+        notebook_id=notebook_id,
+        docid=docid,
+        kernelid=kernel_id)
 
 @app.route('/favicon.ico')
 def favicon():

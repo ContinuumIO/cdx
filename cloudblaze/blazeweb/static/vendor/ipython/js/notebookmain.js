@@ -105,8 +105,10 @@ $(document).ready(function () {
     }
 
     $('div#main_app').css('display','block');
+    IPython.notebook.kernel = new IPython.Kernel();    
     IPython.notebook.insert_code_cell_below();
-
+    IPython.notebook.kernel.start_channels();
+    IPython.notebook.kernel_started();
     // Perform these actions after the notebook has been loaded.
     // We wait 100 milliseconds because the notebook scrolls to the top after a load
     // is completed and we need to wait for that to mostly finish.
