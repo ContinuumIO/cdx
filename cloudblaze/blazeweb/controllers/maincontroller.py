@@ -48,9 +48,12 @@ def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
 
 def shutdown_app():
     print 'shutting down app!'
+    runnotebook.app.http_server.stop()
+    app.ipython_thread.kill()    
     app.proxy.kill = True
     app.proxyclient.kill = True
 
+    
 def ensure_default_user(app):
     email = 'default@continuum.com'
     password = 'blazeon'
@@ -75,6 +78,6 @@ def get_current_user(app, session):
 
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 def start_app():
-    gevent.spawn(runnotebook.launch_new_instance)
+    app.ipython_thread = gevent.spawn(runnotebook.launch_new_instance)
     http_server.serve_forever()
     
