@@ -95,7 +95,7 @@
     </div>
   </div>
 
-  <div id="cdxPyPane" class="span12 cdx-py-pane">
+  <div id="cdxPyPane" class="span12 cdx-py-pane" style="overflow-y:scroll;overflow-x:hidden">
     {% include 'ipython.html' %}
   </div>
 
@@ -117,7 +117,7 @@
   $(cdxRoot).height(cdxRootHeight);
   $('.midPanel').height(midPanelHeight);
   $(cdxMidContainer).width(winWidth * .95);
-  $('.cdx-py-pane').width(winWidth * .95);
+  $('.cdx-py-pane').width(winWidth * .85);
   $('.cdx-py-pane').height(pyEdPaneHeight);
   };
 
