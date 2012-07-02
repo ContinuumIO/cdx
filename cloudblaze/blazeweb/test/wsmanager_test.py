@@ -7,7 +7,8 @@ import gevent
 import cloudblaze.blazeweb.wsmanager as wsmanager
 import blaze.server.tests.test_utils as test_utils
 from cloudblaze.blazeweb.app import app
-import cloudblaze.blazeweb.start as start
+import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
+
 
 class WSmanagerTestCase(unittest.TestCase):
     def test_some_topics(self):
@@ -28,17 +29,17 @@ frontaddr = "tcp://127.0.0.1:6000"
 ws_address = "ws://localhost:5000/sub"
 class TestSubscribeWebSocket(unittest.TestCase):
     def setUp(self):
-        start.prepare_app(frontaddr)        
-        self.servert = gevent.spawn(start.start_app)
+        maincontroller.prepare_app(frontaddr)        
+        self.servert = gevent.spawn(maincontroller.start_app)
 
     def tearDown(self):
         time.sleep(1.0)
-        start.shutdown_app()
+        maincontroller.shutdown_app()
         self.servert.kill()
         
     def test_basic_subscribe(self):
-        ph = start.app.ph
-        test_utils.wait_until(lambda : start.http_server.started)
+        ph = maincontroller.app.ph
+        test_utils.wait_until(lambda : maincontroller.http_server.started)
         sock = websocket.WebSocket()
         connect(sock, ws_address, 'mytopic')
         app.wsmanager.send('mytopic', 'hello!')
@@ -58,7 +59,7 @@ class TestSubscribeWebSocket(unittest.TestCase):
         assert msg == 'hello3!'
         
 def connect(sock, addr, topic):
-    ph = start.app.ph    
+    ph = maincontroller.app.ph    
     sock.io_sock.settimeout(1.0)
     sock.connect(addr)
     msgobj = dict(msgtype='subscribe',

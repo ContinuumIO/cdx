@@ -10,7 +10,7 @@ import urlparse
 
 from cloudblaze.blazeweb.app import app
 
-import cloudblaze.blazeweb.blazeclient
+import cloudblaze.blazeweb.blazeclient as blazeclient
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.views.common as common
 import cloudblaze.blazeweb.wsmanager as wsmanager

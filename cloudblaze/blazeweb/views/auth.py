@@ -4,6 +4,7 @@ from flask import (
 	send_from_directory, make_response, session, redirect, url_for)
 import werkzeug.exceptions
 import cloudblaze.blazeweb.models.user as user
+import cloudblaze.blazeweb.models as models
 import uuid
 
 
@@ -14,7 +15,7 @@ def login():
         usermodel = user.auth_user(current_app.model_redis, email, password)
         session['username'] = usermodel.email
         return 'success'
-    except user.UnauthorizedException:
+    except models.UnauthorizedException:
         raise werkzeug.exceptions.Unauthorized('bad login')
         
 @app.route('/register', methods=['POST'])
@@ -25,7 +26,7 @@ def register():
                                   docs=[str(uuid.uuid4())])
         session['username'] = usermodel.email        
         return 'success'
-    except user.UnauthorizedException:
+    except models.UnauthorizedException:
         raise werkzeug.exceptions.Unauthorized('user already exists')
     
 @app.route('/logout', methods=['GET'])
@@ -33,3 +34,4 @@ def logout():
     session.pop('username', None)
     session['foo'] = None
     return redirect('/')
+

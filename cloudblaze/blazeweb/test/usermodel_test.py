@@ -11,9 +11,11 @@ import gevent
 import blaze.server.tests.test_utils as test_utils
 import blaze.server.redisutils as redisutils
 import redis
-import cloudblaze.blazeweb.start as start
+
+import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.models.user as user
+import cloudblaze.blazeweb.models as models
 import requests
 
 frontaddr = "tcp://127.0.0.1:6000"
@@ -30,29 +32,29 @@ class TestUser(unittest.TestCase):
     def test_cant_create_twice(self):
         model = user.new_user(self.client, 'test@test.com', 'mypassword',
                               docs=[1,2,3])
-        self.assertRaises(user.UnauthorizedException, user.new_user,
+        self.assertRaises(models.UnauthorizedException, user.new_user,
                           self.client, 'test@test.com', 'mypassword')
         
     def test_auth_user(self):
-        self.assertRaises(user.UnauthorizedException,
+        self.assertRaises(models.UnauthorizedException,
                           user.auth_user,
                           self.client, 'test@test.com', 'mypassword')
         model = user.new_user(self.client, 'test@test.com', 'mypassword')
         assert model.email == 'test@test.com'
         model = user.auth_user(self.client, 'test@test.com', 'mypassword')
-        self.assertRaises(user.UnauthorizedException, user.auth_user,
+        self.assertRaises(models.UnauthorizedException, user.auth_user,
                           self.client, 'test@test.com', 'wrongpassword')
         
             
 class TestUserModelWeb(unittest.TestCase):
     def setUp(self):
-        start.prepare_app(frontaddr, timeout=0.1)        
-        self.servert = gevent.spawn(start.start_app)
+        maincontroller.prepare_app(frontaddr, timeout=0.1)        
+        self.servert = gevent.spawn(maincontroller.start_app)
         self.redisproc = redisutils.RedisProcess(6379, '/tmp', save=False)
         time.sleep(0.1)
         
     def tearDown(self):
-        start.shutdown_app()
+        maincontroller.shutdown_app()
         self.servert.kill()
         self.redisproc.close()        
         time.sleep(1.0)

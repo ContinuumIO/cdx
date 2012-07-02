@@ -20,7 +20,7 @@ import blaze.server.blazebroker as blazebroker
 import blaze.server.blazenode as blazenode
 import blaze.server.blazeconfig as blazeconfig
 import blaze.server.redisutils as redisutils
-import cloudblaze.blazeweb.start as start
+import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ class BlazeApiTestCase(unittest.TestCase):
             test_utils.wait_until(done)
             print 'broker closed!'            
         #we need this to wait for sockets to close, really annoying
-        start.shutdown_app()
+        maincontroller.shutdown_app()
         self.redisproc.close()
         self.servert.kill()
         time.sleep(1.0)
@@ -68,8 +68,8 @@ class BlazeApiTestCase(unittest.TestCase):
         rpcserver.start()
         self.rpcserver = rpcserver
         test_utils.wait_until(lambda : len(broker.nodes) > 0)
-        start.prepare_app(frontaddr)
-        self.servert = gevent.spawn(start.start_app)
+        maincontroller.prepare_app(frontaddr)
+        self.servert = gevent.spawn(maincontroller.start_app)
         time.sleep(0.5)
 
         s = requests.session()

@@ -20,7 +20,7 @@ import yaml
 import os
 import logging
 import posixpath as blazepath
-import cloudblaze.blazeweb.start as cloudstart
+import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
@@ -40,9 +40,8 @@ def init_dir(datadir):
             f.write(config)
 
 import os.path
-    
-            
 import argparse
+
 def main():
     parser = argparse.ArgumentParser(description='Start blaze')
     parser.add_argument('datapath', nargs="?")
@@ -98,9 +97,10 @@ def main():
     node.start()
     b = blazebroker.BlazeBroker(frontaddr, backaddr, config)
     b.start()
-    cloudstart.prepare_app(frontaddr, rhost=args.redis_host,
+    maincontroller.prepare_app(frontaddr, rhost=args.redis_host,
                            rport=args.redis_port)
-    cloudstart.start_app()
+    maincontroller.start_app()
+    
 if __name__ == "__main__":
     main()
     
