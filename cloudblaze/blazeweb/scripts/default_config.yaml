@@ -1,0 +1,4 @@
+blaze:
+  type : native #our native type is a directory full of hdf5 files
+  paths :
+    data : %(datapath)s
