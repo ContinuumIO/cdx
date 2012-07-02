@@ -9,7 +9,7 @@ def new_user(client, email, password, docs=None):
         pipe.multi()
         if client.exists(key):
             raise models.UnauthorizedException
-        passhash = generate_password_hash(password, method='sha256')
+        passhash = generate_password_hash(password, method='sha1')
         user = User(email, passhash, docs=docs)
         user.save(pipe)
         pipe.execute()
