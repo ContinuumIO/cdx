@@ -32,7 +32,6 @@ def init_dir(datadir):
     if not os.path.exists(config_path):
         base_config = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                    'default_config.yaml')
-        import pdb;pdb.set_trace()
         with open(base_config) as f:
             config = f.read()
         config = config % {'datapath' : datadir}
