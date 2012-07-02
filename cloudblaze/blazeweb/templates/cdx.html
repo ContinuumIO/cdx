@@ -103,28 +103,29 @@
 </div><!-- cdxRoot container-fluid -->
 
 <script type="text/javascript">
+  
   //alert('cdx script block');
-  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  window.$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
   // Adjust layout / pane sizes.
   function resizeRoot() {
-  var winHeight = $(window).height();
-  var winWidth = $(window).width();
-  var cdxRootHeight=(winHeight * .95);
-  var midPanelHeight = (cdxRootHeight * .65);
-  var pyEdPaneHeight = (cdxRootHeight * .20);
-  //alert('resize'+cdxRootHeight);
-  $(cdxRoot).height(cdxRootHeight);
-  $('.midPanel').height(midPanelHeight);
-  $(cdxMidContainer).width(winWidth * .95);
-  $('.cdx-py-pane').width(winWidth * .85);
-  $('.cdx-py-pane').height(pyEdPaneHeight);
+    var winHeight = $(window).height();
+    var winWidth = $(window).width();
+    var cdxRootHeight=(winHeight * .95);
+    var midPanelHeight = (cdxRootHeight * .65);
+    var pyEdPaneHeight = (cdxRootHeight * .20);
+    //alert('resize'+cdxRootHeight);
+    $('#cdxRoot').height(cdxRootHeight);
+    $('.midPanel').height(midPanelHeight);
+    $('#cdxMidContainer').width(winWidth * .95);
+    $('.cdx-py-pane').width(winWidth * .85);
+    $('.cdx-py-pane').height(pyEdPaneHeight);
   };
 
   $(window).resize(function() {
-  var resizeTimer;
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(resizeRoot, 500);
+    var resizeTimer;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resizeRoot, 500);
   });
 
   // Init root pane size.
