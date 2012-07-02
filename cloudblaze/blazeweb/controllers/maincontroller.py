@@ -13,7 +13,7 @@ from geventwebsocket.handler import WebSocketHandler
 import cloudblaze.continuumweb.webzmqproxy as webzmqproxy
 from cloudblaze.blazeweb.app import app
 import cloudblaze.blazeweb.wsmanager as wsmanager
-import blaze.server.rpc.protocol as protocol
+import blaze.protocol as protocol
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.models.user as user
 import cloudblaze.blazeweb.models.docs as docs

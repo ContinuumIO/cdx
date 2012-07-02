@@ -10,7 +10,7 @@ import threading
 import uuid
 import time
 import logging
-import blaze.server.rpc.protocol as protocol
+import blaze.protocol as protocol
 
 log = logging.getLogger(__name__)
 
