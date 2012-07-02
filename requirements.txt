@@ -1,0 +1,23 @@
+Cython==0.16
+Flask==0.9
+Jinja2==2.6
+PyYAML==3.10
+Werkzeug==0.8.3
+-e git+git@github.com:ContinuumIO/blaze.git@e3d40e826656dd067aa956613c8516f2f94c4034#egg=blaze-dev
+-e git+git@github.com:ContinuumIO/CloudBlaze.git@40acaed3a19c1484f3f7d0d040ef2fa4a0499c4b#egg=cloudblaze-dev
+gevent==0.13.7
+gevent-websocket==0.3.6
+gevent-zeromq==0.2.2
+greenlet==0.4.0
+ipython==0.13
+jldzeromq==0.3.6
+nose==1.1.2
+numexpr==2.0.1
+numpy==1.6.2
+pyzmq==2.2.0
+redis==2.4.13
+requests==0.13.2
+simplejson==2.6.0
+tables==2.3.1
+tornado==2.3
+wsgiref==0.1.2

@@ -1,0 +1,8 @@
+
+
+first run brew install to get these binaries on your system
+brew install  hdf5 zeromq  libeventcd
+
+then run 
+pip install -r requirements.txt
+python setup.py develop
