@@ -22,6 +22,9 @@ import cloudblaze.blazeweb.controllers.namespaces as namespaces
 @app.route('/')
 def index():
     current_user = maincontroller.get_current_user(current_app, session)
+    if current_user is None:
+        #redirect to login, we don't have login page yet..
+        pass
     docid, kernel_id, notebook_id = namespaces.create_or_load_namespace_for_user(
         current_app, current_user, session)
     print 'KERNEL', kernel_id
