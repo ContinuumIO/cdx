@@ -1,3 +1,6 @@
 [submodule "cloudblaze/blazeweb/lib/bokehjs"]
 	path = cloudblaze/blazeweb/lib/bokehjs
 	url = git@github.com:ContinuumIO/bokehjs.git
+[submodule "cloudblaze/blazeweb/lib/ipython"]
+	path = cloudblaze/blazeweb/lib/ipython
+	url = git@github.com:ContinuumIO/ipythonprivate.git
