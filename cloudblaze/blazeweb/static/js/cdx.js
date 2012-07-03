@@ -22,4 +22,30 @@
     return inject_plot_client(window.topic, targeturl);
   };
 
+  $(function() {
+    var WorkspaceRouter;
+    WorkspaceRouter = Backbone.Router.extend({
+      routes: {
+        "module/help": "help",
+        "module/help2": "help2",
+        "module/search/:query": "search",
+        "module/search/:query/p:page": "search"
+      },
+      help: function() {
+        return console.log("help");
+      },
+      help2: function() {
+        return console.log("help2");
+      },
+      search: function(query, page) {
+        return console.log("search");
+      }
+    });
+    window.$C = {};
+    window.$C.router = new WorkspaceRouter();
+    return console.log("history start", Backbone.history.start({
+      pushState: true
+    }));
+  });
+
 }).call(this);

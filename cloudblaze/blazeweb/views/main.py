@@ -19,8 +19,20 @@ import cloudblaze.blazeweb.controllers.namespaces as namespaces
 
 #main pages
 
-@app.route('/')
-def index():
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/x-icon')
+
+@app.route('/pageRender/<filename>')
+def pageRender(filename):
+    app.logger.debug('pageRender filename=[%s]',filename)
+    # Note the corresponding html file must be in the templates folder.
+    return render_template(filename + '.html')
+
+
+@app.route('/module/<unused>')
+def index(unused):
     current_user = maincontroller.get_current_user(current_app, session)
     if current_user is None:
         #redirect to login, we don't have login page yet..
@@ -49,14 +61,3 @@ def index():
         notebook_id=notebook_id,
         docid=docid,
         kernelid=kernel_id)
-
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/x-icon')
-
-@app.route('/pageRender/<filename>')
-def pageRender(filename):
-    app.logger.debug('pageRender filename=[%s]',filename)
-    # Note the corresponding html file must be in the templates folder.
-    return render_template(filename + '.html')
