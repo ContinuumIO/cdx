@@ -130,6 +130,31 @@
 
   // Init root pane size.
   resizeRoot();
+</script>
+<script type="text/javascript">
+  // This code is where we inject all the initial bb models into the
+  // code.
+  // we load them into their respective collections with load_models
+  // then we connect to the websocket for this document
+  // then we instantiate the view associated with the plot context
 
+  {% autoescape false %}
+
+  //build an API endpoint for this
+  plotcontext = {{ plotcontext }};
+
+  //you can get this by hitting /bb/docid
+  all_components = {{ all_components }};
+
+  {% endautoescape %}        
+  topic = "{{ docid }}";
+  $(function(){
+    Continuum.load_models(all_components);
+    ws_conn_string = "ws://{{request.host}}/sub";
+    socket = Continuum.submodels(ws_conn_string, topic);
+    plotcontext = Continuum.resolve_ref(plotcontext['collections'], plotcontext['type'], plotcontext['id']);
+    plotcontextview = new plotcontext.default_view({'model' : plotcontext, 'el' : $('#dvp-tabs1-pane2')});
+    console.log('RENDERING');
+  });
 </script>
 {% endblock %}

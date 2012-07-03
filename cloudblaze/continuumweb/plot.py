@@ -43,9 +43,9 @@ class PlotClient(bbmodel.ContinuumModelsClient):
     def __init__(self, docid, url):
         self.ph = protocol.ProtocolHelper()
         super(PlotClient, self).__init__(docid, url, self.ph)
-        interactive_context = self.fetch(typename='InteractiveContext')
+        interactive_context = self.fetch(typename='CDXPlotContext')
         self.ic = interactive_context[0]
-        
+
     def make_source(self, **kwargs):
         output = []
         flds = kwargs.keys()
@@ -56,7 +56,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             output.append(point)
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
-    
+
     def scatter(self, x, y, width=300, height=300, color="#000",
                 data_source=None, container=None, scatterplot=None):
         """
@@ -78,7 +78,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         else:
             return self._addscatter(scatterplot, x, y, color=color,
                                     data_source=data_source)
-        
+
     def _addscatter(self, scatterplot, x, y, color="#000", data_source=None):
         if data_source is None:
             data_source = self.make_source(x=x, y=y)
@@ -187,7 +187,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                          xaxis, yaxis, xmapper, ymapper,
                          pantool, zoomtool, selecttool, selectoverlay,
                          scatter])
-                 
+
         self.upsert_all(tocreate)
         if container is None:
             self.show(plot)
@@ -197,7 +197,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                            xmapper, ymapper, scatter,
                            pantool, zoomtool, selecttool, selectoverlay,
                            container)
-    
+
     def _newlineplot(self, x, y, width=300, height=300, lineplot=None,
                      data_source=None, container=None):
         tocreate = []
@@ -268,8 +268,8 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                         datarange1, datarange2,
                         xmapper, ymapper, line, pantool, zoomtool,
                         container)
-        
-                    
+
+
     def line(self, x, y, width=300, height=300, lineplot=None,
              data_source=None, container=None):
         """
@@ -277,7 +277,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         ----------
         x : string of fieldname in data_source, or 1d vector
         y : string of fieldname in data_source or 1d_vector
-        lineplot : optional, if you want to add a line to an existing plot        
+        lineplot : optional, if you want to add a line to an existing plot
         data_source : optional if x,y are not strings,
             backbonemodel of a data source
         container : bbmodel of container viewmodel
@@ -301,7 +301,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                 added = True
         if not added:
             sources.append({'ref' : data_source.ref(), 'columns' : columns})
-        
+
     def _addline(self, lineplot, x, y, data_source=None):
         if data_source is None:
             data_source = self.make_source(x=x, y=y)
@@ -320,7 +320,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         lineplot.plot.get('renderers').append(line.ref())
         self.update(lineplot.plot.typename, lineplot.plot.attributes)
         return lineplot
-    
+
     def _remove_from_ic(self, plots):
         toremove = set()
         for plot in plots:
@@ -328,7 +328,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         children = [x for x in self.ic.get('children') if x['id'] not in toremove]
         self.ic.set('children', children)
         self.update(self.ic.typename, self.ic.attributes)
-        
+
     def _remove_all_grid_parents(self, plots):
         for plot in plots:
             if plot.get('parent')['type'] == 'GridPlotContainer':
@@ -356,17 +356,18 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         self.upsert_all(to_update)
         self.show(container)
         return container
-    
+
     def show(self, plot):
         children = self.ic.get('children')
         if children is None: children = []
         children.append(plot.ref())
         self.ic.set('children', children)
         self.update(self.ic.typename, self.ic.attributes)
-        
+
 if __name__ == "__main__":
     import numpy as np
-    client = PlotClient('test', "http://localhost:5000/bb/")
+    docid = 'b0abc6a4-fe83-46c8-afd0-f0d955d0af1e'
+    client = PlotClient(docid, "http://localhost:5000/bb/")
     x = np.random.random(100)
     y = np.random.random(100)
     data_source = client.make_source(idx=range(100), x=x, y=y)
@@ -378,4 +379,3 @@ if __name__ == "__main__":
     xdata = np.arange(0, 15, 0.01)
     ydata = 2 * np.cos(xdata)
     lineplot=client.line(xdata, ydata, lineplot=lineplot)
-    
