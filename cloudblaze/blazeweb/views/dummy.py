@@ -1,6 +1,6 @@
 from flask import (
-	render_template, request, current_app,
-	send_from_directory, make_response)
+    render_template, request, current_app,
+    send_from_directory, make_response)
 import flask
 import os
 import simplejson
@@ -43,7 +43,8 @@ def get_dataview(datapath=""):
 @app.route("/interactive/<docid>")
 def interact(docid):
     models = current_app.collections.get_bulk(docid)
-    interactive_context = [x for x in models if x.typename == 'InteractiveContext']
+    interactive_context = [
+        x for x in models if x.typename == 'InteractiveContext']
     if len(interactive_context) == 0:
         interactive_context = bbmodel.ContinuumModel(
             'InteractiveContext', docs=[docid])
@@ -52,7 +53,7 @@ def interact(docid):
     else:
         interactive_context = interactive_context[0]
     models = [x.to_broadcast_json() for x in models]
-    
+
     resp = make_response(flask.render_template(
         'blank.html', topic=docid,
         all_components=current_app.ph.serialize_web(models),
