@@ -31,9 +31,9 @@ def pageRender(filename):
     # Note the corresponding html file must be in the templates folder.
     return render_template(filename + '.html')
 
-
-@app.route('/module/<unused>')
-def index(unused):
+@app.route('/cdx')
+@app.route('/cdx/<unused>')
+def index(unused=None):
     current_user = maincontroller.get_current_user(current_app, session)
     if current_user is None:
         #redirect to login, we don't have login page yet..
@@ -81,9 +81,9 @@ def get_doc(docid):
     if (user.email in doc.rw_users) or (user.email in doc.r_users):
         return current_app.ph.serialize_web(
             {'plot_context' : doc.plot_context_ref})
-    
+
 @app.route('/userinfo/')
-def get_user(email):
+def get_user():
     user = maincontroller.get_current_user(current_app, session)
     return current_app.ph.serialize_web(user.to_public_json())
 
@@ -98,5 +98,23 @@ def get_ipython_info(docid):
          'baseurl' : request.host.split(':')[0] + ':8888'
          }
         )
-
-    
+@app.route('/cdxinfo/<docid>')
+def get_cdx_info(docid):
+    doc = docs.Doc.load(app.model_redis, docid)
+    user = maincontroller.get_current_user(current_app, session)
+    if not ((user.email in doc.rw_users) or (user.email in doc.r_users)):
+        return null
+    plot_context_ref = doc.plot_context_ref
+    all_models = current_app.collections.get_bulk(docid)
+    all_models = [x.to_broadcast_json() for x in all_models]
+    docid, kernelid, notebookid = namespaces.create_or_load_namespace(
+        current_app, docid)
+    ipythonbaseurl = request.host.split(':')[0] + ':8888'
+    returnval = {'plot_context_ref' : plot_context_ref,
+     'docid' : docid,
+     'kernelid' : kernelid,
+     'notebookid' : notebookid,
+     'baseurl' : ipythonbaseurl,
+     'all_models' : all_models}
+    returnval = current_app.ph.serialize_web(returnval)
+    return returnval
