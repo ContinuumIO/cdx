@@ -33,7 +33,8 @@ def pageRender(filename):
 
 @app.route('/cdx')
 @app.route('/cdx/<unused>')
-def index(unused=None):
+@app.route('/cdx/<unused>/<unused_2>')
+def index(*unused_all, **kwargs):
     current_user = maincontroller.get_current_user(current_app, session)
     if current_user is None:
         #redirect to login, we don't have login page yet..

@@ -28,6 +28,7 @@
       routes: {
         "cdx": "load_default_document",
         "cdx/:docid": "load_doc",
+        "cdx/:docid/viz": "load_doc_viz",
         "module/help2": "help2",
         "module/search/:query": "search",
         "module/search/:query/p:page": "search"
@@ -44,8 +45,7 @@
         });
       },
       load_doc: function(docid) {
-        var docdata;
-        return docdata = $.get("/cdxinfo/" + docid, {}, function(data) {
+        return $.get("/cdxinfo/" + docid, {}, function(data) {
           var plotcontext, plotcontextview, socket, ws_conn_string;
           data = JSON.parse(data);
           $CDX.plot_context_ref = data['plot_context_ref'];
@@ -67,6 +67,11 @@
             return window.call_inject(docid);
           }), 1000);
           return console.log('RENDERING');
+        });
+      },
+      load_doc_viz: function(docid) {
+        return $.when(this.load_doc(docid)).then(function() {
+          return $('a[href="#dvp-tabs1-pane2"]').tab('show');
         });
       },
       help: function() {

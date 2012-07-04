@@ -23,6 +23,7 @@ $(() ->
     routes: {
       "cdx" : "load_default_document",
       "cdx/:docid":                 "load_doc",     #help
+      "cdx/:docid/viz":             "load_doc_viz",     #help
       "module/help2":                 "help2",     #help
       "module/search/:query":        "search",   #search/kiwis
       "module/search/:query/p:page": "search",   #search/kiwis/p7
@@ -33,7 +34,7 @@ $(() ->
         console.log('URL', "cdx/#{docs[0]}")
         $CDX.router.navigate("cdx/#{docs[0]}", {trigger : true}))
     load_doc : (docid) ->
-      docdata = $.get("/cdxinfo/#{docid}", {}, (data) ->
+      return $.get("/cdxinfo/#{docid}", {}, (data) ->
         data = JSON.parse(data)
         $CDX.plot_context_ref = data['plot_context_ref']
         $CDX.docid = data['docid']
@@ -49,8 +50,11 @@ $(() ->
           $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
         plotcontextview = new plotcontext.default_view({'model' : plotcontext, 'el' : $('#dvp-tabs1-pane2')});
         _.delay((() -> window.call_inject(docid)), 1000)
-        console.log('RENDERING');
-      )
+        console.log('RENDERING');)
+
+    load_doc_viz : (docid) ->
+      $.when( @load_doc(docid) ).then( ->
+        $('a[href="#dvp-tabs1-pane2"]').tab('show'))
     help: () -> 
       console.log("help");
       
