@@ -60,11 +60,9 @@ def ensure_default_user(app):
     defaultuser = user.User.load(app.model_redis, email)
     if defaultuser is None:
         docid = str(uuid.uuid4())
-        doc = docs.Doc(docid, 'main', [email], [])
-        doc.save(app.model_redis)
+        doc = docs.new_doc(app, docid, 'main', [email])
         defaultuser = user.new_user(app.model_redis,
                                     email, password, docs=[doc.docid])
-        defaultuser.save(app.model_redis)
     return defaultuser
 
 def get_current_user(app, session):

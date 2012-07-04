@@ -366,7 +366,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
 
 if __name__ == "__main__":
     import numpy as np
-    docid = 'b0abc6a4-fe83-46c8-afd0-f0d955d0af1e'
+    docid = 'b25b6c38-5de9-450a-9db9-9905cdb34117'
     client = PlotClient(docid, "http://localhost:5000/bb/")
     x = np.random.random(100)
     y = np.random.random(100)

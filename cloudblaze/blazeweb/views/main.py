@@ -14,6 +14,7 @@ import cloudblaze.blazeweb.blazeclient
 import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.wsmanager as wsmanager
 import cloudblaze.blazeweb.models.user as user
+import cloudblaze.blazeweb.models.docs as docs
 import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
 import cloudblaze.blazeweb.controllers.namespaces as namespaces
 
@@ -61,3 +62,24 @@ def index(unused):
         notebook_id=notebook_id,
         docid=docid,
         kernelid=kernel_id)
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/x-icon')
+
+@app.route('/pageRender/<filename>')
+def pageRender(filename):
+    app.logger.debug('pageRender filename=[%s]',filename)
+    # Note the corresponding html file must be in the templates folder.
+    return render_template(filename + '.html')
+
+@app.route('/docinfo/<docid>')
+def get_doc(docid):
+    doc = docs.Doc.load(app.model_redis, docid)
+    user = maincontroller.get_current_user(current_app, session)
+    if (user.email in doc.rw_users) or (user.email in doc.r_users):
+        return current_app.ph.serialize_web(
+            {'plot_context' : doc.plot_context_ref})
+    
+
