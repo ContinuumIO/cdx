@@ -82,4 +82,21 @@ def get_doc(docid):
         return current_app.ph.serialize_web(
             {'plot_context' : doc.plot_context_ref})
     
+@app.route('/userinfo/')
+def get_user(email):
+    user = maincontroller.get_current_user(current_app, session)
+    return current_app.ph.serialize_web(user.to_public_json())
 
+@app.route('/ipythoninfo/<docid>')
+def get_ipython_info(docid):
+    docid, kernelid, notebookid = namespaces.create_or_load_namespace(
+        current_app, docid)
+    return current_app.ph.serialize_web(
+        {'docid' : docid,
+         'kernelid' : kernelid,
+         'notebookid' : notebookid,
+         'baseurl' : request.host.split(':')[0] + ':8888'
+         }
+        )
+
+    

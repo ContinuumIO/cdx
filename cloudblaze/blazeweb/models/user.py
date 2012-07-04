@@ -34,7 +34,11 @@ class User(models.ServerModel):
         if docs is None:
             docs = []
         self.docs = docs
-
+        
+    def to_public_json(self):
+        return {'email' : self.email,
+                'docs' : self.docs}
+        
     def to_json(self):
         return {'email' : self.email,
                 'passhash' : self.passhash,
