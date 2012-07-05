@@ -66,7 +66,7 @@ class CloudBlazeKernel(CloudBlazeKernelMixin, Kernel):
         new_msg_types = ['namespace_request', 'object_request']
         for msg_type in new_msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
-        self.log.warning('NUMPY KERNEL!')
+        self.log.warning('CLOUD BLAZE KERNEL!')
 
 
         
@@ -110,8 +110,9 @@ class CloudBlazeKernelApp(IPKernelApp):
                 shell._showtraceback = _showtraceback
     
 def cloud_blaze_launcher(*args, **kwargs):
-    entry_point.base_launch_kernel('from notebook.kernel import main; main()',
-                                   *args, **kwargs)
+    entry_point.base_launch_kernel(
+        'from cloudblaze.ipython.blazekernel import main; main()',
+        *args, **kwargs)
 
 def main():
     """Run an IPKernel as an application"""
