@@ -1,8 +1,11 @@
 import IPython.frontend.html.notebook.notebookapp as notebookapp
 import IPython.frontend.html.notebook.kernelmanager as kernelmanager
+from IPython.zmq.kernelmanager import KernelManager
 import blazekernel
 from tornado import httpserver
 import tornado
+import uuid
+import os
 
 class BlazeKernelManager(kernelmanager.MappingKernelManager):
     
@@ -43,7 +46,7 @@ class BlazeKernelManager(kernelmanager.MappingKernelManager):
             self.log.info("Using existing kernel: %s" % kernel_id)
         return kernel_id
     
-notebookapp.MultiKernelManager = BlazeKernelManager
+notebookapp.MappingKernelManager = BlazeKernelManager
 
 app = notebookapp.NotebookApp.instance()
 app.open_browser = False

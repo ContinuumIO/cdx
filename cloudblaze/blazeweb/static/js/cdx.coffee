@@ -1,7 +1,7 @@
 # CDX Coffee Script
 #
 # This is the main script file for the CDX app.
-
+#some ipython stuff, let's move this to another file later
 inject_plot_client = (docid, url) ->
   code = _.template("import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('{{ docid }}', '{{ url }}')",
     docid : docid
@@ -11,12 +11,23 @@ inject_plot_client = (docid, url) ->
   last_cell = cells[(cells.length - 1)]
   last_cell.set_code(code)
   IPython.notebook.select((cells.length - 1))
-  IPython.notebook.execute_selected_cell()  
+  IPython.notebook.execute_selected_cell()
 
 window.call_inject =   (docid) ->
   targeturl = _.template("http://{{ host }}/bb/", {'host' : window.location.host})
   inject_plot_client(docid, targeturl)
 
+window.setup_ipython_events = () ->
+  IPython.Kernel.prototype.namespace_request = () ->
+    content = {}
+    msg = @get_msg("namespace_request", content)
+    @shell_channel.send(JSON.stringify(msg))
+    return msg.header.msg_id
+
+  IPython.Eventer = _.clone(Backbone.Events)
+  IPython.Eventer.on('shellmsg:namespace', (header, content)->
+    console.log(header, content)
+  )
 
 $(() ->
   WorkspaceRouter = Backbone.Router.extend({
@@ -48,16 +59,20 @@ $(() ->
         plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
           $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
         plotcontextview = new plotcontext.default_view({'model' : plotcontext, 'el' : $('#dvp-tabs1-pane2')});
-        _.delay((() -> window.call_inject(docid)), 1000)
+        _.delay(() ->
+            window.call_inject(docid)
+            window.setup_ipython_events()
+          , 1000
+        )
         console.log('RENDERING');
       )
-    help: () -> 
+    help: () ->
       console.log("help");
-      
+
     help2: () ->
       console.log("help2");
-      
-    search: (query, page) -> 
+
+    search: (query, page) ->
       console.log("search");
 
   });
@@ -68,4 +83,3 @@ $(() ->
 
   );
 
-  
