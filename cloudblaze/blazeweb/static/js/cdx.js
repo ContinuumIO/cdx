@@ -56,6 +56,7 @@
           return $.when($CDX.doc_loaded).then(function() {
             var plotcontext, plotcontextview;
             plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'], $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id']);
+            window.plotcontext = plotcontext;
             plotcontextview = new plotcontext.default_view({
               'model': plotcontext,
               'el': $('#viz-tab')
@@ -92,9 +93,7 @@
       },
       load_doc_viz: function(docid) {
         $CDX.utility.start_instatiate(docid);
-        $('a[data-route_target="navigate_doc_viz"]').show('tab');
-        this.navigate_doc_viz();
-        return $('a[data-route_target="navigate_doc_viz"]').show('tab');
+        return this.navigate_doc_viz();
       },
       navigate_doc_viz: function() {
         $CDX.utility.instatiate_viz_tab();

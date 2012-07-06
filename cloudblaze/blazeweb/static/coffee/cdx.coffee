@@ -49,6 +49,7 @@ $(() ->
         $.when($CDX.doc_loaded).then(->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
+          window.plotcontext = plotcontext
           plotcontextview = new plotcontext.default_view(
             {'model' : plotcontext, 'el' : $('#viz-tab')});
           _.delay((() ->
@@ -75,8 +76,6 @@ $(() ->
       console.log('RENDERING');
 
     load_doc_viz : (docid) ->
-      #$.when( @load_doc(docid) ).then( ->
-      #  $('a[href="#dvp-tabs1-pane2"]').tab('show'))
       $CDX.utility.start_instatiate(docid)
       @navigate_doc_viz()
 
@@ -125,4 +124,5 @@ $(() ->
 
   );
 
-  
+
+
