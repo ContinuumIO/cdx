@@ -72,7 +72,7 @@ def main():
     args = parser.parse_args()
     print args
     servername = args.server_name
-    import pdb;pdb.set_trace()
+    #import pdb;pdb.set_trace()
     if args.datapath is None:
         datapath = os.path.abspath(os.path.dirname(blaze.server.tests.__file__))
         datapath = os.path.join(datapath, 'data')
