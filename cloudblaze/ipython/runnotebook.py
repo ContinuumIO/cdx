@@ -47,8 +47,13 @@ class BlazeKernelManager(kernelmanager.MappingKernelManager):
         return kernel_id
     
 notebookapp.MappingKernelManager = BlazeKernelManager
-
-app = notebookapp.NotebookApp.instance()
+class ContinuumEmbeddedNotebookApp(notebookapp.NotebookApp):
+    def init_signal(self):
+        pass
+    def _confirm_exit(self):
+        from zmq.eventloop import ioloop
+        ioloop.IOLoop.instance().stop()
+app = ContinuumEmbeddedNotebookApp.instance()
 app.open_browser = False
 def launch_new_instance():
     app.initialize()
