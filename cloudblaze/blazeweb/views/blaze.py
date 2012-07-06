@@ -16,6 +16,16 @@ import cloudblaze.blazeweb.wsmanager as wsmanager
 log = logging.getLogger(__name__)
 
 #http api for blaze server
+@app.route("/metadata/", methods=['GET'])
+@app.route("/metadata/<path:datapath>", methods=['GET'])
+def get_metadata(datapath="/"):
+    depth = request.args.get('depth', None)
+    if depth is not None:
+        depth = int(depth)
+    response = blazeclient.get_tree(
+        current_app.rpcclient, datapath, depth=depth)
+    return simplejson.dumps(response)
+
 @app.route("/data/<path:datapath>", methods=['GET'])
 def get_data(datapath):
     data_slice=common.get_slice(request)
