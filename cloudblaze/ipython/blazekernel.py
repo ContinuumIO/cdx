@@ -7,7 +7,6 @@ from zmq.eventloop.zmqstream import ZMQStream
 import IPython.zmq.entry_point as entry_point
 import simplejson
 import numpy as np
-import pandas
 import notifications
 #import npcframe
 
@@ -25,10 +24,10 @@ class CloudBlazeKernelMixin(object):
     def namespace_notification(self, key, val):
         if self.parent is None:
             return
-        if isinstance(val, pandas.DataFrame) or \
-               isinstance(val, notifications.DataFrame):
-            notifications.pub_object(key, val)
-            val.varname = key
+        # if isinstance(val, pandas.DataFrame) or \
+        #        isinstance(val, notifications.DataFrame):
+        #     notifications.pub_object(key, val)
+        #     val.varname = key
             
     def get_namespace_data(self):
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
