@@ -53,6 +53,8 @@ class ContinuumEmbeddedNotebookApp(notebookapp.NotebookApp):
     def _confirm_exit(self):
         from zmq.eventloop import ioloop
         ioloop.IOLoop.instance().stop()
+    def parse_command_line(self, argv=None):
+        pass
 app = ContinuumEmbeddedNotebookApp.instance()
 app.open_browser = False
 def launch_new_instance():
