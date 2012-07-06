@@ -14,6 +14,7 @@ import blaze.server.blazeconfig.orderedyaml as orderedyaml
 import blaze.server.blazenode as blazenode
 import blaze.server.blazebroker as blazebroker
 
+import time
 import redis
 import sys
 import yaml
@@ -86,6 +87,7 @@ def main():
             datapath,
             data_file=os.path.join(datapath, 'redis.db'),
             log_file=os.path.join(datapath, 'redis.log'))
+    time.sleep(0.1)
     init_dir(datapath)
     data = yaml.load(open(os.path.join(datapath, 'blaze.config')).read(),
                           Loader=orderedyaml.OrderedDictYAMLLoader)
