@@ -34,6 +34,7 @@ def pageRender(filename):
 @app.route('/cdx')
 @app.route('/cdx/<unused>')
 @app.route('/cdx/<unused>/<unused_2>')
+@app.route('/cdx/<unused>/<unused_2>/<unused_3>')
 def index(*unused_all, **kwargs):
     current_user = maincontroller.get_current_user(current_app, session)
     if current_user is None:

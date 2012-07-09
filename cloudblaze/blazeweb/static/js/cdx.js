@@ -2,10 +2,7 @@ var inject_plot_client;
 
 inject_plot_client = function(docid, url) {
   var cells, code, last_cell;
-  code = _.template("import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('{{ docid }}', '{{ url }}')", {
-    docid: docid,
-    url: url
-  });
+  code = "import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('" + docid + "', '" + url + "')";
   cells = IPython.notebook.cells();
   last_cell = cells[cells.length - 1];
   last_cell.set_code(code);
@@ -55,9 +52,30 @@ $(function() {
         return $.when($CDX.doc_loaded).then(function() {
           var plotcontext, plotcontextview;
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'], $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id']);
-          window.plotcontext = plotcontext;
           plotcontextview = new plotcontext.default_view({
             'model': plotcontext,
+            'el': $('#viz-tab')
+          });
+          return _.delay((function() {
+            window.call_inject($CDX.docid);
+            return $CDX._viz_instatiated.resolve($CDX.docid);
+          }), 1000);
+        });
+      }
+    },
+    instatiate_specific_viz_tab: function(plot_id) {
+      if (!$CDX._viz_instatiated.isResolved()) {
+        return $.when($CDX.doc_loaded).then(function() {
+          var plotcontext, plotcontextview, s_pc, s_pc_ref;
+          plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'], $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id']);
+          window.plotcontext = plotcontext;
+          s_pc_ref = plotcontext.get('children')[0];
+          s_pc = Continuum.resolve_ref(s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id);
+          window.s_pc_ref = s_pc_ref;
+          window.s_pc = s_pc;
+          plotcontextview = new s_pc.default_view({
+            'model': s_pc,
+            'render_loop': true,
             'el': $('#viz-tab')
           });
           return _.delay((function() {
@@ -72,7 +90,8 @@ $(function() {
     routes: {
       "cdx": "load_default_document",
       "cdx/:docid": "load_doc",
-      "cdx/:docid/viz": "load_doc_viz"
+      "cdx/:docid/viz": "load_doc_viz",
+      "cdx/:docid/viz/:plot_id": "load_specific_viz"
     },
     load_default_document: function() {
       var user;
@@ -93,6 +112,14 @@ $(function() {
     load_doc_viz: function(docid) {
       $CDX.utility.start_instatiate(docid);
       return this.navigate_doc_viz();
+    },
+    load_specific_viz: function(docid, plot_id) {
+      $CDX.utility.start_instatiate(docid);
+      $CDX.utility.instatiate_specific_viz_tab(0);
+      return $.when($CDX.viz_instatiated).then(function() {
+        console.log("navigate_doc_viz then");
+        return $('a[data-route_target="navigate_doc_viz"]').tab('show');
+      });
     },
     navigate_doc_viz: function() {
       $CDX.utility.instatiate_viz_tab();

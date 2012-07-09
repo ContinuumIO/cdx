@@ -3,10 +3,12 @@
 # This is the main script file for the CDX app.
 
 inject_plot_client = (docid, url) ->
-  code = _.template("import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('{{ docid }}', '{{ url }}')",
-    docid : docid
-    url : url
-  )
+  #code = _.template(
+  #  "import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('{{ docid }}', '{{ url }}')",
+  #  docid : docid
+  #  url : url)
+ 
+  code = "import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('#{docid}', '#{url}')"
   cells = IPython.notebook.cells()
   last_cell = cells[(cells.length - 1)]
   last_cell.set_code(code)
@@ -49,9 +51,26 @@ $(() ->
         $.when($CDX.doc_loaded).then(->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
-          window.plotcontext = plotcontext
           plotcontextview = new plotcontext.default_view(
             {'model' : plotcontext, 'el' : $('#viz-tab')});
+
+          _.delay((() ->
+            window.call_inject($CDX.docid)
+            $CDX._viz_instatiated.resolve($CDX.docid)),
+            1000))
+
+    instatiate_specific_viz_tab: (plot_id) ->
+      if not $CDX._viz_instatiated.isResolved()
+        $.when($CDX.doc_loaded).then(->
+          plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
+            $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
+          window.plotcontext = plotcontext
+          s_pc_ref = plotcontext.get('children')[0]
+          s_pc = Continuum.resolve_ref(s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
+          window.s_pc_ref = s_pc_ref
+          window.s_pc = s_pc
+          plotcontextview = new s_pc.default_view(
+            {'model' : s_pc, 'render_loop':true, 'el' : $('#viz-tab')});
           _.delay((() ->
             window.call_inject($CDX.docid)
             $CDX._viz_instatiated.resolve($CDX.docid)),
@@ -63,6 +82,7 @@ $(() ->
       "cdx" : "load_default_document",
       "cdx/:docid":                 "load_doc",     #help
       "cdx/:docid/viz":             "load_doc_viz",     #help
+      "cdx/:docid/viz/:plot_id":    "load_specific_viz",     #help
       },
     load_default_document : () ->
       user = $.get('/userinfo/', {}, (data) ->
@@ -79,6 +99,13 @@ $(() ->
       $CDX.utility.start_instatiate(docid)
       @navigate_doc_viz()
 
+    load_specific_viz : (docid, plot_id) ->
+      $CDX.utility.start_instatiate(docid)
+      $CDX.utility.instatiate_specific_viz_tab(0)
+      $.when($CDX.viz_instatiated).then(->
+        console.log("navigate_doc_viz then")
+        $('a[data-route_target="navigate_doc_viz"]').tab('show'))
+
     navigate_doc_viz: ->
       $CDX.utility.instatiate_viz_tab()
       $.when($CDX.viz_instatiated).then(->
@@ -86,7 +113,6 @@ $(() ->
         $('a[data-route_target="navigate_doc_viz"]').tab('show')
         expected_path = "cdx/#{$CDX.docid}/viz"
         sliced_path = location.pathname[1..]
-        #console.log("path comparison", sliced_path == expected_path, expected_path, sliced_path)
         if not (sliced_path == expected_path)
           console.log('paths not equal, navigating')
           $CDX.router.navigate(expected_path)
