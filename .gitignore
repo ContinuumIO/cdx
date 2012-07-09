@@ -81,3 +81,4 @@ Thumbs.db
 # Things specific to this project #
 ###################################
 *.ipynb
+cdx.js
