@@ -32,6 +32,13 @@ overflow: auto;
     overflow: auto;
 }
 
+.css-treeview
+{
+    font: normal 11px "Segoe UI", Arial, Sans-serif;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
 
 .css-treeview ul,
 .css-treeview li
@@ -45,14 +52,6 @@ overflow: auto;
 {
     position: absolute;
     opacity: 0;
-}
-
-.css-treeview
-{
-    font: normal 11px "Segoe UI", Arial, Sans-serif;
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    user-select: none;
 }
 
 .css-treeview a
