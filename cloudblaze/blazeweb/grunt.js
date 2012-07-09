@@ -53,13 +53,7 @@ module.exports = function(grunt) {
         uglify: {},
 
         coffee: {
-            // Example1: compile multiple coffees to one js with "--join".
-            // dist1: {
-            //   //files: [ 'coffee/1.coffee', 'coffee/2.coffee' ],
-            //   dir: 'coffee',
-            //   //dest: 'js/12.js'
-            //   dest: 'js'
-            // }
+
             bokeh: {
                 dir: 'lib/bokehjs/src/coffee',
                 dest: 'lib/bokehjs/lib/js'
@@ -79,26 +73,6 @@ module.exports = function(grunt) {
                 files: 'static/coffee/*.coffee',
                 tasks: 'coffee:cdx ok'
             }
-
-            // dist1: {
-            //   //files: '<config:coffee.dist1.files>',
-            //   files: 'coffee/*',
-            //     tasks: 'coffee:dist1 ok'
-            // }
-            /*
-              dist2: {
-              files: '<config:coffee.dist2.files>',
-              tasks: 'coffee:dist2 ok'
-              },
-              dist3: {
-              files: 'coffee/45/*.coffee',
-              tasks: 'coffee:dist3 ok'
-              },
-              dist4: {
-              files: 'insamedir/*.coffee',
-              tasks: 'coffee:dist4 ok'
-              }
-            */
         }
     });
 
