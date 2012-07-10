@@ -30,6 +30,19 @@ $CDX._viz_instatiated = $.Deferred();
 $CDX.viz_instatiated = $CDX._viz_instatiated.promise();
 
 
+add_viz_1 = (plot_num) ->
+  plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
+  $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
+  s_pc_ref = plotcontext.get('children')[plot_num]
+  s_pc = Continuum.resolve_ref(s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
+  s_pc.set('render_loop', true)
+  plotcontextview = new s_pc.default_view(
+    model: s_pc, render_loop:true,
+    el: $CDX.main_tab_set.add_tab_el(
+        tab_name:"plot#{plot_num}",  view: {}, route:"plot#{plot_num}"))
+
+
+
 $(() ->
 
   $CDX.utility = {
@@ -66,31 +79,27 @@ $(() ->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
           plotcontext.set('render_loop', true)
-          window.pc = plotcontext
           plotcontextview = new plotcontext.default_view(
-            {'model' : plotcontext, 'el' : $('#viz-tab')});
-          window.pcv = plotcontextview
+            model : plotcontext,
+            el: $CDX.main_tab_set.add_tab_el(
+              tab_name:"viz", view: {}, route:"viz"))
           $CDX._viz_instatiated.resolve($CDX.docid))
-
 
     instatiate_specific_viz_tab: (plot_id) ->
       if not $CDX._viz_instatiated.isResolved()
         $.when($CDX.doc_loaded).then(->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
-          window.plotcontext = plotcontext
           s_pc_ref = plotcontext.get('children')[0]
           s_pc = Continuum.resolve_ref(s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
-          window.s_pc_ref = s_pc_ref
-          window.s_pc = s_pc
-
           s_pc.set('render_loop', true)
-          console.log(' instatiate_specific_viz_tab set render_loop to true', s_pc.get('render_loop'))
           plotcontextview = new s_pc.default_view(
-            {'model' : s_pc, 'render_loop':true, 'el' : $('#viz-tab')});
-          #plotcontextview.render_deferred_components()
-          #plotcontextview.render()
-          #plotcontextview._dirty = true
+            {'model' : s_pc, 'render_loop':true, 'el' : $('#main-tab-area')});
+          # plotcontextview = new s_pc.default_view(
+          #     model: s_pc, 
+          #     el: $CDX.main_tab_set.add_tab_el(
+          #       tab_name:"plot#{plot_num}",  view: {}, route:"plot#{plot_num}"))
+
           $CDX._viz_instatiated.resolve($CDX.docid))
   };
 
@@ -155,12 +164,19 @@ $(() ->
 
     );
 
+  class BazView extends Backbone.View
+    render: () ->
+      return "<h3> baz view </h3>"
+
 
   $CDX.layout = new Layout();
   $.when($CDX.layout_render = $CDX.layout.render()).then( ->
     $("#layout-root").prepend($CDX.layout_render.el);
-    );
+    $CDX.main_tab_set = new TabSet(
+      el:"#main-tab-area", tab_view_objs: [{view: new BazView(), route:'main', tab_name:'main'}])
 
+    $CDX.main_tab_set.render()
+    )
   $CDX.router = new WorkspaceRouter();
   console.log("history start", Backbone.history.start(pushState:true))
 

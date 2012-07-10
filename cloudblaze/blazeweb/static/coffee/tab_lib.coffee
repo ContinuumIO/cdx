@@ -34,10 +34,23 @@ class TabSet extends Backbone.View
     tvo.pane_el = @_create_pane(tab_view_obj)
     @tab_holder_el.append(tvo.tab_el)
     @pane_holder_el.append(tvo.pane_el)
-    
+    tvo.pane_el.append(tab_view_obj.view.render())
     if _.keys(@tab_view_dict).length == 1
       @activate(_.keys(@tab_view_dict)[0])
     tvo.route
+
+  add_tab_el: (tab_view_obj) ->
+    tvo = tab_view_obj
+    @tab_view_dict[tab_view_obj.route] = tab_view_obj
+    tvo.tab_el =  @_create_tab(tab_view_obj)
+    tvo.pane_el = @_create_pane(tab_view_obj)
+    @tab_holder_el.append(tvo.tab_el)
+    @pane_holder_el.append(tvo.pane_el)
+
+        
+    if _.keys(@tab_view_dict).length == 1
+      @activate(_.keys(@tab_view_dict)[0])
+    return tvo.pane_el
         
   _create_tab: (tab_view_obj) ->
     tab = $("<li><a>#{tab_view_obj.tab_name}</a></li>")
@@ -47,7 +60,7 @@ class TabSet extends Backbone.View
     tab
   _create_pane: (tab_view_obj) ->
     pane = $("<div class='pane'></div>")
-    pane.append(tab_view_obj.view.render())
+
 
   activate: (route) ->
 
@@ -81,12 +94,12 @@ class TabSet extends Backbone.View
     """
     console.log("activate " , route)
     tvo = tab_view_obj = @tab_view_dict[route]
-    $.when(tvo.view.render()).then(
-      @tab_holder_el.find('.active').removeClass('active')
-      tvo.tab_el.addClass('active')
-      @pane_holder_el.find('.active').removeClass('active')
-      tvo.pane_el.addClass('active')
-      )
+    #$.when(tvo.view.render()).then(
+    @tab_holder_el.find('.active').removeClass('active')
+    tvo.tab_el.addClass('active')
+    @pane_holder_el.find('.active').removeClass('active')
+    tvo.pane_el.addClass('active')
+
 
   remove_tab: (route) ->
     """ TODO """
