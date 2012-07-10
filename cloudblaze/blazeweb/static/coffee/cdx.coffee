@@ -91,11 +91,7 @@ $(() ->
           #plotcontextview.render_deferred_components()
           #plotcontextview.render()
           #plotcontextview._dirty = true
-          _.delay((() ->
-            window.call_inject($CDX.docid)
-            $CDX.IPython.setup_ipython_events()
-            $CDX._viz_instatiated.resolve($CDX.docid)),
-            1000))
+          $CDX._viz_instatiated.resolve($CDX.docid))
   };
 
   WorkspaceRouter = Backbone.Router.extend({
