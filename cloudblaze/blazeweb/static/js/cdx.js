@@ -73,6 +73,8 @@ $(function() {
           s_pc = Continuum.resolve_ref(s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id);
           window.s_pc_ref = s_pc_ref;
           window.s_pc = s_pc;
+          s_pc.set('render_loop', true);
+          console.log(' instatiate_specific_viz_tab set render_loop to true', s_pc.get('render_loop'));
           plotcontextview = new s_pc.default_view({
             'model': s_pc,
             'render_loop': true,
