@@ -49,10 +49,17 @@ $(() ->
           IPython.start_notebook()
           Continuum.load_models($CDX.all_models);
           ws_conn_string = "ws://#{window.location.host}/sub";
-          socket = Continuum.submodels(ws_conn_string, $CDX.docid);
-          console.log("resolving _doc_loaded");
-          $CDX._doc_loaded.resolve($CDX.docid))
-        
+          socket = Continuum.submodels(ws_conn_string, $CDX.docid)
+          console.log("resolving _doc_loaded")
+          _.delay(
+            () ->
+              $CDX.IPython.inject_plot_client($CDX.docid)
+              $CDX.IPython.setup_ipython_events()
+              $CDX.resize_loop()
+              $CDX._doc_loaded.resolve($CDX.docid)
+            , 1000
+          )
+        )
     instatiate_viz_tab: ->
       if not $CDX._viz_instatiated.isResolved()
         $.when($CDX.doc_loaded).then(->
@@ -63,12 +70,8 @@ $(() ->
           plotcontextview = new plotcontext.default_view(
             {'model' : plotcontext, 'el' : $('#viz-tab')});
           window.pcv = plotcontextview
-          _.delay((() ->
-            $CDX.IPython.inject_plot_client($CDX.docid)
-            $CDX.IPython.setup_ipython_events()
-            $CDX.resize_loop()
-            $CDX._viz_instatiated.resolve($CDX.docid)),
-            1000))
+          $CDX._viz_instatiated.resolve($CDX.docid))
+
 
     instatiate_specific_viz_tab: (plot_id) ->
       if not $CDX._viz_instatiated.isResolved()
@@ -94,7 +97,7 @@ $(() ->
             $CDX._viz_instatiated.resolve($CDX.docid)),
             1000))
   };
-  
+
   WorkspaceRouter = Backbone.Router.extend({
     routes: {
       "cdx" : "load_default_document",
@@ -155,20 +158,14 @@ $(() ->
       }
 
     );
-  
+
 
   $CDX.layout = new Layout();
   $.when($CDX.layout_render = $CDX.layout.render()).then( ->
     $("#layout-root").prepend($CDX.layout_render.el);
-    IPython.loadfunc();
     );
 
   $CDX.router = new WorkspaceRouter();
   console.log("history start", Backbone.history.start(pushState:true))
 
   );
-
-
-
-
-  
