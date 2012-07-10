@@ -1,5 +1,14 @@
 import urlparse
 
+def get_tree(client, datapath, depth=None):
+    if not datapath.startswith("/"):
+        datapath = "/" + datapath        
+    tree, _ = client.rpc(
+        'get_metadata_tree', datapath,
+        depth=depth)
+    return tree
+
+        
 def raw_get(client, datapath, data_slice=None):
     if not datapath.startswith("/"):
         datapath = "/" + datapath        

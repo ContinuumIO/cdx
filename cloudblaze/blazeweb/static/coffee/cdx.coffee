@@ -2,31 +2,35 @@
 #
 # This is the main script file for the CDX app.
 
-inject_plot_client = (docid, url) ->
-  #code = _.template(
-  #  "import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('{{ docid }}', '{{ url }}')",
-  #  docid : docid
-  #  url : url)
- 
-  code = "import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('#{docid}', '#{url}')"
-  cells = IPython.notebook.cells()
-  last_cell = cells[(cells.length - 1)]
-  last_cell.set_code(code)
-  IPython.notebook.select((cells.length - 1))
-  IPython.notebook.execute_selected_cell()  
 
-window.call_inject =   (docid) ->
-  targeturl = _.template("http://{{ host }}/bb/", {'host' : window.location.host})
-  inject_plot_client(docid, targeturl)
+window.$CDX = {};
+$CDX = window.$CDX;
+$CDX.IPython = {}
+window.$CDX.resizeRoot = () ->
+  winHeight = $(window).height();
+  winWidth = $(window).width();
+  cdxRootHeight=(winHeight * .95);
+  midPanelHeight = (cdxRootHeight * .65);
+  pyEdPaneHeight = (cdxRootHeight * .20);
+
+  $('#cdxRoot').height(cdxRootHeight);
+  $('.midPanel').height(midPanelHeight);
+  $('#cdxMidContainer').width(winWidth * .95);
+  $('.cdx-py-pane').width(winWidth * .85);
+  $('.cdx-py-pane').height(pyEdPaneHeight);
+
+$CDX.resize_loop = () ->
+  window.$CDX.resizeRoot()
+  IPython.notebook.scroll_to_bottom()
+  resizeTimer = setTimeout($CDX.resize_loop, 500);
+
+$CDX._doc_loaded = $.Deferred();
+$CDX.doc_loaded = $CDX._doc_loaded.promise();
+$CDX._viz_instatiated = $.Deferred();
+$CDX.viz_instatiated = $CDX._viz_instatiated.promise();
 
 
 $(() ->
-  window.$CDX = {};
-  $CDX = window.$CDX;
-  $CDX._doc_loaded = $.Deferred();
-  $CDX.doc_loaded = $CDX._doc_loaded.promise();
-  $CDX._viz_instatiated = $.Deferred();
-  $CDX.viz_instatiated = $CDX._viz_instatiated.promise();
 
   $CDX.utility = {
     start_instatiate: (docid) ->
@@ -35,10 +39,13 @@ $(() ->
           data = JSON.parse(data)
           $CDX.plot_context_ref = data['plot_context_ref']
           $CDX.docid = data['docid'] # in case the server returns a different docid
-          $CDX.kernelid = data['kernelid']
-          $CDX.notebookid = data['notebookid']
           $CDX.all_models = data['all_models']
-          $CDX.baseurl = data['baseurl']
+
+          $CDX.IPython.kernelid = data['kernelid']
+          $CDX.IPython.notebookid = data['notebookid']
+          $CDX.IPython.baseurl = data['baseurl']
+
+          IPython.loadfunc()
           IPython.start_notebook()
           Continuum.load_models($CDX.all_models);
           ws_conn_string = "ws://#{window.location.host}/sub";
@@ -51,11 +58,15 @@ $(() ->
         $.when($CDX.doc_loaded).then(->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
+          plotcontext.set('render_loop', true)
+          window.pc = plotcontext
           plotcontextview = new plotcontext.default_view(
             {'model' : plotcontext, 'el' : $('#viz-tab')});
-
+          window.pcv = plotcontextview
           _.delay((() ->
-            window.call_inject($CDX.docid)
+            $CDX.IPython.inject_plot_client($CDX.docid)
+            $CDX.IPython.setup_ipython_events()
+            $CDX.resize_loop()
             $CDX._viz_instatiated.resolve($CDX.docid)),
             1000))
 
@@ -79,6 +90,7 @@ $(() ->
           #plotcontextview._dirty = true
           _.delay((() ->
             window.call_inject($CDX.docid)
+            $CDX.IPython.setup_ipython_events()
             $CDX._viz_instatiated.resolve($CDX.docid)),
             1000))
   };
