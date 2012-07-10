@@ -1,11 +1,8 @@
 $CDX = window.$CDX
 $CDX.IPython = {}
 $CDX.IPython.inject_plot_client = (docid) ->
-  url = _.template("http://{{ host }}/bb/", {'host' : window.location.host})
-  code = _.template("import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('{{ docid }}', '{{ url }}')",
-    docid : docid
-    url : url
-  )
+  url = "http://#{window.location.host}/bb/"
+  code = "import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('#{docid}', '#{url}')"
   cells = IPython.notebook.cells()
   last_cell = cells[(cells.length - 1)]
   last_cell.set_code(code)
