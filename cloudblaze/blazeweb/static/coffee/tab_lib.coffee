@@ -1,7 +1,6 @@
 
-class TabSet extends {}
-  initialize: (el, router, tab_view_objs) ->
-
+class TabSet extends Backbone.View 
+  initialize: (options) ->
     """the template for this view needs to have a tab holder element and
     a pane holder element
 
@@ -12,37 +11,43 @@ class TabSet extends {}
 
     ahh , the key should be route
     """
-
-    @el = el
-    @router = router
-    @tab_views = tab_view_objs
-
-
+    @el = $(options.el)
+    #@router = router
+    @tab_view_objs = options.tab_view_objs
     #note this must be appended to the dom somehow
     @tab_holder_el = $("<ul class='nav nav-tabs'></ul>")
-    @pane_holder_el = $("<div></div>")
-
-
-    @tab_els = []
-    @pane_els = []
+    @pane_holder_el = $("<div class='pane-holder'></div>")
 
     @tab_view_dict = {}
     for tab_view_obj in @tab_view_objs
-      @_add_tab(tab_view_obj)
+      @add_tab(tab_view_obj)
 
-  _add_tab: (tab_view_obj) ->
+  render: ->
+    $(@el).append($('<h3> from render </h3>'))
+    $(@el).append(@tab_holder_el)
+    $(@el).append(@pane_holder_el)
+    
+  add_tab: (tab_view_obj) ->
     tvo = tab_view_obj
     @tab_view_dict[tab_view_obj.route] = tab_view_obj
     tvo.tab_el =  @_create_tab(tab_view_obj)
     tvo.pane_el = @_create_pane(tab_view_obj)
-    @tab_holder_el.appendChild(tvo.tab_el)
-    @pane_holder_el.appendChild(tvo.pane_el)
+    @tab_holder_el.append(tvo.tab_el)
+    @pane_holder_el.append(tvo.pane_el)
+    
+    if _.keys(@tab_view_dict).length == 1
+      @activate(_.keys(@tab_view_dict)[0])
+    tvo.route
         
   _create_tab: (tab_view_obj) ->
-    tab = $('<li></li>')
+    tab = $("<li><a>#{tab_view_obj.tab_name}</a></li>")
     tab.click( (e) =>
       @activate(tab_view_obj.route))
     # add click handler for x button to remove the tab 
+    tab
+  _create_pane: (tab_view_obj) ->
+    pane = $("<div class='pane'></div>")
+    pane.append(tab_view_obj.view.render())
 
   activate: (route) ->
 
@@ -74,13 +79,14 @@ class TabSet extends {}
     
       
     """
-
+    console.log("activate " , route)
     tvo = tab_view_obj = @tab_view_dict[route]
     $.when(tvo.view.render()).then(
       @tab_holder_el.find('.active').removeClass('active')
       tvo.tab_el.addClass('active')
-      @pane_holder_el.find('active').removeClass('active')
-      tvo.pane_el.addClass('active'))
+      @pane_holder_el.find('.active').removeClass('active')
+      tvo.pane_el.addClass('active')
+      )
 
   remove_tab: (route) ->
     """ TODO """

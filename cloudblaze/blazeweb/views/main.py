@@ -31,6 +31,12 @@ def pageRender(filename):
     # Note the corresponding html file must be in the templates folder.
     return render_template(filename + '.html')
 
+@app.route('/pageRenderTests/<filename>')
+def pageRender2(filename):
+    app.logger.debug('pageRender filename=[%s]',filename)
+    # Note the corresponding html file must be in the templates folder.
+    return render_template("tests/" + filename + '.html')
+
 @app.route('/cdx')
 @app.route('/cdx/<unused>')
 @app.route('/cdx/<unused>/<unused_2>')
