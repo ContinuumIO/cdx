@@ -1,13 +1,24 @@
 $CDX = window.$CDX
 $CDX.IPython = {}
-$CDX.IPython.inject_plot_client = (docid) ->
-  url = "http://#{window.location.host}/bb/"
-  code = "import cloudblaze.continuumweb.plot as plot; p = plot.PlotClient('#{docid}', '#{url}')"
+execute_code = (code) ->
   cells = IPython.notebook.cells()
   last_cell = cells[(cells.length - 1)]
   last_cell.set_code(code)
   IPython.notebook.select((cells.length - 1))
   IPython.notebook.execute_selected_cell()
+
+$CDX.IPython.inject_plot_client = (docid) ->
+  url = "http://#{window.location.host}/bb/"
+  code = "import cloudblaze.continuumweb.plot as plot"
+  execute_code(code)
+  code = "p = plot.PlotClient('#{docid}', '#{url}')"
+  execute_code(code)
+  code = "import blaze.server.rpc.client as blazeclient"
+  execute_code(code)
+  code = "bc = blazeclient.BlazeClient('tcp://127.0.0.1:5555')"
+  execute_code(code)
+  code = "bc.connect()"
+  execute_code(code)
 
 $CDX.IPython.setup_ipython_events = () ->
   IPython.Kernel.prototype.namespace_request = () ->
