@@ -4,6 +4,7 @@ from IPython.utils.traitlets import Instance, Dict
 from IPython.zmq.ipkernel import Kernel
 from IPython.zmq.ipkernel import IPKernelApp
 from zmq.eventloop.zmqstream import ZMQStream
+import blaze.array_proxy.blaze_array_proxy as blaze_array_proxy
 import IPython.zmq.entry_point as entry_point
 import simplejson
 import numpy as np
@@ -32,9 +33,16 @@ class CloudBlazeKernelMixin(object):
     def get_namespace_data(self):
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
         self.log.warning("%s", local_varnames)
+        variables = []
         local_vars = [self.shell.user_ns[x] for x in local_varnames]
-        local_types = [type(x).__name__ for x in local_vars]
-        return [(x, y) for x,y in zip(local_varnames, local_types)]
+        for var, varname in zip(local_vars, local_varnames):
+            local_type = type(var).__name__
+            varinfo = {'name' : varname,
+                       'type' : local_type}
+            if isinstance(var, blaze_array_proxy.BlazeArrayProxy):
+                varinfo['url'] = var.url
+            variables.append(varinfo)
+        return variables
     
     def execute_request(self, stream, ident, parent):
         #store most recent parent here.... hack.. how should we store this?

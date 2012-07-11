@@ -5,6 +5,7 @@ import gevent_zeromq
 gevent_zeromq.monkey_patch()
 import zmq
 
+import urllib
 import unittest
 import simplejson
 import numpy as np
@@ -104,7 +105,27 @@ class BlazeApiTestCase(unittest.TestCase):
         assert '0' in columnsummary
         assert '2' in columnsummary
         assert columnsummary['1']['mean'] == 64.07833333333333
-        
+
+    def test_bulk_summary(self):
+        s = requests.session()
+        paths = ["/hugodata/20100217/prices", "/hugodata/20100217/prices"]
+        paths = simplejson.dumps(paths)
+        args = urllib.urlencode({'paths' : paths})
+        print baseurl + "bulksummary/?" + args
+        result = s.get(
+            baseurl + "bulksummary?" + args,
+            timeout = 1.0
+            )
+        responses = simplejson.loads(result.content)
+        for response in responses:
+            summary = response['summary']
+            columnsummary = response['colsummary']
+            assert summary['shape'] == [1561, 3]
+            assert summary['colnames'] == [0, 1, 2]
+            assert '0' in columnsummary
+            assert '2' in columnsummary
+            assert columnsummary['1']['mean'] == 64.07833333333333
+
 
     
         

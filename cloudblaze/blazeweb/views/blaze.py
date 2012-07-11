@@ -56,8 +56,15 @@ def update_data(datapath):
 
 
 @app.route("/summary/<path:datapath>")
-def update_data(datapath):
+def summary(datapath):
     summary =  blazeclient.get_summary(current_app.rpcclient, datapath)
     return current_app.ph.serialize_web(summary)
+
+@app.route("/bulksummary/")
+def bulk_summary():
+    paths = simplejson.loads(request.args['paths'])
+    summaries = [blazeclient.get_summary(current_app.rpcclient, x)\
+                 for x in paths]
+    return current_app.ph.serialize_web(summaries)
 
 
