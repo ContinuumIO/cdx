@@ -17,6 +17,17 @@ cdx.addDataArray = (url) ->
     alert('data array selected: ' + url)
     return
 
+cdx.addDataArrayTab = (url) ->
+    alert('data array selected: ' + url)
+    data_slice = JSON.stringify([0, 100])
+    url = '/dataview' + url + '?data_slice=' + data_slice
+    alert('data url: ' + url)
+    $.get(url, {}, (data) ->
+#        treeData = $.parseJSON(data)
+        console.log(data)
+    )
+    return
+
 cdx.showModal = (modalID) ->
     $(modalID).empty()
     $.get('/metadata/blaze/data/gold.hdf5?depth=2', {}, (data) ->
@@ -65,8 +76,22 @@ cdx.buildTreeNode = (tree, treeData, depth) ->
             tree = tree + '\n</ul></li>'
         if (this.type == 'array')
             #console.log('array type'+JSON.stringify(this.type)+'\n##')
-            tmp = "<li><a href=\"#\" onClick=\"cdx.addDataArray('" + this.url + "')\">" + itemName + "</a></li>"
+            tmp = "<li><a href=\"#\" onClick=\"cdx.addDataArrayTab('" + this.url + "')\">" + itemName + "</a></li>"
             tree = tree + tmp
     ) if treeData
     return tree
     
+cdx.showDataImportModal = (modalID) ->
+    $(modalID).empty()
+    tree = '<div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3>Import a Local Data File</h3>
+            </div>
+            <div class="modal-body">'
+    #console.log(treeRoot)
+    tree = tree + '</div>'
+    $(modalID).append(tree)
+    $(modalID).modal('show')
+    return
+
+
