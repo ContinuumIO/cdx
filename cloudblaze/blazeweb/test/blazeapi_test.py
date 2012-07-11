@@ -29,7 +29,8 @@ logging.debug("starting")
 backaddr = "inproc://#1"
 frontaddr = "inproc://#2"
 addr = "inproc://#3"
-baseurl = "http://localhost:5000/data/"    
+baseurl = "http://localhost:5000/"
+
 
 class BlazeApiTestCase(unittest.TestCase):
     def setUp(self):
@@ -37,6 +38,21 @@ class BlazeApiTestCase(unittest.TestCase):
         self.redisproc = redisutils.RedisProcess(9000, '/tmp', save=False)
         time.sleep(0.1)
         self.config = blazeconfig.BlazeConfig(self.servername, port=9000)
+        testroot = os.path.abspath(os.path.dirname(__file__))
+        hdfpath = os.path.join(testroot, 'gold.hdf5')
+        blazeconfig.generate_config_hdf5(self.servername, '/hugodata',
+                                         hdfpath, self.config)
+        broker = blazebroker.BlazeBroker(frontaddr, backaddr, self.config)
+        broker.start()
+        self.broker = broker
+        rpcserver = blazenode.BlazeNode(backaddr, self.servername, self.config)
+        rpcserver.start()
+        self.rpcserver = rpcserver
+        test_utils.wait_until(lambda : len(broker.nodes) > 0)
+        maincontroller.prepare_app(frontaddr)
+        self.servert = gevent.spawn(maincontroller.start_app)
+        time.sleep(0.5)
+        
     def tearDown(self):
         if hasattr(self, 'rpcserver'):
             self.rpcserver.kill = True
@@ -56,25 +72,10 @@ class BlazeApiTestCase(unittest.TestCase):
         self.servert.kill()
         time.sleep(1.0)
         
-    def test_connect(self):
-        testroot = os.path.abspath(os.path.dirname(__file__))
-        hdfpath = os.path.join(testroot, 'gold.hdf5')
-        blazeconfig.generate_config_hdf5(self.servername, '/hugodata',
-                                         hdfpath, self.config)
-        broker = blazebroker.BlazeBroker(frontaddr, backaddr, self.config)
-        broker.start()
-        self.broker = broker
-        rpcserver = blazenode.BlazeNode(backaddr, self.servername, self.config)
-        rpcserver.start()
-        self.rpcserver = rpcserver
-        test_utils.wait_until(lambda : len(broker.nodes) > 0)
-        maincontroller.prepare_app(frontaddr)
-        self.servert = gevent.spawn(maincontroller.start_app)
-        time.sleep(0.5)
-
+    def test_get(self):
         s = requests.session()
         result = s.get(
-            baseurl + "hugodata/20100217/names",
+            baseurl + "data/hugodata/20100217/names",
             timeout = 1.0
             )
         result = simplejson.loads(result.content)
@@ -82,13 +83,30 @@ class BlazeApiTestCase(unittest.TestCase):
 
         s = requests.session()
         result = s.get(
-            baseurl + "hugodata/20100217",
+            baseurl + "data/hugodata/20100217",
             timeout = 1.0
             )
         result = simplejson.loads(result.content)
         assert 'names' in result['children']
         print result
 
+    def test_summary(self):
+        s = requests.session()
+        result = s.get(
+            baseurl + "summary/hugodata/20100217/prices",
+            timeout = 1.0
+            )
+        summary = simplejson.loads(result.content)
+        summary = responseobj['summary']
+        columnsummary = responseobj['colsummary']
+        assert summary['shape'] == [1561, 3]
+        assert summary['colnames'] == [0, 1, 2]
+        assert '0' in columnsummary
+        assert '2' in columnsummary
+        assert columnsummary['1']['mean'] == 64.07833333333333
+        
+
+    
         
 
 if __name__ == "__main__":
