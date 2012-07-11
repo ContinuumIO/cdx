@@ -31,7 +31,18 @@ def get_data(datapath):
     data_slice=common.get_slice(request)
     response, dataobj = blazeclient.raw_get(
         current_app.rpcclient, datapath, data_slice=data_slice)
-    if response['type'] != 'group': response['data'] = dataobj[0].tolist()
+    if response['type'] != 'group':
+        arr = dataobj[0]
+        if arr.dtype.names:
+            response['data'] = arr.tolist()
+            response['colnames'] = arr.dtype.names
+        else:
+            if len(arr.shape) == 1:
+                response['data'] = arr.reshape((len(arr), 1)).tolist()
+                response['colnames'] = ['0']
+            else:
+                response['data'] = arr.tolist()
+                response['colnames'] = [str(x) for x in range(arr.shape[1])]
     return simplejson.dumps(response)
 
 @app.route("/data/<path:datapath>", methods=['DELETE'])
