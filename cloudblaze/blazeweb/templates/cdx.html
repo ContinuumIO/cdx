@@ -42,6 +42,45 @@
 
 
 </script>
+<script type="text/template" id="variable-summary-template">
+  <h3> data summary </h3>
+  <dl>
+    <dt> BlazeUrl </dt>
+    <dd> <%= item[0].url %> </dd>
+    <dt> type </dt>
+    <dd> <%= item[0].type %> </dd>
+    <dt> name </dt>
+    <dd>  <%= item[0].name %> </dd>
+    <dt> shape </dt>
+
+  </dl>
+  <h3> data shape?? </h3>
+  <table>
+    <thead>
+      <tr>
+        <th> Column Name </th>
+        <th> Std Dev </th>
+        <th> Min </th>
+        <th> Max </th>
+        <th> Mean </th>
+      </tr>
+    </thead>
+    <tbody>
+      <% _.each( item[1].colsummary , function(value, key, list) {  %>
+
+      <tr>
+        <td> <%= key %> </td>
+        <td> <%= value.std %> </td>
+        <td> <%= value.min %> </td>
+        <td> <%= value.max %> </td>
+        <td> <%= value.mean %> </td>
+      </tr>
+      <% }); %>
+
+  </table>
+</script>
+
+
 <script type="text/template" id="layout-template">
   <div id="cdxRoot" class="container-fluid cdx-root">
     <div id="cdxTopMsg" class="row-fluid"></div>

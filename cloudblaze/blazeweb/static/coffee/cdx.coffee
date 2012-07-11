@@ -19,10 +19,10 @@ window.$CDX.resizeRoot = () ->
   $('.cdx-py-pane').width(winWidth * .85)
   $('.cdx-py-pane').height(pyEdPaneHeight)
 
-$CDX.resize_loop = () ->
-  window.$CDX.resizeRoot()
-  IPython.notebook.scroll_to_bottom()
-  resizeTimer = setTimeout($CDX.resize_loop, 500)
+#$CDX.resize_loop = () ->
+#  window.$CDX.resizeRoot()
+#  IPython.notebook.scroll_to_bottom()
+#  resizeTimer = setTimeout($CDX.resize_loop, 500)
 
 
 # blaze_doc_loaded is a better name, doc_loaded could be confused with
@@ -33,11 +33,6 @@ $CDX.doc_loaded = $CDX._doc_loaded.promise()
 $CDX._viz_instatiated = $.Deferred()
 $CDX.viz_instatiated = $CDX._viz_instatiated.promise()
 
-_.delay(
-  () ->
-    $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
-  , 1000
-)
 $(() ->
 
   $CDX.utility = {
@@ -181,8 +176,15 @@ $(() ->
   )
 
 
+_.delay(
+  () ->
+    $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
+  , 1000
+)
+
+
 $CDX.addDataArray = (itemName, url) ->
-   $CDX.IPython.execute("#{itemName} = bc.blaze_source(#{url})")
+   $CDX.IPython.execute_code("#{itemName} = bc.blaze_source('#{url}')")
 
 $CDX.buildTreeNode = (tree, treeData, depth) ->
     #console.log(JSON.stringify(treeData));
@@ -210,7 +212,7 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
 
         if (this.type == 'array')
           console.log("array type #{JSON.stringify(@type)}##")
-          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{this.url}')\">#{itemName}</a></li>"
+          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{itemName}','#{this.url}')\">#{itemName}</a></li>"
 
           #tmp = "<li><a class='js-blaze_click' href='#' data-blaze-url='#{this.url}'>#{itemName}</a></li>"
           
@@ -220,7 +222,7 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
     
 $CDX.showModal = (modalID) ->
     $(modalID).empty()
-    $.get('/metadata/blaze/data/gold.hdf5?depth=2', {}, (data) ->
+    $.get('/metadata/blaze/data', {}, (data) ->
         treeData = $.parseJSON(data)
         treeRoot = $('#tree-template').html()
         tree = $CDX.buildTreeNode(treeRoot, treeData.children, 0)
@@ -230,3 +232,23 @@ $CDX.showModal = (modalID) ->
         #console.log(tree)
     )
     return
+
+$CDX.render_summary = ->
+  sample_data = [{url: "/blaze/data/gold.hdf5/20100114/dates",
+  type:"BlazeArrayProxy", name:"dates"}, 
+  {colsummary: {0:{std:6759.325780745387, max:1263502799, 
+  mean:1263491099.9993594, min:1263479400}}, 
+  summary:{shape:[1561], colnames:[0]}}];
+
+  console.log(sample_data)
+  summary_template = $('#variable-summary-template').html()
+
+  console.log(_.template(summary_template, {item:sample_data}))
+
+$(->
+  $CDX.render_summary())
+  
+
+  
+
+
