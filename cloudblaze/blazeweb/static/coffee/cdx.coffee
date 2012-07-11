@@ -11,7 +11,7 @@ else
 
 window.$CDX = {}
 $CDX = window.$CDX
-#$CDX.IPython = {}
+$CDX.IPython = {}
 window.$CDX.resizeRoot = () ->
   winHeight = $(window).height()
   winWidth = $(window).width()
@@ -27,7 +27,7 @@ window.$CDX.resizeRoot = () ->
 
 $CDX.resize_loop = () ->
   window.$CDX.resizeRoot()
-  #IPython.notebook.scroll_to_bottom()
+  IPython.notebook.scroll_to_bottom()
   resizeTimer = setTimeout($CDX.resize_loop, 500)
 
 $CDX._doc_loaded = $.Deferred()
@@ -51,24 +51,24 @@ $(() ->
           $CDX.docid = data['docid'] # in case the server returns a different docid
           $CDX.all_models = data['all_models']
 
-          #$CDX.IPython.kernelid = data['kernelid']
-          #$CDX.IPython.notebookid = data['notebookid']
-          #$CDX.IPython.baseurl = data['baseurl']
+          $CDX.IPython.kernelid = data['kernelid']
+          $CDX.IPython.notebookid = data['notebookid']
+          $CDX.IPython.baseurl = data['baseurl']
 
-          #IPython.loadfunc()
-          #IPython.start_notebook()
-          #Continuum.load_models($CDX.all_models)
-          #ws_conn_string = "ws://#{window.location.host}/sub"
-          #socket = Continuum.submodels(ws_conn_string, $CDX.docid)
+          IPython.loadfunc()
+          IPython.start_notebook()
+          Continuum.load_models($CDX.all_models)
+          ws_conn_string = "ws://#{window.location.host}/sub"
+          socket = Continuum.submodels(ws_conn_string, $CDX.docid)
           console.log("resolving _doc_loaded")
-          #_.delay(
-          #  () ->
-          #    $CDX.IPython.inject_plot_client($CDX.docid)
-          #    $CDX.IPython.setup_ipython_events()
-          #    $CDX.resize_loop()
-          #    $CDX._doc_loaded.resolve($CDX.docid)
-          #  , 1000
-  #        )
+          _.delay(
+            () ->
+              $CDX.IPython.inject_plot_client($CDX.docid)
+              $CDX.resize_loop()
+              $CDX._doc_loaded.resolve($CDX.docid)
+            , 1000
+          )
+
         )
     instatiate_viz_tab: ->
       if not $CDX._viz_instatiated.isResolved()
@@ -76,31 +76,28 @@ $(() ->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
           plotcontext.set('render_loop', true)
-          window.pc = plotcontext
           plotcontextview = new plotcontext.default_view(
-            {'model' : plotcontext, 'el' : $('#viz-tab')})
-          window.pcv = plotcontextview
+            model : plotcontext,
+            el: $CDX.main_tab_set.add_tab_el(
+              tab_name:"viz", view: {}, route:"viz"))
           $CDX._viz_instatiated.resolve($CDX.docid))
-
 
     instatiate_specific_viz_tab: (plot_id) ->
       if not $CDX._viz_instatiated.isResolved()
         $.when($CDX.doc_loaded).then(->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
-          window.plotcontext = plotcontext
           s_pc_ref = plotcontext.get('children')[0]
-          s_pc = Continuum.resolve_ref(s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
-          window.s_pc_ref = s_pc_ref
-          window.s_pc = s_pc
-
+          s_pc = Continuum.resolve_ref(
+            s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
           s_pc.set('render_loop', true)
-          console.log(' instatiate_specific_viz_tab set render_loop to true', s_pc.get('render_loop'))
           plotcontextview = new s_pc.default_view(
-            {'model' : s_pc, 'render_loop':true, 'el' : $('#viz-tab')})
-          #plotcontextview.render_deferred_components()
-          #plotcontextview.render()
-          #plotcontextview._dirty = true
+            {'model' : s_pc, 'render_loop':true, 'el' : $('#main-tab-area')});
+          # plotcontextview = new s_pc.default_view(
+          #     model: s_pc, 
+          #     el: $CDX.main_tab_set.add_tab_el(
+          #       tab_name:"plot#{plot_num}",  view: {}, route:"plot#{plot_num}"))
+
           $CDX._viz_instatiated.resolve($CDX.docid))
   }
 
@@ -165,13 +162,22 @@ $(() ->
 
     )
 
+  class BazView extends Backbone.View
+    render: () ->
+      return "<h3> baz view </h3>"
+
 
   $CDX.layout = new Layout()
-  $.when($CDX.layout_render = $CDX.layout.render()).then( ->
-    $("#layout-root").prepend($CDX.layout_render.el)
-    )
-
   $CDX.router = new WorkspaceRouter()
+  $.when($CDX.layout_render = $CDX.layout.render()).then( ->
+
+
+    $("#layout-root").prepend($CDX.layout_render.el);
+    $CDX.main_tab_set = new TabSet(
+      el:"#main-tab-area", tab_view_objs: [{view: new BazView(), route:'main', tab_name:'main'}])
+
+    $CDX.main_tab_set.render()
+    )
   console.log("history start", Backbone.history.start(pushState:true))
 
   )

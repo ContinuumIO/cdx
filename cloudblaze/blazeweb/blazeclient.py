@@ -1,5 +1,12 @@
 import urlparse
 
+def get_summary(client, datapath):
+    if not datapath.startswith("/"):
+        datapath = "/" + datapath        
+    summary, _ = client.rpc(
+        'summary', datapath)
+    return summary
+    
 def get_tree(client, datapath, depth=None):
     if not datapath.startswith("/"):
         datapath = "/" + datapath        

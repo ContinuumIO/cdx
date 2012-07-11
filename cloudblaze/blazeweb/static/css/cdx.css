@@ -150,3 +150,5 @@ overflow: auto;
     }
 }
 
+.pane-holder > div {display:none;}
+.pane-holder > div.active {display:block;}
