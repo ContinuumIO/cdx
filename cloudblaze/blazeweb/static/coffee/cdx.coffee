@@ -183,6 +183,7 @@ $(() ->
   )
 
 
+
 cdx.buildTreeNode = (tree, treeData, depth) ->
     #console.log(JSON.stringify(treeData));
     loopCount = 0
@@ -193,22 +194,27 @@ cdx.buildTreeNode = (tree, treeData, depth) ->
         #console.log('type='+JSON.stringify(this.type)+'\n##')
         itemName = this.url.split('/').reverse()[0]
         if (this.type == 'group')
-            itemID = 'item-' + depth
-            `
-            for(i=0; i<depth; i++) {
-                itemID = itemID + '-' + i
-            }
-            tmp = '<li><input type="checkbox" id="' + itemID + 
-                '" /><label for="' + itemID +'">' + itemName +
-                '</label>\n<ul>'
-            `
-            tree = tree + tmp
-            tree = cdx.buildTreeNode(tree, this.children, ++depth)
-            tree = tree + '\n</ul></li>'
+          itemID = 'item-' + depth
+
+          
+          for i in [0..depth]
+            #itemID = itemID + '-' + i
+            itemID = "#{itemID}-#{i}"
+          tmp = "<li><input type='checkbox' id='#{itemID}' />"
+          tmp += "<label for='#{itemID}'> #{itemName}</label><ul>"
+            
+
+          tree = tree + tmp
+          tree = cdx.buildTreeNode(tree, this.children, ++depth)
+          tree = tree + '\n</ul></li>'
+
         if (this.type == 'array')
-            #console.log('array type'+JSON.stringify(this.type)+'\n##')
-            tmp = "<li><a href=\"#\" onClick=\"cdx.addDataArray('" + this.url + "')\">" + itemName + "</a></li>"
-            tree = tree + tmp
+          console.log("array type #{JSON.stringify(@type)}##")
+          tmp = "<li><a href='#' onClick=\"cdx.addDataArray('#{this.url}')\">#{itemName}</a></li>"
+
+          #tmp = "<li><a class='js-blaze_click' href='#' data-blaze-url='#{this.url}'>#{itemName}</a></li>"
+          
+          tree = tree + tmp
     ) if treeData
     return tree
     
