@@ -33,6 +33,35 @@ $CDX.doc_loaded = $CDX._doc_loaded.promise()
 $CDX._viz_instatiated = $.Deferred()
 $CDX.viz_instatiated = $CDX._viz_instatiated.promise()
 
+$CDX.add_blaze_table_tab = (varname, url, columns) ->
+  tabelement = $CDX.main_tab_set.add_tab_el(
+    tab_name:varname, view: {})
+  data_source = Continuum.Collections['ObjectArrayDataSource'].create(
+    {}, {local:true})
+
+  deferred = $.get("/data" + url, {}, (data) ->
+    arraydata = JSON.parse(data)
+    transformed = []
+    for row in arraydata['data']
+      transformedrow = {}
+      for temp in _.zip(row, arraydata['colnames'])
+        [val, colname] = temp
+        transformedrow[colname] = val
+      transformed.push(transformedrow)
+    data_source.set('data', transformed)
+    datatable = Continuum.Collections['DataTable'].create(
+        columns : arraydata['colnames'],
+        data_source : data_source.ref()
+      , local : true
+    )
+    view = new datatable.default_view(
+      model : datatable,
+      el : tabelement
+    )
+  )
+
+
+
 _.delay(
   () ->
     $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
@@ -92,7 +121,7 @@ $(() ->
           plotcontextview = new s_pc.default_view(
             {'model' : s_pc, 'render_loop':true, 'el' : $('#main-tab-area')});
           # plotcontextview = new s_pc.default_view(
-          #     model: s_pc, 
+          #     model: s_pc,
           #     el: $CDX.main_tab_set.add_tab_el(
           #       tab_name:"plot#{plot_num}",  view: {}, route:"plot#{plot_num}"))
 
@@ -196,13 +225,13 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
         if (this.type == 'group')
           itemID = 'item-' + depth
 
-          
+
           for i in [0..depth]
             #itemID = itemID + '-' + i
             itemID = "#{itemID}-#{i}"
           tmp = "<li><input type='checkbox' id='#{itemID}' />"
           tmp += "<label for='#{itemID}'> #{itemName}</label><ul>"
-            
+
 
           tree = tree + tmp
           tree = $CDX.buildTreeNode(tree, this.children, ++depth)
@@ -213,14 +242,14 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
           tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{this.url}')\">#{itemName}</a></li>"
 
           #tmp = "<li><a class='js-blaze_click' href='#' data-blaze-url='#{this.url}'>#{itemName}</a></li>"
-          
+
           tree = tree + tmp
     ) if treeData
     return tree
-    
+
 $CDX.showModal = (modalID) ->
     $(modalID).empty()
-    $.get('/metadata/blaze/data/gold.hdf5?depth=2', {}, (data) ->
+    $.get('/metadata/blaze/data', {}, (data) ->
         treeData = $.parseJSON(data)
         treeRoot = $('#tree-template').html()
         tree = $CDX.buildTreeNode(treeRoot, treeData.children, 0)
