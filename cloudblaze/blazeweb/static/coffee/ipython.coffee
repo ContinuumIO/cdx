@@ -7,6 +7,9 @@ execute_code = (code) ->
   IPython.notebook.select((cells.length - 1))
   IPython.notebook.execute_selected_cell()
 
+$CDX.IPython.execute_code = execute_code
+
+
 $CDX.IPython.inject_plot_client = (docid) ->
   url = "http://#{window.location.host}/bb/"
   code = "import cloudblaze.continuumweb.plot as plot"
