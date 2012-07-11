@@ -2,34 +2,42 @@
 #
 # This is the main script file for the CDX app.
 
-
-window.$CDX = {};
-$CDX = window.$CDX;
+# module setup stuff
+window.$CDX = {}
+$CDX = window.$CDX
 $CDX.IPython = {}
 window.$CDX.resizeRoot = () ->
-  winHeight = $(window).height();
-  winWidth = $(window).width();
-  cdxRootHeight=(winHeight * .95);
-  midPanelHeight = (cdxRootHeight * .65);
-  pyEdPaneHeight = (cdxRootHeight * .20);
+  winHeight = $(window).height()
+  winWidth = $(window).width()
+  cdxRootHeight=(winHeight * .95)
+  midPanelHeight = (cdxRootHeight * .65)
+  pyEdPaneHeight = (cdxRootHeight * .20)
 
-  $('#cdxRoot').height(cdxRootHeight);
-  $('.midPanel').height(midPanelHeight);
-  $('#cdxMidContainer').width(winWidth * .95);
-  $('.cdx-py-pane').width(winWidth * .85);
-  $('.cdx-py-pane').height(pyEdPaneHeight);
+  $('#cdxRoot').height(cdxRootHeight)
+  $('.midPanel').height(midPanelHeight)
+  $('#cdxMidContainer').width(winWidth * .95)
+  $('.cdx-py-pane').width(winWidth * .85)
+  $('.cdx-py-pane').height(pyEdPaneHeight)
 
 $CDX.resize_loop = () ->
   window.$CDX.resizeRoot()
   IPython.notebook.scroll_to_bottom()
-  resizeTimer = setTimeout($CDX.resize_loop, 500);
-
-$CDX._doc_loaded = $.Deferred();
-$CDX.doc_loaded = $CDX._doc_loaded.promise();
-$CDX._viz_instatiated = $.Deferred();
-$CDX.viz_instatiated = $CDX._viz_instatiated.promise();
+  resizeTimer = setTimeout($CDX.resize_loop, 500)
 
 
+# blaze_doc_loaded is a better name, doc_loaded could be confused with
+# the dom event
+
+$CDX._doc_loaded = $.Deferred()
+$CDX.doc_loaded = $CDX._doc_loaded.promise()
+$CDX._viz_instatiated = $.Deferred()
+$CDX.viz_instatiated = $CDX._viz_instatiated.promise()
+
+_.delay(
+  () ->
+    $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
+  , 1000
+)
 $(() ->
 
   $CDX.utility = {
@@ -47,8 +55,8 @@ $(() ->
 
           IPython.loadfunc()
           IPython.start_notebook()
-          Continuum.load_models($CDX.all_models);
-          ws_conn_string = "ws://#{window.location.host}/sub";
+          Continuum.load_models($CDX.all_models)
+          ws_conn_string = "ws://#{window.location.host}/sub"
           socket = Continuum.submodels(ws_conn_string, $CDX.docid)
           console.log("resolving _doc_loaded")
           _.delay(
@@ -58,6 +66,7 @@ $(() ->
               $CDX._doc_loaded.resolve($CDX.docid)
             , 1000
           )
+
         )
     instatiate_viz_tab: ->
       if not $CDX._viz_instatiated.isResolved()
@@ -88,7 +97,7 @@ $(() ->
           #       tab_name:"plot#{plot_num}",  view: {}, route:"plot#{plot_num}"))
 
           $CDX._viz_instatiated.resolve($CDX.docid))
-  };
+  }
 
   WorkspaceRouter = Backbone.Router.extend({
     routes: {
@@ -106,7 +115,7 @@ $(() ->
     load_doc : (docid) ->
       $CDX.docid = docid
       $CDX.utility.start_instatiate(docid)
-      console.log('RENDERING');
+      console.log('RENDERING')
 
     load_doc_viz : (docid) ->
       $CDX.utility.start_instatiate(docid)
@@ -131,9 +140,9 @@ $(() ->
           $CDX.router.navigate(expected_path)
         )
       }
-  );
+  )
 
-  MyApp = new Backbone.Marionette.Application();
+  MyApp = new Backbone.Marionette.Application()
 
   Layout = Backbone.Marionette.Layout.extend(
     template: "#layout-template",
@@ -146,25 +155,78 @@ $(() ->
         el = $(e.currentTarget)
         route_target = el.attr("data-route_target")
         $CDX.router[route_target]()
-        el.tab('show');
+        el.tab('show')
       }
 
-    );
+    )
 
   class BazView extends Backbone.View
     render: () ->
       return "<h3> baz view </h3>"
 
 
-  $CDX.layout = new Layout();
+  $CDX.layout = new Layout()
+  $CDX.router = new WorkspaceRouter()
   $.when($CDX.layout_render = $CDX.layout.render()).then( ->
+
+
     $("#layout-root").prepend($CDX.layout_render.el);
     $CDX.main_tab_set = new TabSet(
       el:"#main-tab-area", tab_view_objs: [{view: new BazView(), route:'main', tab_name:'main'}])
 
     $CDX.main_tab_set.render()
     )
-  $CDX.router = new WorkspaceRouter();
   console.log("history start", Backbone.history.start(pushState:true))
 
-  );
+  )
+
+
+$CDX.addDataArray = (itemName, url) ->
+   $CDX.IPython.execute("#{itemName} = bc.blaze_source(#{url})")
+
+$CDX.buildTreeNode = (tree, treeData, depth) ->
+    #console.log(JSON.stringify(treeData));
+    loopCount = 0
+    $.each(treeData, () ->
+        loopCount++
+        urlStr = JSON.stringify(this.url)
+        #console.log('##\nurl='+urlStr+'\n')
+        #console.log('type='+JSON.stringify(this.type)+'\n##')
+        itemName = this.url.split('/').reverse()[0]
+        if (this.type == 'group')
+          itemID = 'item-' + depth
+
+          
+          for i in [0..depth]
+            #itemID = itemID + '-' + i
+            itemID = "#{itemID}-#{i}"
+          tmp = "<li><input type='checkbox' id='#{itemID}' />"
+          tmp += "<label for='#{itemID}'> #{itemName}</label><ul>"
+            
+
+          tree = tree + tmp
+          tree = $CDX.buildTreeNode(tree, this.children, ++depth)
+          tree = tree + '\n</ul></li>'
+
+        if (this.type == 'array')
+          console.log("array type #{JSON.stringify(@type)}##")
+          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{this.url}')\">#{itemName}</a></li>"
+
+          #tmp = "<li><a class='js-blaze_click' href='#' data-blaze-url='#{this.url}'>#{itemName}</a></li>"
+          
+          tree = tree + tmp
+    ) if treeData
+    return tree
+    
+$CDX.showModal = (modalID) ->
+    $(modalID).empty()
+    $.get('/metadata/blaze/data/gold.hdf5?depth=2', {}, (data) ->
+        treeData = $.parseJSON(data)
+        treeRoot = $('#tree-template').html()
+        tree = $CDX.buildTreeNode(treeRoot, treeData.children, 0)
+        tree = tree + '</ul></li></ul></div></div>'
+        $(modalID).append(tree)
+        $(modalID).modal('show')
+        #console.log(tree)
+    )
+    return
