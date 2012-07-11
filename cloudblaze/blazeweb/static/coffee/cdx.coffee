@@ -67,7 +67,6 @@ $(() ->
           _.delay(
             () ->
               $CDX.IPython.inject_plot_client($CDX.docid)
-              $CDX.IPython.setup_ipython_events()
               $CDX.resize_loop()
               $CDX._doc_loaded.resolve($CDX.docid)
             , 1000
