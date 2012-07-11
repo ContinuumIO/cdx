@@ -30,19 +30,6 @@ $CDX._viz_instatiated = $.Deferred();
 $CDX.viz_instatiated = $CDX._viz_instatiated.promise();
 
 
-add_viz_1 = (plot_num) ->
-  plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
-  $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
-  s_pc_ref = plotcontext.get('children')[plot_num]
-  s_pc = Continuum.resolve_ref(s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
-  s_pc.set('render_loop', true)
-  plotcontextview = new s_pc.default_view(
-    model: s_pc, render_loop:true,
-    el: $CDX.main_tab_set.add_tab_el(
-        tab_name:"plot#{plot_num}",  view: {}, route:"plot#{plot_num}"))
-
-
-
 $(() ->
 
   $CDX.utility = {
@@ -90,7 +77,8 @@ $(() ->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
           s_pc_ref = plotcontext.get('children')[0]
-          s_pc = Continuum.resolve_ref(s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
+          s_pc = Continuum.resolve_ref(
+            s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
           s_pc.set('render_loop', true)
           plotcontextview = new s_pc.default_view(
             {'model' : s_pc, 'render_loop':true, 'el' : $('#main-tab-area')});
