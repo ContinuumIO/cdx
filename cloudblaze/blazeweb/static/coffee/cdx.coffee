@@ -3,12 +3,6 @@
 # This is the main script file for the CDX app.
 
 # module setup stuff
-if this.cdx
-    cdx = this.cdx
-else
-    cdx = {}
-    this.cdx = cdx
-
 window.$CDX = {}
 $CDX = window.$CDX
 $CDX.IPython = {}
@@ -30,6 +24,10 @@ $CDX.resize_loop = () ->
   IPython.notebook.scroll_to_bottom()
   resizeTimer = setTimeout($CDX.resize_loop, 500)
 
+
+# blaze_doc_loaded is a better name, doc_loaded could be confused with
+# the dom event
+
 $CDX._doc_loaded = $.Deferred()
 $CDX.doc_loaded = $CDX._doc_loaded.promise()
 $CDX._viz_instatiated = $.Deferred()
@@ -37,7 +35,7 @@ $CDX.viz_instatiated = $CDX._viz_instatiated.promise()
 
 _.delay(
   () ->
-    $('#menuDataSelect').click( -> cdx.showModal('#dataSelectModal'))
+    $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
   , 1000
 )
 $(() ->
@@ -183,8 +181,10 @@ $(() ->
   )
 
 
+$CDX.addDataArray = (itemName, url) ->
+   $CDX.IPython.execute("#{itemName} = bc.blaze_source(#{url})")
 
-cdx.buildTreeNode = (tree, treeData, depth) ->
+$CDX.buildTreeNode = (tree, treeData, depth) ->
     #console.log(JSON.stringify(treeData));
     loopCount = 0
     $.each(treeData, () ->
@@ -205,12 +205,12 @@ cdx.buildTreeNode = (tree, treeData, depth) ->
             
 
           tree = tree + tmp
-          tree = cdx.buildTreeNode(tree, this.children, ++depth)
+          tree = $CDX.buildTreeNode(tree, this.children, ++depth)
           tree = tree + '\n</ul></li>'
 
         if (this.type == 'array')
           console.log("array type #{JSON.stringify(@type)}##")
-          tmp = "<li><a href='#' onClick=\"cdx.addDataArray('#{this.url}')\">#{itemName}</a></li>"
+          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{this.url}')\">#{itemName}</a></li>"
 
           #tmp = "<li><a class='js-blaze_click' href='#' data-blaze-url='#{this.url}'>#{itemName}</a></li>"
           
@@ -218,23 +218,12 @@ cdx.buildTreeNode = (tree, treeData, depth) ->
     ) if treeData
     return tree
     
-cdx.showModal = (modalID) ->
+$CDX.showModal = (modalID) ->
     $(modalID).empty()
     $.get('/metadata/blaze/data/gold.hdf5?depth=2', {}, (data) ->
         treeData = $.parseJSON(data)
-        #console.log(JSON.stringify('treeData.url='+treeData.url)+'\n##')
-        #console.log(JSON.stringify('treeData.type='+treeData.type)+'\n##')
-        treeRoot = '<div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">×</button>
-                        <h3>Select A Data Set</h3># module setup stuff
-                    </div>
-                    <div class="modal-body">
-                    <div class="css-treeview">
-                        <ul>
-                            <li><input type="checkbox" checked="checked" id="root-0" />
-                            <label for="root-0">Data Tree</label>\n<ul>'
-        #console.log(treeRoot)
-        tree = cdx.buildTreeNode(treeRoot, treeData.children, 0)
+        treeRoot = $('#tree-template').html()
+        tree = $CDX.buildTreeNode(treeRoot, treeData.children, 0)
         tree = tree + '</ul></li></ul></div></div>'
         $(modalID).append(tree)
         $(modalID).modal('show')
