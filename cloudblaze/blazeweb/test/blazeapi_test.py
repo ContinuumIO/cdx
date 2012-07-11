@@ -96,9 +96,9 @@ class BlazeApiTestCase(unittest.TestCase):
             baseurl + "summary/hugodata/20100217/prices",
             timeout = 1.0
             )
-        summary = simplejson.loads(result.content)
-        summary = responseobj['summary']
-        columnsummary = responseobj['colsummary']
+        response = simplejson.loads(result.content)
+        summary = response['summary']
+        columnsummary = response['colsummary']
         assert summary['shape'] == [1561, 3]
         assert summary['colnames'] == [0, 1, 2]
         assert '0' in columnsummary

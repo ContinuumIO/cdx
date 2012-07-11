@@ -53,3 +53,11 @@ def update_data(datapath):
               'message' : request.form['message']}
     retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
     return retval[0]
+
+
+@app.route("/summary/<path:datapath>")
+def update_data(datapath):
+    summary =  blazeclient.get_summary(current_app.rpcclient, datapath)
+    return current_app.ph.serialize_web(summary)
+
+
