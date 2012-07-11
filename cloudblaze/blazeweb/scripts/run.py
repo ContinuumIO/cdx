@@ -28,24 +28,22 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 #load a directory full of hdf5 files
-def init_dir(datadir, disco=None):
+def build_config(datadir, disco=None):
     # datadir will have redis.db, redis.log, and a data directory,
     # as well as a blaze.config
     config_path = os.path.join(datadir, 'blaze.config')
-    if not os.path.exists(config_path):
-        base_config = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                   'default_config.yaml')
-        with open(base_config) as f:
-            config = f.read()
-        config = config % {'datapath' : datadir}
-        yamlconfig =yaml.load(config, Loader=orderedyaml.OrderedDictYAMLLoader)
-        if disco is not None:
-            yamlconfig['disco'] = collections.OrderedDict([('type', 'disco'),
-                                                           ('connection', disco)])
-
-        with open(config_path, 'w+') as f:
-            f.write(yaml.dump(yamlconfig))
-
+    base_config = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                               'default_config.yaml')
+    with open(base_config) as f:
+        config = f.read()
+    config = config % {'datapath' : datadir}
+    yamlconfig =yaml.load(config, Loader=orderedyaml.OrderedDictYAMLLoader)
+    if disco is not None:
+        yamlconfig['disco'] = collections.OrderedDict([('type', 'disco'),
+                                                       ('connection', disco)])
+    with open(config_path, 'w+') as f:
+        f.write(yaml.dump(yamlconfig))
+            
             
 
 import os.path
@@ -103,12 +101,16 @@ def main():
             data_file=os.path.join(datapath, 'redis.db'),
             log_file=os.path.join(datapath, 'redis.log'))
     time.sleep(0.1)
-    init_dir(datapath, disco=args.disco)
-    data = yaml.load(open(os.path.join(datapath, 'blaze.config')).read(),
-                          Loader=orderedyaml.OrderedDictYAMLLoader)
+    if not args.skip_config:
+        build_config(datapath, disco=args.disco)
+        data = yaml.load(open(os.path.join(datapath, 'blaze.config')).read(),
+                         Loader=orderedyaml.OrderedDictYAMLLoader)
+        config = blazeconfig.BlazeConfig(servername, host=args.redis_host,
+                                         port=args.redis_port, sourceconfig=data)
+    else:
+        config = blazeconfig.BlazeConfig(servername, host=args.redis_host,
+                                         port=args.redis_port)
     namespace = args.namespace
-    config = blazeconfig.BlazeConfig(servername, host=args.redis_host,
-                                     port=args.redis_port, sourceconfig=data)
     frontaddr = args.front_address
     backaddr = args.back_address
     node = blazenode.BlazeNode(backaddr, servername, config)
