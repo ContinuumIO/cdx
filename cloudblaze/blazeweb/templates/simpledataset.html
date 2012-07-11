@@ -11,8 +11,17 @@
   <script type="text/javascript" src="/static/vendor/underscore/underscore.js"></script>
   <script type="text/javascript" src="/static/vendor/backbone/backbone.js"></script>
   <script type="text/javascript" src="/static/vendor/buckets/buckets.js"></script>  
-  <script type="text/javascript" src="/static/lib/js/custom.js"></script>
-  <script type="text/javascript" src="/static/lib/js/continuum.js"></script>
+
+
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/model_base.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/view_base.js') }}"></script>
+
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/views.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/plot_views.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/data_model.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/continuum.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/bokeh.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/custom.js') }}"></script>
   <script type="text/javascript" src="/static/js/test.js"></script>
   <script>
     {% autoescape false %}
