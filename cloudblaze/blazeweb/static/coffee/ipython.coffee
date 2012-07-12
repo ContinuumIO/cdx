@@ -51,7 +51,8 @@ IPython.Notebook.prototype.scroll_to_bottom = () ->
   element.animate({scrollTop:element.get(0).scrollHeight}, 0)
 
 $CDX.IPython.suggest_variable_name = (target) ->
-  target = target.replace(/\W|^(?=\d)/ , '_')
+  target = target.replace(/\W|^(?=\d)|/ , '_')
+  target = target.replace(/\// , '_')
   varnames = {}
   for variable in $CDX.IPython.namespace.get('variables')
     varnames[variable.name] = true
