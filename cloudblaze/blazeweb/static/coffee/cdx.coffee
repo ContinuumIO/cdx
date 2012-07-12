@@ -68,6 +68,7 @@ $(() ->
           data = JSON.parse(data)
           $CDX.plot_context_ref = data['plot_context_ref']
           $CDX.docid = data['docid'] # in case the server returns a different docid
+          Continuum.docid = $CDX.docid
           $CDX.all_models = data['all_models']
 
           $CDX.IPython.kernelid = data['kernelid']
@@ -137,9 +138,11 @@ $(() ->
   WorkspaceRouter = Backbone.Router.extend({
     routes: {
       "cdx" : "load_default_document",
-      "cdx/:docid":                 "load_doc",     #help
-      "cdx/:docid/viz":             "load_doc_viz",     #help
-      "cdx/:docid/viz/:plot_id":    "load_specific_viz",     #help
+      "cdx/unknown/sharecurrent": "sharecurrent",
+      "cdx/:docid": "load_doc",
+      "cdx/:docid/share": "share",
+      "cdx/:docid/viz": "load_doc_viz",
+      "cdx/:docid/viz/:plot_id": "load_specific_viz"
       },
     load_default_document : () ->
       alert('load_default_document')
@@ -148,6 +151,16 @@ $(() ->
         docs = JSON.parse(data)['docs']
         console.log('URL', "cdx/#{docs[0]}")
         $CDX.router.navigate("cdx/#{docs[0]}", {trigger : true}))
+
+    share : (docid) ->
+      if not $CDX._doc_loaded.isResolved()
+        $CDX.utility.start_instatiate(docid)
+      view = new ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
+
+    sharecurrent : (docid) ->
+      console.log('SHARE CURRENT')
+      docid = $CDX.docid
+      $CDX.router.navigate("cdx/#{docid}/share", {trigger : true})
 
     load_doc : (docid) ->
       $CDX.docid = docid
@@ -188,14 +201,11 @@ $(() ->
     regions: {
       viz_tab: "viz-tab"
       }
-    events: {
-      "click ul.nav-tabs .js-tab_trigger" : (e) ->
+    events:
+      "click .js-navigate" : (e) ->
         el = $(e.currentTarget)
         route_target = el.attr("data-route_target")
-        $CDX.router[route_target]()
-        el.tab('show')
-      }
-
+        $CDX.router.navigate(route_target, {trigger: true})
     )
 
   class SummaryView extends Backbone.View
@@ -303,11 +313,12 @@ $CDX.showModal = (modalID) ->
     )
     return
 
+
 $CDX.render_summary = ->
   sample_data = [{url: "/blaze/data/gold.hdf5/20100114/dates",
-  type:"BlazeArrayProxy", name:"dates"}, 
-  {colsummary: {0:{std:6759.325780745387, max:1263502799, 
-  mean:1263491099.9993594, min:1263479400}}, 
+  type:"BlazeArrayProxy", name:"dates"},
+  {colsummary: {0:{std:6759.325780745387, max:1263502799,
+  mean:1263491099.9993594, min:1263479400}},
   summary:{shape:[1561], colnames:[0]}}];
 
   #console.log(sample_data)
@@ -317,5 +328,43 @@ $CDX.render_summary = ->
 
 $(->
   $CDX.render_summary())
-  
 
+class ConfigurePublishView extends Backbone.View
+  initialize : (options) ->
+    super(options)
+    @tab_view = options['tab_view']
+    @render()
+
+  render : () ->
+    template = $('#publish-selection').html()
+    tabs = _.keys(@tab_view.tab_view_dict)
+    arrays = []
+    plots = []
+    for x in tabs
+      view = @tab_view.tab_view_dict[x].view
+      if view.model
+        if view.model.type == 'Plot'
+          plots.push(x)
+        if view.model.type == 'DataTable'
+          arrays.push(x)
+    @$el.html(_.template2(template, {'plots' : plots, 'arrays' : arrays}))
+    @$el.modal('show')
+    return null
+
+  events :
+    "click .publishsubmit" : "publishsubmit"
+
+  publishsubmit : () ->
+    plots = []
+    arrays = []
+    for node in @$el.find('input:checked')
+      node = $(node)
+      tab = node.attr('tab')
+      view = @tab_view.tab_view_dict[tab].view
+      if view.model.type == 'Plot'
+        view.model.save()
+        plots.push(view.model.ref())
+      if view.model.type == 'DataTable'
+        view.model.save()
+        arrays.push(view.model.ref())
+    console.log('WAWEFWEF')
