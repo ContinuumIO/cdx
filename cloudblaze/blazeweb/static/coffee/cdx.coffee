@@ -19,11 +19,10 @@ window.$CDX.resizeRoot = () ->
   $('.cdx-py-pane').width(winWidth * .85)
   $('.cdx-py-pane').height(pyEdPaneHeight)
 
-#$CDX.resize_loop = () ->
-#  window.$CDX.resizeRoot()
+$CDX.resize_loop = () ->
+  window.$CDX.resizeRoot()
 #  IPython.notebook.scroll_to_bottom()
-#  resizeTimer = setTimeout($CDX.resize_loop, 500)
-
+  resizeTimer = setTimeout($CDX.resize_loop, 500)
 
 # blaze_doc_loaded is a better name, doc_loaded could be confused with
 # the dom event
