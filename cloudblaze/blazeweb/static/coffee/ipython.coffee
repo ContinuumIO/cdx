@@ -31,11 +31,13 @@ $CDX.IPython.setup_ipython_events = () ->
     return msg.header.msg_id
   IPython.Eventer = _.clone(Backbone.Events)
   IPython.Eventer.on('shellmsg', (header, content)->
-    console.log('shellmsg', header.msg_type, header, content)
+    #console.log('shellmsg', header.msg_type, header, content)
   )
   IPython.Eventer.on('iopub', (header, content)->
-    console.log('iopub', header.msg_type, header, content)
+    #console.log('iopub', header.msg_type, header, content)
   )
+
+  
 $CDX.IPython.setup_ipython_events()
 class Namespace extends Continuum.HasProperties
     type : 'Namespace'

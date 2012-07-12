@@ -104,6 +104,15 @@ $(() ->
             view: plotcontextview,
             route:"viz"
           )
+          window.pc = plotcontext
+          window.pcv = plotcontextview
+          _.delay((->
+            pv1 = _.values(window.pcv.views)[1]
+            $.when(pv1.to_png_daturl()).then( (data_url) ->
+              $(pcv.el).prepend($("<img src='#{data_url}'></img>")))
+          ),0)
+            
+          
           $CDX._viz_instatiated.resolve($CDX.docid))
 
     instatiate_specific_viz_tab: (plot_id) ->
@@ -274,10 +283,10 @@ $CDX.render_summary = ->
   mean:1263491099.9993594, min:1263479400}}, 
   summary:{shape:[1561], colnames:[0]}}];
 
-  console.log(sample_data)
+  #console.log(sample_data)
   summary_template = $('#variable-summary-template').html()
 
-  console.log(_.template(summary_template, {item:sample_data}))
+  #console.log(_.template(summary_template, {item:sample_data}))
 
 $(->
   $CDX.render_summary())

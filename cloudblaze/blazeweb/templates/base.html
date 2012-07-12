@@ -7,8 +7,11 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-	<!-- Vendor scripts -->
+	<!-- Vendor scripts 
     <script type=text/javascript src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+-->
+    <script type=text/javascript src="{{ url_for('static', filename='vendor/jquery.1.7.2.min.js') }}"></script>></script>
     <script type=text/javascript src="{{ url_for('static', filename='vendor/d3/d3.v2.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='vendor/underscore/underscore.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='vendor/backbone/backbone.js') }}"></script>
@@ -30,6 +33,7 @@
     <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/continuum.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/bokeh.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/custom.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/svg_to_dataurl.js') }}"></script>
 
 
 	<!-- Vendor Styles -->
