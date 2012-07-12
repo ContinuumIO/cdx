@@ -35,7 +35,7 @@ $CDX.viz_instatiated = $CDX._viz_instatiated.promise()
 
 $CDX.add_blaze_table_tab = (varname, url, columns) ->
   tabelement = $CDX.main_tab_set.add_tab_el(
-    tab_name:varname, view: {})
+    tab_name:varname , view: {})
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
     {}, {local:true})
 
@@ -210,8 +210,14 @@ $(() ->
   )
 
 
-$CDX.addDataArray = (itemName, url) ->
-   $CDX.IPython.execute("#{itemName} = bc.blaze_source(#{url})")
+$CDX.addDataArray = (itemName) ->
+  url = itemName
+  itemName = itemName.split("/")
+  itemName = itemName[itemName.length - 1]
+  itemName = $CDX.IPython.suggest_variable_name(itemName)
+  command = "#{itemName} = bc.blaze_source('#{url}')"
+  console.log(command)
+  $CDX.IPython.execute_code(command)
 
 $CDX.buildTreeNode = (tree, treeData, depth) ->
     #console.log(JSON.stringify(treeData));
@@ -237,8 +243,7 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
           tree = $CDX.buildTreeNode(tree, this.children, ++depth)
           tree = tree + '\n</ul></li>'
 
-        if (this.type == 'array')
-          console.log("array type #{JSON.stringify(@type)}##")
+        if (this.type == 'array' || this.type =='disco')
           tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{this.url}')\">#{itemName}</a></li>"
 
           #tmp = "<li><a class='js-blaze_click' href='#' data-blaze-url='#{this.url}'>#{itemName}</a></li>"
@@ -249,7 +254,7 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
 
 $CDX.showModal = (modalID) ->
     $(modalID).empty()
-    $.get('/metadata/blaze/data', {}, (data) ->
+    $.get('/metadata/', {}, (data) ->
         treeData = $.parseJSON(data)
         treeRoot = $('#tree-template').html()
         tree = $CDX.buildTreeNode(treeRoot, treeData.children, 0)
