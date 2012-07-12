@@ -35,7 +35,7 @@ $CDX.viz_instatiated = $CDX._viz_instatiated.promise()
 
 $CDX.add_blaze_table_tab = (varname, url, columns) ->
   tabelement = $CDX.main_tab_set.add_tab_el(
-    tab_name:varname , view: {})
+    tab_name:varname , view: {}, route : varname)
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
     {}, {local:true})
 
@@ -106,8 +106,12 @@ $(() ->
           plotcontext.set('render_loop', true)
           plotcontextview = new plotcontext.default_view(
             model : plotcontext,
-            el: $CDX.main_tab_set.add_tab_el(
-              tab_name:"viz", view: {}, route:"viz"))
+          )
+          $CDX.main_tab_set.add_tab_el(
+            tab_name:"viz",
+            view: plotcontextview,
+            route:"viz"
+          )
           $CDX._viz_instatiated.resolve($CDX.docid))
 
     instatiate_specific_viz_tab: (plot_id) ->
