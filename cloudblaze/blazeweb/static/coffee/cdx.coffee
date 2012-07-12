@@ -212,14 +212,15 @@ _.delay(
   , 1000
 )
 
-$CDX.addDataArray = (itemName) ->
-  url = itemName
-  itemName = itemName.split("/")
-  itemName = itemName[itemName.length - 1]
-  itemName = $CDX.IPython.suggest_variable_name(itemName)
+$CDX.addDataArray = (itemName, url) ->
+  #url = itemName
+  #itemName = itemName.split("/")
+  #itemName = itemName[itemName.length - 1]
+#  itemName = $CDX.IPython.suggest_variable_name(url)
   command = "#{itemName} = bc.blaze_source('#{url}')"
   console.log(command)
   $CDX.IPython.execute_code(command)
+  $CDX.add_blaze_table_tab(itemName, url)
 
 $CDX.buildTreeNode = (tree, treeData, depth) ->
     #console.log(JSON.stringify(treeData));
@@ -246,7 +247,7 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
           tree = tree + '\n</ul></li>'
 
         if (this.type == 'array' || this.type =='disco')
-          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{this.url}')\">#{itemName}</a></li>"
+          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{itemName}','#{this.url}')\">#{itemName}</a></li>"
 
           #tmp = "<li><a class='js-blaze_click' href='#' data-blaze-url='#{this.url}'>#{itemName}</a></li>"
 
