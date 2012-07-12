@@ -194,14 +194,22 @@ $(() ->
       $CDX.blaze.get_summary($CDX.IPython.namespace.get('variables'), (array) ->
         console.log(array)
         )
-      sample_data = [{url: "/blaze/data/gold.hdf5/20100114/dates",
+      sample_data1 = [{url: "/blaze/data/gold.hdf5/20100114/dates",
       type:"BlazeArrayProxy", name:"dates"},
       {colsummary: {0:{std:6759.325780745387, max:1263502799,
       mean:1263491099.9993594, min:1263479400}},
       summary:{shape:[1561], colnames:[0]}}]
+      sample_data2 = [{url: "/blaze/data/gold.hdf5/20100115/dates",
+      type:"BlazeArrayProxy", name:"dates"},
+      {colsummary: {0:{std:6759.325780745387, max:1263502799,
+      mean:1263491099.9993594, min:1263479400}},
+      summary:{shape:[2561], colnames:[0]}}]
       #console.log(sample_data)
+      sa = [sample_data1, sample_data2]
       summary_template = $('#variable-summary-template').html()
-      snip = _.template2(summary_template, {item:sample_data})
+      snip = ''
+      for sa_ele in sa
+        snip += _.template2(summary_template, {item:sa_ele})
       #console.log(snip)
       return snip
 
