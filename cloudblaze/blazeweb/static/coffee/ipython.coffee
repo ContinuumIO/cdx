@@ -57,8 +57,9 @@ $CDX.IPython.suggest_variable_name = (target) ->
   # Trim the name down to only include the last two parts.
   urlParts = target.split('_')
   if (urlParts.length >= 2)
-    newTarget = '_' + urlParts[urlParts.length - 2] + '_' + urlParts[urlParts.length - 1]
+    newTarget = urlParts[urlParts.length - 2] + '_' + urlParts[urlParts.length - 1]
     target = newTarget
+  target = 'da_' + target
   varnames = {}
   for variable in $CDX.IPython.namespace.get('variables')
     varnames[variable.name] = true

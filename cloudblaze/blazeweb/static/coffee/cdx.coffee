@@ -133,6 +133,8 @@ $(() ->
       "cdx/:docid/viz/:plot_id":    "load_specific_viz",     #help
       },
     load_default_document : () ->
+      alert('load_default_document')
+
       user = $.get('/userinfo/', {}, (data) ->
         docs = JSON.parse(data)['docs']
         console.log('URL', "cdx/#{docs[0]}")
@@ -140,6 +142,7 @@ $(() ->
 
     load_doc : (docid) ->
       $CDX.docid = docid
+
       $CDX.utility.start_instatiate(docid)
       console.log('RENDERING')
 
@@ -186,6 +189,22 @@ $(() ->
 
     )
 
+  class SummaryView extends Backbone.View
+    render: () ->
+      $CDX.blaze.get_summary($CDX.IPython.namespace.get('variables'), (array) ->
+        console.log(array)
+        )
+      sample_data = [{url: "/blaze/data/gold.hdf5/20100114/dates",
+      type:"BlazeArrayProxy", name:"dates"},
+      {colsummary: {0:{std:6759.325780745387, max:1263502799,
+      mean:1263491099.9993594, min:1263479400}},
+      summary:{shape:[1561], colnames:[0]}}]
+      #console.log(sample_data)
+      summary_template = $('#variable-summary-template').html()
+      snip = _.template2(summary_template, {item:sample_data})
+      #console.log(snip)
+      return snip
+
   class BazView extends Backbone.View
     render: () ->
       return "<h3> baz view </h3>"
@@ -194,11 +213,9 @@ $(() ->
   $CDX.layout = new Layout()
   $CDX.router = new WorkspaceRouter()
   $.when($CDX.layout_render = $CDX.layout.render()).then( ->
-
-
     $("#layout-root").prepend($CDX.layout_render.el);
     $CDX.main_tab_set = new TabSet(
-      el:"#main-tab-area", tab_view_objs: [{view: new BazView(), route:'main', tab_name:'main'}])
+      el:"#main-tab-area", tab_view_objs: [{view: new SummaryView(), route:'main', tab_name:'Summary'}])
 
     $CDX.main_tab_set.render()
     )
@@ -209,6 +226,7 @@ $(() ->
 _.delay(
   () ->
     $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
+    $CDX.resize_loop
   , 1000
 )
 
@@ -275,10 +293,10 @@ $CDX.render_summary = ->
   mean:1263491099.9993594, min:1263479400}}, 
   summary:{shape:[1561], colnames:[0]}}];
 
-  console.log(sample_data)
+  #console.log(sample_data)
   summary_template = $('#variable-summary-template').html()
 
-  console.log(_.template(summary_template, {item:sample_data}))
+  #console.log(_.template(summary_template, {item:sample_data}))
 
 $(->
   $CDX.render_summary())

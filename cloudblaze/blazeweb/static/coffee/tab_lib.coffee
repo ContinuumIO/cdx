@@ -23,7 +23,7 @@ class TabSet extends Backbone.View
       @add_tab(tab_view_obj)
 
   render: ->
-    $(@el).append($('<h3> from render </h3>'))
+    #$(@el).append($('<h3> from render </h3>'))
     $(@el).append(@tab_holder_el)
     $(@el).append(@pane_holder_el)
 
