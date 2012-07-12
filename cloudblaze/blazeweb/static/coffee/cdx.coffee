@@ -34,8 +34,6 @@ $CDX._viz_instatiated = $.Deferred()
 $CDX.viz_instatiated = $CDX._viz_instatiated.promise()
 
 $CDX.add_blaze_table_tab = (varname, url, columns) ->
-  tabelement = $CDX.main_tab_set.add_tab_el(
-    tab_name:varname , view: {}, route : varname)
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
     {}, {local:true})
 
@@ -56,7 +54,9 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
     )
     view = new datatable.default_view(
       model : datatable,
-      el : tabelement
+    )
+    tabelement = $CDX.main_tab_set.add_tab_el(
+      tab_name:varname , view: view, route : varname
     )
   )
 
