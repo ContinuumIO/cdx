@@ -216,7 +216,7 @@ $CDX.addDataArray = (itemName, url) ->
   #url = itemName
   #itemName = itemName.split("/")
   #itemName = itemName[itemName.length - 1]
-#  itemName = $CDX.IPython.suggest_variable_name(url)
+  itemName = $CDX.IPython.suggest_variable_name(url)
   command = "#{itemName} = bc.blaze_source('#{url}')"
   console.log(command)
   $CDX.IPython.execute_code(command)

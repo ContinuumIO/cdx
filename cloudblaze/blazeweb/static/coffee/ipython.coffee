@@ -52,7 +52,13 @@ IPython.Notebook.prototype.scroll_to_bottom = () ->
 
 $CDX.IPython.suggest_variable_name = (target) ->
   target = target.replace(/\W|^(?=\d)|/ , '_')
-  target = target.replace(/\// , '_')
+  target = target.replace(/\//g, '_')
+  target = target.replace(/\./g, '_')
+  # Trim the name down to only include the last two parts.
+  urlParts = target.split('_')
+  if (urlParts.length >= 2)
+    newTarget = '_' + urlParts[urlParts.length - 2] + '_' + urlParts[urlParts.length - 1]
+    target = newTarget
   varnames = {}
   for variable in $CDX.IPython.namespace.get('variables')
     varnames[variable.name] = true
