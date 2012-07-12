@@ -9,7 +9,7 @@ $CDX.IPython = {}
 window.$CDX.resizeRoot = () ->
   winHeight = $(window).height()
   winWidth = $(window).width()
-  cdxRootHeight=(winHeight * .95)
+  cdxRootHeight=(winHeight * .85)
   midPanelHeight = (cdxRootHeight * .65)
   pyEdPaneHeight = (cdxRootHeight * .20)
 
@@ -89,10 +89,11 @@ $(() ->
           socket = Continuum.submodels(ws_conn_string, $CDX.docid)
           console.log("resolving _doc_loaded")
           _.delay(
-            () ->
+            () =>
               $CDX.IPython.inject_plot_client($CDX.docid)
               $CDX.resize_loop()
               $CDX._doc_loaded.resolve($CDX.docid)
+              $CDX.utility.instatiate_viz_tab()
             , 1000
           )
 
