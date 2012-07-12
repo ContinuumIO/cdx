@@ -49,3 +49,15 @@ IPython.Eventer.on('iopub:namespace', (header, content) ->
 IPython.Notebook.prototype.scroll_to_bottom = () ->
   element = this.element.parent()
   element.animate({scrollTop:element.get(0).scrollHeight}, 0)
+
+$CDX.IPython.suggest_variable_name = (target) ->
+  target = target.replace(/\W|^(?=\d)/ , '_')
+  varnames = {}
+  for variable in $CDX.IPython.namespace.get('variables')
+    varnames[variable.name] = true
+  candidate = target
+  counter = 1
+  while varnames[candidate]
+    candidate = target + String(counter)
+    counter += 1
+  return candidate
