@@ -457,3 +457,7 @@ class PublishModels extends Backbone.Collection
   model : PublishModel
 
 Continuum.register_collection('PublishModel', new PublishModels())
+
+
+add_plot = ->
+  $CDX.IPython.execute_code("p.line(x=[1,2,3,4,5], y=[1,2,3,4,5])")
