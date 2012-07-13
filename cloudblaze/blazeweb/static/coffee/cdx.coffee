@@ -49,6 +49,8 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
     datatable = Continuum.Collections['DataTable'].create(
         columns : arraydata['colnames'],
         data_source : data_source.ref()
+        name : varname
+        url : url
       , local : true
     )
     view = new datatable.default_view(
@@ -143,7 +145,19 @@ $(() ->
       "cdx/:docid/share": "share",
       "cdx/:docid/viz": "load_doc_viz",
       "cdx/:docid/viz/:plot_id": "load_specific_viz"
+      "cdx/:docid/published/:modelid" : "load_published"
       },
+    load_published : (docid, modelid) ->
+      if not $CDX._doc_loaded.isResolved()
+        $CDX.utility.start_instatiate(docid)
+      $.when($CDX.viz_instatiated).then(() ->
+        model = Continuum.Collections['PublishModel'].get(modelid)
+        view = new model.default_view(
+          model : model
+          tab_view : $CDX.main_tab_set
+        )
+      )
+
     load_default_document : () ->
       alert('load_default_document')
 
@@ -356,15 +370,68 @@ class ConfigurePublishView extends Backbone.View
 
   publishsubmit : () ->
     plots = []
+    plot_tab_info = []
     arrays = []
+    array_tab_info = []
     for node in @$el.find('input:checked')
       node = $(node)
       tab = node.attr('tab')
-      view = @tab_view.tab_view_dict[tab].view
+      tvo = @tab_view.tab_view_dict[tab]
+      view = tvo.view
       if view.model.type == 'Plot'
         view.model.save()
         plots.push(view.model.ref())
+        plot_tab_info.push({'tab_name' : tvo.tab_name, 'route' :tvo.route})
       if view.model.type == 'DataTable'
         view.model.save()
+        view.model.get_ref('data_source').save()
+        console.log(view.model.id, view.model.get_ref('data_source').id)
         arrays.push(view.model.ref())
-    console.log('WAWEFWEF')
+        array_tab_info.push({'tab_name' : tvo.tab_name, 'route' :tvo.route})
+
+    publishmodel = Continuum.Collections['PublishModel'].create(
+      plot_tab_info : plot_tab_info
+      plots : plots
+      arrays : arrays
+      array_tab_info : array_tab_info
+    )
+    docid = $CDX.docid
+    modelid = publishmodel.id
+    $CDX.router.navigate("/cdx/#{docid}/published/#{modelid}")
+
+class PublishView extends Continuum.ContinuumView
+  initialize : (options) ->
+    @tab_view = options['tab_view']
+    @plots = {}
+    @arrays = {}
+    @render()
+  render : () ->
+    Continuum.build_views(@model, @plots, @mget('plots'))
+    Continuum.build_views(@model, @arrays, @mget('arrays'))
+    for info, idx in @mget('plot_tab_info')
+      plotid = @mget('plots')[idx].id
+      console.log('ADDTAB', info)
+      @tab_view.add_tab_el(
+        tab_name: info.tab_name , view: @plots[plotid], route : info.route
+      )
+    for info, idx in @mget('array_tab_info')
+      arrayid = @mget('arrays')[idx].id
+      console.log('ADDTAB', info)
+      @tab_view.add_tab_el(
+        tab_name: info.tab_name , view: @arrays[arrayid], route : info.route
+      )
+
+class PublishModel extends Continuum.HasProperties
+  collections : Continuum.Collections
+  type : 'PublishModel'
+  default_view : PublishView
+  defaults :
+    plot_tab_info : []
+    plots : []
+    arrays : []
+    array_tab_info : []
+
+class PublishModels extends Backbone.Collection
+  model : PublishModel
+
+Continuum.register_collection('PublishModel', new PublishModels())

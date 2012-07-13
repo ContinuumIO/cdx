@@ -49,6 +49,9 @@ def create(docid, typename):
         model.set('docs', [docid])
     model.set('created', True)
     current_app.collections.add(model)
+    if model.typename == 'ObjectArrayDataSource':
+        print current_app.collections.get(model.typename, model.id)
+        print current_app.collections.get(model.typename, model.id).id        
     clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
         current_app.wsmanager.send(doc, app.ph.serialize_web(
