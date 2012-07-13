@@ -36,7 +36,7 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
     {}, {local:true})
 
-  deferred = $.get("/data" + url, {}, (data) ->
+  $.get("/data" + url, {}, (data) ->
     arraydata = JSON.parse(data)
     transformed = []
     for row in arraydata['data']
@@ -264,6 +264,11 @@ _.delay(
 )
 
 
+$CDX.popDataTab = (itemName, url) ->
+  console.log('popDataTab:' , itemName, url)
+  $.when($CDX.add_blaze_table_tab(itemName, url)).then(->
+
+    $CDX.main_tab_set.activate(itemName))
 
 $CDX.addDataArray = (itemName, url) ->
   #url = itemName
