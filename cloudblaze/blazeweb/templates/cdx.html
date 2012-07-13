@@ -32,30 +32,24 @@
 <script type="text/template" id="tree-template">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>Select A Data Set</h3># module setup stuff
+    <h3>Select A Data Set</h3>
   </div>
   <div class="modal-body">
     <div class="css-treeview">
-      <ul>
-        <li><input type="checkbox" checked="checked" id="root-0" />
-          <label for="root-0">Data Tree</label>
 
 
 </script>
 <script type="text/template" id="variable-summary-template">
-  <h3> data summary </h3>
-  <dl>
-    <dt> BlazeUrl </dt>
-    <dd> <%= item[0].url %> </dd>
-    <dt> type </dt>
-    <dd> <%= item[0].type %> </dd>
-    <dt> name </dt>
-    <dd>  <%= item[0].name %> </dd>
-    <dt> shape </dt>
-
-  </dl>
-  <h3> data shape?? </h3>
-  <table>
+  <div class="well">
+  <h3> <%= item[0].name %> </h3>
+  <table class="table table-bordered table-condensed">
+    <tr><td>BlazeUrl</td><td><%= item[0].url %> </td></tr>
+    <tr><td>Type</td><td><%= item[0].type %> </td></tr>
+    <% if (item[1]) { %>    
+      <tr><td>Total Rows</td><td><%=item[1].summary.shape %></td></tr>
+    <% } %>
+  </table>
+  <table class="table table-striped table-bordered table-condensed">
     <thead>
       <tr>
         <th> Column Name </th>
@@ -66,6 +60,7 @@
       </tr>
     </thead>
     <tbody>
+    <% if (item[1]) { %>    
       <% _.each( item[1].colsummary , function(value, key, list) {  %>
 
       <tr>
@@ -76,8 +71,10 @@
         <td> <%= value.mean %> </td>
       </tr>
       <% }); %>
+    <% } %>
 
   </table>
+  </div>
 </script>
 
 
@@ -153,7 +150,17 @@
 	    <li><a href="#dsp-tabs1-pane2" data-toggle="tab">Quick</a></li>
 	  </ul>
 	  <div class="tab-content">
-	    <div class="tab-pane active midPanel" id="dsp-tabs1-pane1">
+	    <div class="tab-pane act  sample_data = [{url: "/blaze/data/gold.hdf5/20100114/dates",
+  type:"BlazeArrayProxy", name:"dates"}, 
+  {colsummary: {0:{std:6759.325780745387, max:1263502799, 
+  mean:1263491099.9993594, min:1263479400}}, 
+  summary:{shape:[1561], colnames:[0]}}];
+
+  console.log(sample_data)
+  summary_template = $('#variable-summary-template').html()
+
+  console.log(_.template(summary_template, {item:sample_data}))
+ive midPanel" id="dsp-tabs1-pane1">
 	      <table class="table-bordered">
 	        <thead><th>name</th><th>range</th></thead>
 	        <tr><td>blah</td><td>0-100</td></tr>
@@ -178,36 +185,6 @@
     <div class="modal hide fade" id="dataSelectModal"></div>
 
   </div><!-- cdxRoot container-fluid -->
-</script>
-<script type="text/javascript">
-  
-  //alert('cdx script block');
-  window.$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-
-  // Adjust layout / pane sizes.
-  function resizeRoot() {
-    var winHeight = $(window).height();
-    var winWidth = $(window).width();
-    var cdxRootHeight=(winHeight * .95);
-    var midPanelHeight = (cdxRootHeight * .65);
-    var pyEdPaneHeight = (cdxRootHeight * .20);
-    //alert('resize'+cdxRootHeight);
-    $('#cdxRoot').height(cdxRootHeight);
-    $('.midPanel').height(midPanelHeight);
-    $('#cdxMidContainer').width(winWidth * .95);
-    $('.cdx-py-pane').width(winWidth * .85);
-    $('.cdx-py-pane').height(pyEdPaneHeight);
-  };
-
-  $(window).resize(function() {
-    var resizeTimer;
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(resizeRoot, 500);
-  });
-
-  // Init root pane size.
-  resizeRoot();
-
 </script>
 <div id="layout-root"></div>
 {% endblock %}

@@ -74,8 +74,15 @@ def summary(datapath):
 @app.route("/bulksummary/")
 def bulk_summary():
     paths = simplejson.loads(request.args['paths'])
-    summaries = [blazeclient.get_summary(current_app.rpcclient, x)\
-                 for x in paths]
+    summaries = []
+    for p in paths:
+        try:
+            summary = blazeclient.get_summary(current_app.rpcclient, p)
+        except Exception as e:
+            log.exception(e)
+            summary = None
+        summaries.append(summary)
+    print 'SUMMARIES', summaries
     return current_app.ph.serialize_web(summaries)
 
 
