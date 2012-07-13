@@ -83,7 +83,6 @@ class ProxyClient(threading.Thread):
         queue = Queue()
         self.queues[msgid] = queue
         messages = self.ph.pack_blaze(self.uuid, msgid, msgobj, dataobjs)
-        print 'MSG', msgid
         self.send_queue.put(messages)
         msgobj = None
         dataobjs = []
@@ -96,7 +95,6 @@ class ProxyClient(threading.Thread):
                     log.debug("%s, %s, %s, %s", clientid, msgid, msgobj, dataobjs)
             except gevent.queue.Empty as e:
                 break
-        print 'RETURN', msgobj, dataobjs
         del self.queues[msgid]
         return (msgobj, dataobjs)
     

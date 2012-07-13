@@ -5,6 +5,7 @@ import uuid
 import logging
 import cPickle as pickle
 import redis
+
 import numpy as np
 log = logging.getLogger(__name__)
 
@@ -100,10 +101,16 @@ class ContinuumModelsStorage(object):
     def get(self, typename, id):
         return bbget(self.client, modelkey(typename, id))
     
-    def add(self, model):
-        with self.client.pipeline() as pipe:
-            self._upsert(pipe, model)
-            pipe.execute()
+    def add(self, model, retries=10):
+        try:
+            with self.client.pipeline() as pipe:
+                self._upsert(pipe, model)
+                pipe.execute()
+        except redis.WatchError as e:
+            if retries > 0:
+                self.add(model, retries=retries-1)
+            else:
+                raise
             
     def _upsert(self, pipe, model):
         mkey = modelkey(model.typename, model.id)
