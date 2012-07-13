@@ -18,8 +18,13 @@ overflow: auto;
 .cdx-dep {
 }
 
-.cdx-py-editor {
+.cdx-py-pane {
+    overflow-y: scroll;
+    overflow-x: hidden;
     margin: 10px;
+}
+
+.tmp {
     min-height: 50px;
     background-color: black;
     text-color: white;
@@ -158,7 +163,7 @@ overflow: auto;
 .pane-holder > .pane {
 
   /*border:1px solid red; */
-  height:400px;
+  height:500px;
   overflow: auto;
 }
 
