@@ -191,9 +191,7 @@ $(() ->
 
   class SummaryView extends Backbone.View
     render: () ->
-      $CDX.blaze.get_summary($CDX.IPython.namespace.get('variables'), (array) ->
-        console.log(array)
-        )
+      console.log('summaryView render')
       sample_data1 = [{url: "/blaze/data/gold.hdf5/20100114/dates",
       type:"BlazeArrayProxy", name:"dates"},
       {colsummary: {0:{std:6759.325780745387, max:1263502799,
@@ -210,26 +208,36 @@ $(() ->
       snip = ''
       for sa_ele in sa
         snip += _.template2(summary_template, {item:sa_ele})
+      snip2 = ''
+      $CDX.blaze.get_summary($CDX.IPython.namespace.get('variables'), (array) ->
+        console.log(array)
+        for sa_ele in array
+          snip2 += _.template2(summary_template, {item:sa_ele})
+        )
       #console.log(snip)
-      return snip
+      $(this.el).html(snip2)
+      return $(this.el)
 
   class BazView extends Backbone.View
     render: () ->
       return "<h3> baz view </h3>"
 
 
+  $CDX.summaryView = new SummaryView()
   $CDX.layout = new Layout()
   $CDX.router = new WorkspaceRouter()
   $.when($CDX.layout_render = $CDX.layout.render()).then( ->
-    $("#layout-root").prepend($CDX.layout_render.el);
+    $("#layout-root").prepend($CDX.layout_render.el)
     $CDX.main_tab_set = new TabSet(
-      el:"#main-tab-area", tab_view_objs: [{view: new SummaryView(), route:'main', tab_name:'Summary'}])
+      el:"#main-tab-area", tab_view_objs: [{view: $CDX.summaryView, route:'main', tab_name:'Summary'}])
 
     $CDX.main_tab_set.render()
     )
   console.log("history start", Backbone.history.start(pushState:true))
 
+  $CDX.IPython.namespace.on('change', -> $CDX.updateSummaryView() )
   )
+
 
 _.delay(
   () ->
@@ -237,6 +245,11 @@ _.delay(
     $CDX.resize_loop
   , 1000
 )
+
+$CDX.updateSummaryView = () ->
+    console.log('updateSummaryView')
+    $CDX.summaryView.render()
+
 
 $CDX.addDataArray = (itemName, url) ->
   #url = itemName
