@@ -106,11 +106,11 @@ $(() ->
           )
           window.pc = plotcontext
           window.pcv = plotcontextview
-          _.delay((->
-            pv1 = _.values(window.pcv.views)[1]
-            $.when(pv1.to_png_daturl()).then( (data_url) ->
-              $(pcv.el).prepend($("<img src='#{data_url}'></img>")))
-          ),0)
+          # _.delay((->
+          #   pv1 = _.values(window.pcv.views)[1]
+          #   $.when(pv1.to_png_daturl()).then( (data_url) ->
+          #     $(pcv.el).prepend($("<img src='#{data_url}'></img>")))
+          # ),0)
             
           
           $CDX._viz_instatiated.resolve($CDX.docid))
