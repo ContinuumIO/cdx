@@ -4,6 +4,7 @@ gevent.monkey.patch_all()
 import gevent_zeromq
 gevent_zeromq.monkey_patch()
 from gevent.queue import Queue
+import gevent.queue
 
 import zmq
 import threading
@@ -11,7 +12,7 @@ import uuid
 import time
 import logging
 import blaze.protocol as protocol
-
+logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 class ProxyClient(threading.Thread):
@@ -39,7 +40,7 @@ class ProxyClient(threading.Thread):
             while not self.kill:
                 try:
                     messages = self.send_queue.get(timeout=self.timeout)
-                except:
+                except gevent.queue.Empty as e:
                     continue
                 self.push.send_multipart(messages)
         except zmq.ZMQError as e:
@@ -82,13 +83,20 @@ class ProxyClient(threading.Thread):
         queue = Queue()
         self.queues[msgid] = queue
         messages = self.ph.pack_blaze(self.uuid, msgid, msgobj, dataobjs)
+        print 'MSG', msgid
         self.send_queue.put(messages)
+        msgobj = None
+        dataobjs = []
         while True:
-            (clientid, msgid, msgobj, dataobjs) = self.queues[msgid].get()
-            if msgobj.get('msgtype') == 'rpcresponse':
+            try:
+                (clientid, msgid, msgobj, dataobjs) = self.queues[msgid].get(timeout=self.timeout)
+                if msgobj.get('msgtype') == 'rpcresponse':
+                    break
+                else:
+                    log.debug("%s, %s, %s, %s", clientid, msgid, msgobj, dataobjs)
+            except gevent.queue.Empty as e:
                 break
-            else:
-                log.debug("%s, %s, %s, %s", clientid, msgid, msgobj, dataobjs)
+        print 'RETURN', msgobj, dataobjs
         del self.queues[msgid]
         return (msgobj, dataobjs)
     
@@ -143,6 +151,7 @@ class ProxyRPCClient(client.BaseRPCClient):
     def __init__(self, proxyclient):
         self.proxyclient = proxyclient
         self.ph = proxyclient.ph
+        
     def reqrep(self, requestobj, dataobjs):
         (responseobj, dataobjs) = self.proxyclient.request(requestobj, dataobjs)
         return (responseobj, dataobjs)

@@ -150,5 +150,15 @@ overflow: auto;
     }
 }
 
-.pane-holder > div {display:none;}
-.pane-holder > div.active {display:block;}
+.pane-holder > div {display:none; }
+.pane-holder > div.active {display:block; }
+
+.pane-holder {
+}
+.pane-holder > .pane {
+
+  /*border:1px solid red; */
+  height:400px;
+  overflow: auto;
+}
+

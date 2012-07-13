@@ -142,6 +142,8 @@ $(() ->
       "cdx/:docid/viz/:plot_id":    "load_specific_viz",     #help
       },
     load_default_document : () ->
+      alert('load_default_document')
+
       user = $.get('/userinfo/', {}, (data) ->
         docs = JSON.parse(data)['docs']
         console.log('URL', "cdx/#{docs[0]}")
@@ -149,6 +151,7 @@ $(() ->
 
     load_doc : (docid) ->
       $CDX.docid = docid
+
       $CDX.utility.start_instatiate(docid)
       console.log('RENDERING')
 
@@ -195,6 +198,30 @@ $(() ->
 
     )
 
+  class SummaryView extends Backbone.View
+    render: () ->
+      $CDX.blaze.get_summary($CDX.IPython.namespace.get('variables'), (array) ->
+        console.log(array)
+        )
+      sample_data1 = [{url: "/blaze/data/gold.hdf5/20100114/dates",
+      type:"BlazeArrayProxy", name:"dates"},
+      {colsummary: {0:{std:6759.325780745387, max:1263502799,
+      mean:1263491099.9993594, min:1263479400}},
+      summary:{shape:[1561], colnames:[0]}}]
+      sample_data2 = [{url: "/blaze/data/gold.hdf5/20100115/dates",
+      type:"BlazeArrayProxy", name:"dates"},
+      {colsummary: {0:{std:6759.325780745387, max:1263502799,
+      mean:1263491099.9993594, min:1263479400}},
+      summary:{shape:[2561], colnames:[0]}}]
+      #console.log(sample_data)
+      sa = [sample_data1, sample_data2]
+      summary_template = $('#variable-summary-template').html()
+      snip = ''
+      for sa_ele in sa
+        snip += _.template2(summary_template, {item:sa_ele})
+      #console.log(snip)
+      return snip
+
   class BazView extends Backbone.View
     render: () ->
       return "<h3> baz view </h3>"
@@ -203,11 +230,9 @@ $(() ->
   $CDX.layout = new Layout()
   $CDX.router = new WorkspaceRouter()
   $.when($CDX.layout_render = $CDX.layout.render()).then( ->
-
-
     $("#layout-root").prepend($CDX.layout_render.el);
     $CDX.main_tab_set = new TabSet(
-      el:"#main-tab-area", tab_view_objs: [{view: new BazView(), route:'main', tab_name:'main'}])
+      el:"#main-tab-area", tab_view_objs: [{view: new SummaryView(), route:'main', tab_name:'Summary'}])
 
     $CDX.main_tab_set.render()
     )
@@ -218,17 +243,19 @@ $(() ->
 _.delay(
   () ->
     $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
+    $CDX.resize_loop
   , 1000
 )
 
-$CDX.addDataArray = (itemName) ->
-  url = itemName
-  itemName = itemName.split("/")
-  itemName = itemName[itemName.length - 1]
-  itemName = $CDX.IPython.suggest_variable_name(itemName)
+$CDX.addDataArray = (itemName, url) ->
+  #url = itemName
+  #itemName = itemName.split("/")
+  #itemName = itemName[itemName.length - 1]
+  itemName = $CDX.IPython.suggest_variable_name(url)
   command = "#{itemName} = bc.blaze_source('#{url}')"
   console.log(command)
   $CDX.IPython.execute_code(command)
+  $CDX.add_blaze_table_tab(itemName, url)
 
 $CDX.buildTreeNode = (tree, treeData, depth) ->
     #console.log(JSON.stringify(treeData));
@@ -255,7 +282,7 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
           tree = tree + '\n</ul></li>'
 
         if (this.type == 'array' || this.type =='disco')
-          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{this.url}')\">#{itemName}</a></li>"
+          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{itemName}','#{this.url}')\">#{itemName}</a></li>"
 
           #tmp = "<li><a class='js-blaze_click' href='#' data-blaze-url='#{this.url}'>#{itemName}</a></li>"
 

@@ -80,7 +80,7 @@ class BlazeApiTestCase(unittest.TestCase):
             timeout = 1.0
             )
         result = simplejson.loads(result.content)
-        assert result['data'] == ["GDX", "GLD", "USO"]
+        assert result['data'] == [["GDX"], ["GLD"], ["USO"]]
 
         s = requests.session()
         result = s.get(
@@ -108,7 +108,8 @@ class BlazeApiTestCase(unittest.TestCase):
 
     def test_bulk_summary(self):
         s = requests.session()
-        paths = ["/hugodata/20100217/prices", "/hugodata/20100217/prices"]
+        paths = ["/hugodata/20100217/names", "/hugodata/20100217/prices"]
+        #paths = ["/hugodata/20100217/prices"]        
         paths = simplejson.dumps(paths)
         args = urllib.urlencode({'paths' : paths})
         print baseurl + "bulksummary/?" + args
@@ -117,7 +118,10 @@ class BlazeApiTestCase(unittest.TestCase):
             timeout = 1.0
             )
         responses = simplejson.loads(result.content)
-        for response in responses:
+        for idx, response in enumerate(responses):
+            if idx == 0 :
+                assert response is None
+                continue
             summary = response['summary']
             columnsummary = response['colsummary']
             assert summary['shape'] == [1561, 3]
@@ -132,4 +136,3 @@ class BlazeApiTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    
