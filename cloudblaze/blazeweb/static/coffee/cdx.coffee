@@ -10,13 +10,13 @@ window.$CDX.resizeRoot = () ->
   winHeight = $(window).height()
   winWidth = $(window).width()
   cdxRootHeight=(winHeight * .85)
-  midPanelHeight = (cdxRootHeight * .65)
-  pyEdPaneHeight = (cdxRootHeight * .20)
+  midPanelHeight = (cdxRootHeight * .80)
+  pyEdPaneHeight = midPanelHeight
 
   $('#cdxRoot').height(cdxRootHeight)
   $('.midPanel').height(midPanelHeight)
   $('#cdxMidContainer').width(winWidth * .95)
-  $('.cdx-py-pane').width(winWidth * .85)
+  #$('.cdx-py-pane').width(winWidth * .85)
   $('.cdx-py-pane').height(pyEdPaneHeight)
 
 $CDX.resize_loop = () ->
@@ -36,7 +36,7 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
     {}, {local:true})
 
-  deferred = $.get("/data" + url, {}, (data) ->
+  $.get("/data" + url, {}, (data) ->
     arraydata = JSON.parse(data)
     transformed = []
     for row in arraydata['data']
@@ -225,43 +225,15 @@ $(() ->
   class SummaryView extends Backbone.View
     render: () ->
       console.log('summaryView render')
-      sample_data1 = [{
-        url: "/blaze/data/gold.hdf5/20100114/dates", type:"BlazeArrayProxy",
-        name:"dates"}
-        ,
-        {colsummary: {
-          0:{
-            std:6759.325780745387, max:1263502799,
-            mean:1263491099.9993594, min:1263479400}}
-          ,
-          summary:{
-            shape:[1561], colnames:[0]}}]
-          
-      sample_data2 = [{url: "/blaze/data/gold.hdf5/20100115/dates",
-      type:"BlazeArrayProxy", name:"dates"},
-      {colsummary: {0:{std:6759.325780745387, max:1263502799,
-      mean:1263491099.9993594, min:1263479400}},
-      summary:{shape:[2561], colnames:[0]}}]
-      #console.log(sample_data)
-      sa = [sample_data1, sample_data2]
       summary_template = $('#variable-summary-template').html()
-      snip = ''
-      for sa_ele in sa
-        snip += _.template2(summary_template, {item:sa_ele})
-
       snip2 = ''
       $.when($CDX.blaze.get_summary($CDX.IPython.namespace.get('variables'), (array) ->
-          for sa_ele in array
-            snip2 += _.template2(summary_template, {item:sa_ele})
-          console.log('snip2 namespace callback snip2', snip2)))
+        for sa_ele in array
+          snip2 += _.template2(summary_template, {item:sa_ele})
+        ))
       .then(=>
-          $(this.el).html("<h3> snip2 </h3>" + snip2))
+        $(this.el).html(snip2) )
       return $(this.el)
-
-
-  class BazView extends Backbone.View
-    render: () ->
-      return "<h3> baz view </h3>"
 
 
   $CDX.summaryView = new SummaryView()
@@ -292,6 +264,11 @@ _.delay(
 )
 
 
+$CDX.popDataTab = (itemName, url) ->
+  console.log('popDataTab:' , itemName, url)
+  $.when($CDX.add_blaze_table_tab(itemName, url)).then(->
+
+    $CDX.main_tab_set.activate(itemName))
 
 $CDX.addDataArray = (itemName, url) ->
   #url = itemName
