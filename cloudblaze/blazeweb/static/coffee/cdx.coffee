@@ -490,3 +490,28 @@ class CDXPlotContexts extends Backbone.Collection
   model : CDXPlotContext
 
 Continuum.register_collection('CDXPlotContext', new CDXPlotContexts())
+$CDX.pystate = 'normal'
+$CDX.togglePyPane = () ->
+  if $CDX.pystate == 'normal'
+    $CDX.pystate = 'hidden'
+    $('#main-tab-area').removeClass('span5')
+    $('#main-tab-area').addClass('span10')
+
+    $('#main-tab-area').show()
+    $('#cdxPyPane').hide()
+  else if $CDX.pystate == 'hidden'
+    $CDX.pystate = 'max'
+    $('#cdxPyPane').removeClass('span5')
+    $('#cdxPyPane').addClass('span10')
+
+    $('#main-tab-area').hide()
+    $('#cdxPyPane').show()
+  else if $CDX.pystate =='max'
+    $CDX.pystate = 'normal'
+    $('#cdxPyPane').removeClass('span10')
+    $('#cdxPyPane').addClass('span5')
+    $('#main-tab-area').removeClass('span10')
+    $('#main-tab-area').addClass('span5')
+
+    $('#main-tab-area').show()
+    $('#cdxPyPane').show()
