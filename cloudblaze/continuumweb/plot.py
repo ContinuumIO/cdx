@@ -361,7 +361,8 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             plot.set('parent', container.ref())
         plotrefs = [[x.plot.ref() for x in row] for row in plots]
         container.set('children', plotrefs)
-        to_update = [container]
+        import pdb;pdb.set_trace()
+        to_update = [self.ic, container]
         to_update.extend(flatplots)
         self.upsert_all(to_update)
         self.show(container)
@@ -386,10 +387,20 @@ if __name__ == "__main__":
     y = np.random.random(100)
     data_source = client.make_source(idx=range(100), x=x, y=y)
     scatterplot1 = client.scatter(x='idx', y='x', color='#F00', data_source=data_source, title='scatter1')
-    client.scatter(x='idx', y='y', color='#0F0', data_source=data_source, title='scatter2')
+    scatterplot2 = client.scatter(x='idx', y='y', color='#0F0', data_source=data_source, title='scatter2')
     xdata = np.arange(0, 10, 0.01)
     ydata = np.sin(xdata)
     lineplot = client.line(xdata, ydata, title='line1')
     xdata = np.arange(0, 15, 0.01)
     ydata = 2 * np.cos(xdata)
-    lineplot=client.line(xdata, ydata, lineplot=lineplot)
+    lineplot1=client.line(xdata, ydata, lineplot=lineplot)
+
+    xdata = np.arange(0, 10, 0.01)
+    ydata = np.cos(xdata)
+    lineplot = client.line(xdata, ydata, title='line2')
+    xdata = np.arange(0, 15, 0.01)
+    ydata = 2 * np.sin(xdata)
+    lineplot2=client.line(xdata, ydata, lineplot=lineplot)
+
+    client.grid([[scatterplot1, scatterplot2],
+                 [lineplot1, lineplot2]])
