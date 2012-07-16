@@ -32,9 +32,12 @@
 
 <script type="text/template" id="plot-context">
   <ul>
-    <% _.each(data_urls, function(url, index){ %>
+    <% _.each(to_render, function(renderobj, index){ %>
       <li class='jsp' data-plot_num="<%= index %>">
-        <img width='50' height='50' src="<%= url %>"/>
+	<p> 
+	  <%= renderobj['view'].model.get('title') %>
+	</p>
+        <img width='50' height='50' src="<%= renderobj['data_url'] %>"/>
       </li>      
     <% }); %>
   </ul>

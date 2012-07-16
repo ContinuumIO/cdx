@@ -491,13 +491,16 @@ class CDXPlotContextView extends DeferredParent
     super()
     @build_children()
     @$el.html('')
-    data_urls = []
+    to_render = []
     for view, view_num in _.values(@views)
       $.when(view.to_png_daturl()).then((data_url) =>
-        data_urls.push(data_url)
+        to_render.push(
+          data_url : data_url
+          view : view
+        )
       )
     template = _.template2($('#plot-context').html())
-    html = template(data_urls : data_urls)
+    html = template(to_render : to_render)
     @$el.html(html)
     return null
 
