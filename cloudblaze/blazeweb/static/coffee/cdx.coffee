@@ -148,6 +148,9 @@ $(() ->
       $('#cdxMenu').hide()
       $('#cdxnamespace').hide()
       $('#cdxPyPane').hide()
+      $('#main-tab-area').removeClass('span5')
+      $('#main-tab-area').addClass('span12')
+
       $CDX.utility.instantiate_doc(docid)
       $CDX.utility.instantiate_main_tab_set()
       $.when($CDX.doc_loaded).then(()->
