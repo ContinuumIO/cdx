@@ -32,6 +32,9 @@ $CDX.resize_loop = () ->
 
 $CDX._doc_loaded = $.Deferred()
 $CDX.doc_loaded = $CDX._doc_loaded.promise()
+$CDX._ipython_loaded = $.Deferred()
+$CDX.ipython_loaded = $CDX._ipython_loaded.promise()
+
 $CDX._viz_instatiated = $.Deferred()
 $CDX.viz_instatiated = $CDX._viz_instatiated.promise()
 
@@ -65,7 +68,7 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
 $(() ->
 
   $CDX.utility = {
-    start_instatiate: (docid) ->
+    instantiate_doc : (docid) ->
       if not $CDX._doc_loaded.isResolved()
         $.get("/cdxinfo/#{docid}", {}, (data) ->
           data = JSON.parse(data)
@@ -73,27 +76,27 @@ $(() ->
           $CDX.docid = data['docid'] # in case the server returns a different docid
           Continuum.docid = $CDX.docid
           $CDX.all_models = data['all_models']
+          Continuum.load_models($CDX.all_models)
+          ws_conn_string = "ws://#{window.location.host}/sub"
+          socket = Continuum.submodels(ws_conn_string, $CDX.docid)
+          $CDX.utility.instatiate_viz_tab()
 
           $CDX.IPython.kernelid = data['kernelid']
           $CDX.IPython.notebookid = data['notebookid']
           $CDX.IPython.baseurl = data['baseurl']
-
+          $CDX.resize_loop()
+          $CDX._doc_loaded.resolve($CDX.docid)
+        )
+    instantiate_ipython: (docid) ->
+      if not $CDX._ipython_loaded.isResolved()
           IPython.loadfunc()
           IPython.start_notebook()
-          Continuum.load_models($CDX.all_models)
-          ws_conn_string = "ws://#{window.location.host}/sub"
-          socket = Continuum.submodels(ws_conn_string, $CDX.docid)
-          console.log("resolving _doc_loaded")
           _.delay(
             () =>
               $CDX.IPython.inject_plot_client($CDX.docid)
-              $CDX.resize_loop()
-              $CDX._doc_loaded.resolve($CDX.docid)
-              $CDX.utility.instatiate_viz_tab()
             , 1000
           )
 
-        )
     instatiate_viz_tab: ->
       if not $CDX._viz_instatiated.isResolved()
         $.when($CDX.doc_loaded).then(->
@@ -137,20 +140,18 @@ $(() ->
           $CDX._viz_instatiated.resolve($CDX.docid))
   }
 
-  WorkspaceRouter = Backbone.Router.extend({
+  WorkspaceRouter = Backbone.Router.extend(
     routes: {
       "cdx" : "load_default_document",
       "cdx/unknown/sharecurrent": "sharecurrent",
       "cdx/:docid": "load_doc",
       "cdx/:docid/share": "share",
-      "cdx/:docid/viz": "load_doc_viz",
-      "cdx/:docid/viz/:plot_id": "load_specific_viz"
-      "cdx/:docid/published/:modelid" : "load_published"
+      "published/:docid/:modelid" : "load_published"
       },
 
     load_published : (docid, modelid) ->
       if not $CDX._doc_loaded.isResolved()
-        $CDX.utility.start_instatiate(docid)
+        $CDX.utility.instantiate_doc(docid)
       $.when($CDX.viz_instatiated).then(() ->
         model = Continuum.Collections['PublishModel'].get(modelid)
         view = new model.default_view(
@@ -160,16 +161,15 @@ $(() ->
       )
 
     load_default_document : () ->
-      #alert('load_default_document')
-
       user = $.get('/userinfo/', {}, (data) ->
         docs = JSON.parse(data)['docs']
         console.log('URL', "cdx/#{docs[0]}")
-        $CDX.router.navigate("cdx/#{docs[0]}", {trigger : true}))
+        $CDX.router.navigate("cdx/#{docs[0]}", {trigger : true})
+      )
 
     share : (docid) ->
       if not $CDX._doc_loaded.isResolved()
-        $CDX.utility.start_instatiate(docid)
+        $CDX.utility.instantiate_doc(docid)
       view = new ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
 
     sharecurrent : (docid) ->
@@ -179,33 +179,12 @@ $(() ->
 
     load_doc : (docid) ->
       $CDX.docid = docid
-
-      $CDX.utility.start_instatiate(docid)
+      $CDX.utility.instantiate_doc(docid)
+      $.when($CDX.doc_loaded).then(
+        () ->
+          $CDX.utility.instantiate_ipython(docid)
+      )
       console.log('RENDERING')
-
-    load_doc_viz : (docid) ->
-      $CDX.utility.start_instatiate(docid)
-      @navigate_doc_viz()
-
-    load_specific_viz : (docid, plot_id) ->
-      $CDX.utility.start_instatiate(docid)
-      $CDX.utility.instatiate_specific_viz_tab(0)
-      $.when($CDX.viz_instatiated).then(->
-        console.log("navigate_doc_viz then")
-        $('a[data-route_target="navigate_doc_viz"]').tab('show'))
-
-    navigate_doc_viz: ->
-      $CDX.utility.instatiate_viz_tab()
-      $.when($CDX.viz_instatiated).then(->
-        console.log("navigate_doc_viz then")
-        $('a[data-route_target="navigate_doc_viz"]').tab('show')
-        expected_path = "cdx/#{$CDX.docid}/viz"
-        sliced_path = location.pathname[1..]
-        if not (sliced_path == expected_path)
-          console.log('paths not equal, navigating')
-          $CDX.router.navigate(expected_path)
-        )
-      }
   )
 
   MyApp = new Backbone.Marionette.Application()
@@ -381,7 +360,7 @@ class ConfigurePublishView extends Backbone.View
     )
     docid = $CDX.docid
     modelid = publishmodel.id
-    window.open("/cdx/#{docid}/published/#{modelid}", '_blank')
+    window.open("/published/#{docid}/#{modelid}", '_blank')
     @$el.modal('hide')
 class PublishView extends Continuum.ContinuumView
   initialize : (options) ->
