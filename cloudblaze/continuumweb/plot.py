@@ -78,7 +78,10 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         else:
             scatterplot = self._addscatter(scatterplot, x, y, color=color,
                                            data_source=data_source)
-        if title is not None: scatterplot.plot.set('title', title)
+        if title is not None:
+            scatterplot.plot.set('title', title)
+            self.update(scatterplot.plot.typename, scatterplot.plot.attributes)
+        
         return scatterplot
 
     def _addscatter(self, scatterplot, x, y, color="#000", data_source=None):
@@ -293,7 +296,9 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                                      data_source=data_source, container=container)
         else:
             lineplot = self._addline(lineplot, x, y, data_source=data_source)
-        if title is not None: lineplot.plot.set('title', title)
+        if title is not None:
+            lineplot.plot.set('title', title)
+            self.update(lineplot.plot.typename, lineplot.plot.attributes)
         return lineplot
     
     def _add_source_to_range(self, data_source, columns, range):
@@ -380,11 +385,11 @@ if __name__ == "__main__":
     x = np.random.random(100)
     y = np.random.random(100)
     data_source = client.make_source(idx=range(100), x=x, y=y)
-    scatterplot1 = client.scatter(x='idx', y='x', color='#F00', data_source=data_source)
-    client.scatter(x='idx', y='y', color='#0F0', data_source=data_source)#, scatterplot=scatterplot1)
+    scatterplot1 = client.scatter(x='idx', y='x', color='#F00', data_source=data_source, title='scatter1')
+    client.scatter(x='idx', y='y', color='#0F0', data_source=data_source, title='scatter2')
     xdata = np.arange(0, 10, 0.01)
     ydata = np.sin(xdata)
-    lineplot = client.line(xdata, ydata)
+    lineplot = client.line(xdata, ydata, title='line1')
     xdata = np.arange(0, 15, 0.01)
     ydata = 2 * np.cos(xdata)
     lineplot=client.line(xdata, ydata, lineplot=lineplot)

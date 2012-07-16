@@ -425,22 +425,24 @@ class PublishModels extends Backbone.Collection
 
 Continuum.register_collection('PublishModel', new PublishModels())
 
-class CDXPlotContextView extends DeferredParent
+class CDXPlotContextView extends Continuum.ContinuumView
   initialize : (options) ->
     @views = {}
     @views_rendered = [false]
     @child_models = []
     super(options)
+    @render()
 
   delegateEvents: ->
     safebind(this, @model, 'destroy', @remove)
-    safebind(this, @model, 'change', @request_render)
+    safebind(this, @model, 'change', @render)
     super()
 
   generate_remove_child_callback : (view) ->
     callback = () =>
       newchildren = (x for x in @mget('children') when x.id != view.model.id)
       @mset('children', newchildren)
+      @model.save()
       return null
     return callback
 
@@ -449,7 +451,6 @@ class CDXPlotContextView extends DeferredParent
     for spec, plot_num in @mget('children')
       model = @model.resolve_ref(spec)
       @child_models[plot_num] = model
-      model.set({'usedialog' : false})
       view_specific_options.push({'el' : $("<div/>")})
 
     created_views = build_views(
@@ -459,11 +460,6 @@ class CDXPlotContextView extends DeferredParent
     for view in created_views
       safebind(this, view, 'remove', @generate_remove_child_callback(view))
     return null
-
-  render_deferred_components : (force) ->
-    super(force)
-    for view  in _.values(@views)
-      view.render_deferred_components(force)
 
   events :
     'click .jsp' : 'newtab'
@@ -484,7 +480,7 @@ class CDXPlotContextView extends DeferredParent
       view: plotview,
       route:s_pc.get('id')
     )
-    $CDX.main_tab_set.activate("s_pc.get('id')")
+    $CDX.main_tab_set.activate(s_pc.get('id'))
 
   render : () ->
     super()
