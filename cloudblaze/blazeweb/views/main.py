@@ -46,30 +46,7 @@ def index(*unused_all, **kwargs):
     if current_user is None:
         #redirect to login, we don't have login page yet..
         pass
-    (docid,
-     kernel_id,
-     notebook_id) = namespaces.create_or_load_namespace_for_user(
-        current_app, current_user, session)
-    models = current_app.collections.get_bulk(docid)
-    plot_contexts = [
-        x for x in models if x.typename == 'CDXPlotContext']
-    if len(plot_contexts) == 0:
-        plot_context = bbmodel.ContinuumModel(
-            'CDXPlotContext', docs=[docid])
-        current_app.collections.add(plot_context)
-        models.insert(0, plot_context)
-    else:
-        plot_context = plot_contexts[0]
-    models = [x.to_broadcast_json() for x in models]
-    print 'KERNEL', kernel_id
-    return render_template(
-        'cdx.html',
-        all_components=current_app.ph.serialize_web(models),
-        plotcontext=current_app.ph.serialize_web(plot_context.ref()),
-        user=current_user.email,
-        notebook_id=notebook_id,
-        docid=docid,
-        kernelid=kernel_id)
+    return render_template('cdx.html')
 
 @app.route('/favicon.ico')
 def favicon():

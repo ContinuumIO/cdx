@@ -31,9 +31,5 @@ def create_or_load_namespace(app, docid):
     kernel_id = kernel_manager.start_kernel(notebook_id)
     return docid, kernel_id, notebook_id
 
-def create_or_load_namespace_for_user(app, user, session, docid=None):
-    if docid is None:
-        docid = user.docs[0]
-        if 'docid' in session:
-            docid = session['docid']
+def create_or_load_namespace_for_user(app, user, session, docid):
     return create_or_load_namespace(app, docid)
