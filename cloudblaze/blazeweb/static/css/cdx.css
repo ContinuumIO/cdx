@@ -167,3 +167,14 @@ overflow: auto;
   overflow: auto;
 }
 
+.plotclose {
+    display : none;
+    float : right;
+}
+
+.jsp:hover > .plotclose{
+    display : inline;
+    float : right;
+    vertical-align : top;
+    padding : 10px;
+}

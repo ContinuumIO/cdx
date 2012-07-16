@@ -35,9 +35,10 @@
     <% _.each(to_render, function(renderobj, index){ %>
       <li class='jsp' data-plot_num="<%= index %>">
 	<p> 
-	  <%= renderobj['view'].model.get('title') %>
+	  <%= renderobj['title'] %>
 	</p>
         <img width='50' height='50' src="<%= renderobj['data_url'] %>"/>
+	<a class='plotclose'>[close]</a>
       </li>      
     <% }); %>
   </ul>
