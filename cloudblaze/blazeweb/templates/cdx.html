@@ -30,6 +30,16 @@
 <script type=text/javascript src="{{ url_for('static',filename='js/ipython.js') }}"></script>
 <script type=text/javascript src="{{ url_for('static',filename='js/blaze.js') }}"></script>
 
+<script type="text/template" id="plot-context">
+  <ul>
+    <% _.each(data_urls, function(url, index){ %>
+      <li class='jsp' data-plot_num="<%= index %>">
+        <img width='50' height='50' src="<%= url %>"/>
+      </li>      
+    <% }); %>
+  </ul>
+</script>
+
 <script type="text/template" id="publish-selection">
   <div class="modal">
     <div class="modal-header">

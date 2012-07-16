@@ -434,3 +434,81 @@ class PublishModels extends Backbone.Collection
   model : PublishModel
 
 Continuum.register_collection('PublishModel', new PublishModels())
+
+
+class CDXPlotContextView extends DeferredParent
+  initialize : (options) ->
+    @views = {}
+    @views_rendered = [false]
+    @child_models = []
+    super(options)
+
+  delegateEvents: ->
+    safebind(this, @model, 'destroy', @remove)
+    safebind(this, @model, 'change', @request_render)
+    super()
+  generate_remove_child_callback : (view) ->
+    callback = () =>
+      newchildren = (x for x in @mget('children') when x.id != view.model.id)
+      @mset('children', newchildren)
+      return null
+    return callback
+
+  build_children : () ->
+    view_specific_options = []
+    for spec, plot_num in @mget('children')
+      model = @model.resolve_ref(spec)
+      @child_models[plot_num] = model
+      model.set({'usedialog' : false})
+      view_specific_options.push({'el' : $("<div/>")})
+
+    created_views = build_views(
+      @model, @views, @mget('children'), {}, view_specific_options)
+    window.pc_created_views = created_views
+    window.pc_views = @views
+    for view in created_views
+      safebind(this, view, 'remove', @generate_remove_child_callback(view))
+    return null
+
+  render_deferred_components : (force) ->
+    super(force)
+    for view  in _.values(@views)
+      view.render_deferred_components(force)
+
+  events :
+     'click .jsp' : 'newtab'
+
+  newtab : (e) =>
+    plot_num = parseInt($(e.currentTarget).attr('data-plot_num'))
+    s_pc = @child_models[plot_num]
+    s_pc.set('render_loop', true)
+    plotview = new s_pc.default_view(model: s_pc, render_loop:true)
+    $CDX.main_tab_set.add_tab_el(
+      tab_name:"plot#{plot_num}",  view: plotview, route:"plot#{plot_num}")
+    $CDX.main_tab_set.activate("plot#{plot_num}")
+
+  render : () ->
+    super()
+    @build_children()
+    @$el.html('')
+    data_urls = []
+    for view, view_num in _.values(@views)
+      $.when(view.to_png_daturl()).then((data_url) =>
+        data_urls.push(data_url)
+      )
+    template = _.template2($('#plot-context').html())
+    html = template(data_urls : data_urls)
+    @$el.html(html)
+    return null
+
+class CDXPlotContext extends Component
+  type : 'CDXPlotContext',
+  default_view : CDXPlotContextView
+  defaults :
+    children : []
+    render_loop : true
+
+class CDXPlotContexts extends Backbone.Collection
+  model : CDXPlotContext
+
+Continuum.register_collection('CDXPlotContext', new CDXPlotContexts())
