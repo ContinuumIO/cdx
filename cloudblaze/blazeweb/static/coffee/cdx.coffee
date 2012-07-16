@@ -146,7 +146,7 @@ $(() ->
       "cdx/unknown/sharecurrent": "sharecurrent",
       "cdx/:docid": "load_doc",
       "cdx/:docid/share": "share",
-      "published/:docid/:modelid" : "load_published"
+      "cdx/:docid/published/:modelid" : "load_published"
       },
 
     load_published : (docid, modelid) ->
@@ -168,9 +168,13 @@ $(() ->
       )
 
     share : (docid) ->
-      if not $CDX._doc_loaded.isResolved()
-        $CDX.utility.instantiate_doc(docid)
-      view = new ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
+      $CDX.docid = docid
+      $CDX.utility.instantiate_doc(docid)
+      $.when($CDX.doc_loaded).then(
+        () ->
+          $CDX.utility.instantiate_ipython(docid)
+          view = new ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
+      )
 
     sharecurrent : (docid) ->
       console.log('SHARE CURRENT')
@@ -360,7 +364,7 @@ class ConfigurePublishView extends Backbone.View
     )
     docid = $CDX.docid
     modelid = publishmodel.id
-    window.open("/published/#{docid}/#{modelid}", '_blank')
+    window.open("/cdx/#{docid}/published/#{modelid}", '_blank')
     @$el.modal('hide')
 class PublishView extends Continuum.ContinuumView
   initialize : (options) ->
