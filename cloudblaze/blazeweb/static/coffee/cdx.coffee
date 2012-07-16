@@ -470,8 +470,10 @@ class CDXPlotContextView extends DeferredParent
     'click .plotclose' : 'removeplot'
 
   removeplot : (e) =>
-    plot_num = parseInt($(e.currentTarget).attr('data-plot_num'))
-    s_pc = @child_models[plot_num]
+    plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
+    s_pc = @model.resolve_ref(@mget('children')[plotnum])
+    view = @views[s_pc.get('id')].remove();
+    return false
 
   newtab : (e) =>
     plotnum = parseInt($(e.currentTarget).attr('data-plot_num'))
