@@ -57,7 +57,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
 
-    def scatter(self, x, y, width=300, height=300, color="#000",
+    def scatter(self, x, y, title=None, width=300, height=300, color="#000",
                 data_source=None, container=None, scatterplot=None):
         """
         Parameters
@@ -73,11 +73,13 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         (plotmodel, data_source)
         """
         if scatterplot is None:
-            return self._newscatter(x, y, width=width, height=height, color=color,
-                                    data_source=data_source, container=container)
+             scatterplot = self._newscatter(x, y, width=width, height=height, color=color,
+                                            data_source=data_source, container=container)
         else:
-            return self._addscatter(scatterplot, x, y, color=color,
-                                    data_source=data_source)
+            scatterplot = self._addscatter(scatterplot, x, y, color=color,
+                                           data_source=data_source)
+        if title is not None: scatterplot.plot.set('title', title)
+        return scatterplot
 
     def _addscatter(self, scatterplot, x, y, color="#000", data_source=None):
         if data_source is None:
@@ -270,7 +272,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                         container)
 
 
-    def line(self, x, y, width=300, height=300, lineplot=None,
+    def line(self, x, y, title=None, width=300, height=300, lineplot=None,
              data_source=None, container=None):
         """
         Parameters
@@ -287,10 +289,13 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         (plotmodel, data_source)
         """
         if lineplot is None:
-            return self._newlineplot(x, y, width=width, height=height,
+            lineplot = self._newlineplot(x, y, width=width, height=height,
                                      data_source=data_source, container=container)
         else:
-            return self._addline(lineplot, x, y, data_source=data_source)
+            lineplot = self._addline(lineplot, x, y, data_source=data_source)
+        if title is not None: lineplot.plot.set('title', title)
+        return lineplot
+    
     def _add_source_to_range(self, data_source, columns, range):
         sources = range.get('sources')
         added = False
