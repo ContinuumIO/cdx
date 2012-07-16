@@ -381,8 +381,8 @@ class ConfigurePublishView extends Backbone.View
     )
     docid = $CDX.docid
     modelid = publishmodel.id
-    $CDX.router.navigate("/cdx/#{docid}/published/#{modelid}")
-
+    window.open("/cdx/#{docid}/published/#{modelid}", '_blank')
+    @$el.modal('hide')
 class PublishView extends Continuum.ContinuumView
   initialize : (options) ->
     @tab_view = options['tab_view']
