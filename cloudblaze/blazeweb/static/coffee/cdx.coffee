@@ -440,9 +440,6 @@ class CDXPlotContextView extends Continuum.ContinuumView
 
   generate_remove_child_callback : (view) ->
     callback = () =>
-      newchildren = (x for x in @mget('children') when x.id != view.model.id)
-      @mset('children', newchildren)
-      @model.save()
       return null
     return callback
 
@@ -457,8 +454,6 @@ class CDXPlotContextView extends Continuum.ContinuumView
       @model, @views, @mget('children'), {}, view_specific_options)
     window.pc_created_views = created_views
     window.pc_views = @views
-    for view in created_views
-      safebind(this, view, 'remove', @generate_remove_child_callback(view))
     return null
 
   events :
@@ -469,6 +464,9 @@ class CDXPlotContextView extends Continuum.ContinuumView
     plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
     s_pc = @model.resolve_ref(@mget('children')[plotnum])
     view = @views[s_pc.get('id')].remove();
+    newchildren = (x for x in @mget('children') when x.id != view.model.id)
+    @mset('children', newchildren)
+    @model.save()
     return false
 
   newtab : (e) =>
@@ -506,6 +504,9 @@ class CDXPlotContextView extends Continuum.ContinuumView
 class CDXPlotContext extends Component
   type : 'CDXPlotContext',
   default_view : CDXPlotContextView
+  url : () ->
+
+    return super()
   defaults :
     children : []
     render_loop : true

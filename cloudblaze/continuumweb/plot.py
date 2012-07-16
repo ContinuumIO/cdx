@@ -347,10 +347,12 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                     self._remove_from_ic([parent])
                     self.delete(parent.typename, parent.get('id'))
 
-    def grid(self, plots):
+    def grid(self, plots, title=None):
         container = bbmodel.ContinuumModel(
             'GridPlotContainer',
             parent=self.ic.ref())
+        if title is not None:
+            container.set('title', title)
         flatplots = []
         for row in plots:
             for plot in row:
@@ -361,7 +363,6 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             plot.set('parent', container.ref())
         plotrefs = [[x.plot.ref() for x in row] for row in plots]
         container.set('children', plotrefs)
-        import pdb;pdb.set_trace()
         to_update = [self.ic, container]
         to_update.extend(flatplots)
         self.upsert_all(to_update)
@@ -401,6 +402,5 @@ if __name__ == "__main__":
     xdata = np.arange(0, 15, 0.01)
     ydata = 2 * np.sin(xdata)
     lineplot2=client.line(xdata, ydata, lineplot=lineplot)
-
     client.grid([[scatterplot1, scatterplot2],
-                 [lineplot1, lineplot2]])
+                 [lineplot1, lineplot2]], title='all')
