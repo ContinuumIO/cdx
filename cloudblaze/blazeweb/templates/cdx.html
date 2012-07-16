@@ -30,6 +30,41 @@
 <script type=text/javascript src="{{ url_for('static',filename='js/ipython.js') }}"></script>
 <script type=text/javascript src="{{ url_for('static',filename='js/blaze.js') }}"></script>
 
+<script type="text/template" id="publish-selection">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Publish Tabs</h3>
+    </div>
+    <div class="modal-body">
+      <form class="well">
+        <label>Choose Some tabs to export</label>
+	<% if (plots.length == 0){ %>
+	  <label> no plots to export </label>
+	<% }else{ %>
+	  <label> Plots </label>
+  	  <% _.each(plots, function(plot){ %>
+            <label class="checkbox">
+              <input class="tabselect" type="checkbox" tab="<%= plot %>"/> <%= plot %>
+            </label>
+	  <% }); %>
+	<% } %>
+	<% if (arrays.length == 0){ %>
+	  <label> no arrays to export </label>
+	<% }else{ %>
+	  <label> Arrays </label>
+  	  <% _.each(arrays, function(plot){ %>
+            <label class="checkbox">
+              <input class="tabselect" type="checkbox" tab="<%= plot %>"/> <%= plot %>
+            </label>
+	  <% }); %>
+	<% } %>
+	
+	<input class="publishsubmit" type="button" value="Submit"/>
+      </form>
+    </div>
+  </div>
+</script>
+
 <script type="text/template" id="tree-template">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">×</button>
@@ -106,7 +141,7 @@
         </li>
         <li class=""><a href="#plots">Plot</a></li>
         <li class=""><a href="#analyze">Analyze</a></li>
-        <li class=""><a href="#share">Share</a></li>
+        <li class=""><a class="js-navigate" data-route_target="/cdx/unknown/sharecurrent">Share</a></li>	
         <li class=""><a href="#help">Help</a></li>
       </ul>
     </div>

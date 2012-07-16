@@ -146,6 +146,7 @@ $(() ->
       "cdx/:docid/viz/:plot_id": "load_specific_viz"
       "cdx/:docid/published/:modelid" : "load_published"
       },
+
     load_published : (docid, modelid) ->
       if not $CDX._doc_loaded.isResolved()
         $CDX.utility.start_instatiate(docid)
@@ -404,7 +405,7 @@ class PublishView extends Continuum.ContinuumView
     @arrays = {}
     @render()
   render : () ->
-    Continuum.build_views(@model, @plots, @mget('plots'))
+    Continuum.build_views(@model, @plots, @mget('plots'), {'render_loop':true})
     Continuum.build_views(@model, @arrays, @mget('arrays'))
     for info, idx in @mget('plot_tab_info')
       plotid = @mget('plots')[idx].id
