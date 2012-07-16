@@ -318,7 +318,7 @@ class ConfigurePublishView extends Backbone.View
     for x in tabs
       view = @tab_view.tab_view_dict[x].view
       if view.model
-        if view.model.type == 'Plot'
+        if view.model.type == 'Plot' || view.model.type == 'GridPlotContainer'
           plots.push(x)
         if view.model.type == 'DataTable'
           arrays.push(x)
@@ -339,7 +339,7 @@ class ConfigurePublishView extends Backbone.View
       tab = node.attr('tab')
       tvo = @tab_view.tab_view_dict[tab]
       view = tvo.view
-      if view.model.type == 'Plot'
+      if view.model.type == 'Plot' || view.model.type == 'GridPlotContainer'
         view.model.save()
         plots.push(view.model.ref())
         plot_tab_info.push({'tab_name' : tvo.tab_name, 'route' :tvo.route})
