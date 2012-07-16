@@ -6,11 +6,12 @@
 window.$CDX = {}
 $CDX = window.$CDX
 $CDX.IPython = {}
+
 window.$CDX.resizeRoot = () ->
   winHeight = $(window).height()
   winWidth = $(window).width()
   cdxRootHeight=(winHeight * .85)
-  midPanelHeight = (cdxRootHeight * .80)
+  midPanelHeight = (cdxRootHeight * .85)
   pyEdPaneHeight = midPanelHeight
 
   $('#cdxRoot').height(cdxRootHeight)
@@ -18,6 +19,8 @@ window.$CDX.resizeRoot = () ->
   $('#cdxMidContainer').width(winWidth * .95)
   #$('.cdx-py-pane').width(winWidth * .85)
   $('.cdx-py-pane').height(pyEdPaneHeight)
+  $('.pane').height(midPanelHeight)
+  $('.pane-holder').height(midPanelHeight)
 
 $CDX.resize_loop = () ->
   window.$CDX.resizeRoot()
@@ -265,9 +268,7 @@ _.delay(
 
 
 $CDX.popDataTab = (itemName, url) ->
-  console.log('popDataTab:' , itemName, url)
   $.when($CDX.add_blaze_table_tab(itemName, url)).then(->
-
     $CDX.main_tab_set.activate(itemName))
 
 $CDX.addDataArray = (itemName, url) ->
@@ -326,21 +327,10 @@ $CDX.showModal = (modalID) ->
     )
     return
 
+$CDX.togglePyPane = () ->
+  console.log('togglepypane')
+  #  $("#cdxPyPane").slideToggle()
 
-$CDX.render_summary = ->
-  sample_data = [{url: "/blaze/data/gold.hdf5/20100114/dates",
-  type:"BlazeArrayProxy", name:"dates"},
-  {colsummary: {0:{std:6759.325780745387, max:1263502799,
-  mean:1263491099.9993594, min:1263479400}},
-  summary:{shape:[1561], colnames:[0]}}];
-
-  #console.log(sample_data)
-  summary_template = $('#variable-summary-template').html()
-
-  #console.log(_.template(summary_template, {item:sample_data}))
-
-$(->
-  $CDX.render_summary())
 
 class ConfigurePublishView extends Backbone.View
   initialize : (options) ->
@@ -434,7 +424,6 @@ class PublishModels extends Backbone.Collection
   model : PublishModel
 
 Continuum.register_collection('PublishModel', new PublishModels())
-
 
 class CDXPlotContextView extends DeferredParent
   initialize : (options) ->

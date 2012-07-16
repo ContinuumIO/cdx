@@ -134,6 +134,10 @@
   <div id="cdxRoot" class="container-fluid cdx-root">
     <div id="cdxTopMsg" class="row-fluid"></div>
     
+    <div class="pull-right">
+      <a class="btn" href="#" onClick="$CDX.togglePyPane()">
+        <i class="icon-chevron-right"></i></a>
+    </div>
     <div id="cdxMenu" class="subnav">
       <ul class="nav nav-pills">
         <li class="dropdown active">
@@ -158,6 +162,7 @@
         <li class=""><a href="#help">Help</a></li>
       </ul>
     </div>
+
 
     <div id="cdxMidContainer" class="container span12">
       <div id="cdxMid" class="row-fluid">
@@ -191,8 +196,8 @@
 
       <div id="main-tab-area" class="tabbable span5 cdx-panel-root"></div>
 
-      <div class="span5 well">
-      <div id="cdxPyPane" class="cdx-py-pane">
+      <div id="cdxPyPane" class="span5 well hide">
+      <div class="cdx-py-pane">
         {% include 'ipython.html' %}
       </div>
       </div>
