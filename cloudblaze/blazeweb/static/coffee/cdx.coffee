@@ -98,9 +98,9 @@ $(() ->
         $.when($CDX.doc_loaded).then(->
           plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
             $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
-          plotcontext.set('render_loop', true)
           plotcontextview = new plotcontext.default_view(
             model : plotcontext,
+            render_loop: true
           )
           $CDX.main_tab_set.add_tab_el(
             tab_name:"viz",
@@ -114,8 +114,8 @@ $(() ->
           #   $.when(pv1.to_png_daturl()).then( (data_url) ->
           #     $(pcv.el).prepend($("<img src='#{data_url}'></img>")))
           # ),0)
-            
-          
+
+
           $CDX._viz_instatiated.resolve($CDX.docid))
 
     instatiate_specific_viz_tab: (plot_id) ->
@@ -126,7 +126,6 @@ $(() ->
           s_pc_ref = plotcontext.get('children')[0]
           s_pc = Continuum.resolve_ref(
             s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
-          s_pc.set('render_loop', true)
           plotcontextview = new s_pc.default_view(
             {'model' : s_pc, 'render_loop':true, 'el' : $('#main-tab-area')});
           # plotcontextview = new s_pc.default_view(
@@ -242,7 +241,7 @@ $(() ->
   $CDX.layout_render = $CDX.layout.render()
   $.when($CDX.layout_render).then( ->
     $("#layout-root").prepend($CDX.layout_render.el)
-    $CDX.main_tab_set = new TabSet(
+    $CDX.main_tab_set = new $CDX.TabSet(
       el:"#main-tab-area",
       tab_view_objs: [{view: $CDX.summaryView, route:'main', tab_name:'Summary'}])
 
@@ -252,7 +251,7 @@ $(() ->
   console.log("history start", Backbone.history.start(pushState:true))
 
   $CDX.IPython.namespace.on('change', -> $CDX.summaryView.render())
-  
+
   )
 
 
