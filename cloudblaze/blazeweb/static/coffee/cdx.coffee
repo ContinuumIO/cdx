@@ -29,14 +29,15 @@ $CDX.resize_loop = () ->
 
 # blaze_doc_loaded is a better name, doc_loaded could be confused with
 # the dom event
-
+$CDX._tab_rendered = $.Deferred()
+$CDX.tab_rendered = $CDX._tab_rendered.promise()
 $CDX._doc_loaded = $.Deferred()
 $CDX.doc_loaded = $CDX._doc_loaded.promise()
 $CDX._ipython_loaded = $.Deferred()
 $CDX.ipython_loaded = $CDX._ipython_loaded.promise()
 
-$CDX._viz_instatiated = $.Deferred()
-$CDX.viz_instatiated = $CDX._viz_instatiated.promise()
+$CDX._basetabs_rendered = $.Deferred()
+$CDX.basetabs_rendered = $CDX._basetabs_rendered.promise()
 
 $CDX.add_blaze_table_tab = (varname, url, columns) ->
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
@@ -68,6 +69,42 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
 $(() ->
 
   $CDX.utility = {
+    instantiate_main_tab_set : () ->
+      if $CDX._tab_rendered.isResolved()
+        return
+      $.when($CDX.layout_render).then( ->
+        $("#layout-root").prepend($CDX.layout_render.el)
+        $CDX.main_tab_set = new $CDX.TabSet(
+          el:$("#main-tab-area")
+          tab_view_objs: []
+        )
+        $CDX._tab_rendered.resolve()
+        return null
+      )
+    instantiate_base_tabs : () ->
+      if $CDX._basetabs_rendered.isResolved()
+        return
+      @instantiate_main_tab_set()
+      $.when($CDX.tab_rendered).then( ->
+        plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
+          $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
+        plotcontextview = new plotcontext.default_view(
+          model : plotcontext,
+          render_loop: true
+        )
+        window.pc = plotcontext
+        window.pcv = plotcontextview
+        $CDX.main_tab_set.add_tab(
+          {view: $CDX.summaryView, route:'main', tab_name:'Summary'}
+        )
+        $CDX.main_tab_set.add_tab(
+          {view : plotcontextview, route:'viz', tab_name: 'viz'}
+        )
+        $CDX._basetabs_rendered.resolve()
+        return null
+      )
+
+
     instantiate_doc : (docid) ->
       if not $CDX._doc_loaded.isResolved()
         $.get("/cdxinfo/#{docid}", {}, (data) ->
@@ -79,7 +116,6 @@ $(() ->
           Continuum.load_models($CDX.all_models)
           ws_conn_string = "ws://#{window.location.host}/sub"
           socket = Continuum.submodels(ws_conn_string, $CDX.docid)
-          $CDX.utility.instatiate_viz_tab()
 
           $CDX.IPython.kernelid = data['kernelid']
           $CDX.IPython.notebookid = data['notebookid']
@@ -87,6 +123,7 @@ $(() ->
           $CDX.resize_loop()
           $CDX._doc_loaded.resolve($CDX.docid)
         )
+
     instantiate_ipython: (docid) ->
       if not $CDX._ipython_loaded.isResolved()
           IPython.loadfunc()
@@ -96,48 +133,6 @@ $(() ->
               $CDX.IPython.inject_plot_client($CDX.docid)
             , 1000
           )
-
-    instatiate_viz_tab: ->
-      if not $CDX._viz_instatiated.isResolved()
-        $.when($CDX.doc_loaded).then(->
-          plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
-            $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
-          plotcontextview = new plotcontext.default_view(
-            model : plotcontext,
-            render_loop: true
-          )
-          $CDX.main_tab_set.add_tab_el(
-            tab_name:"viz",
-            view: plotcontextview,
-            route:"viz"
-          )
-          window.pc = plotcontext
-          window.pcv = plotcontextview
-          # _.delay((->
-          #   pv1 = _.values(window.pcv.views)[1]
-          #   $.when(pv1.to_png_daturl()).then( (data_url) ->
-          #     $(pcv.el).prepend($("<img src='#{data_url}'></img>")))
-          # ),0)
-
-
-          $CDX._viz_instatiated.resolve($CDX.docid))
-
-    instatiate_specific_viz_tab: (plot_id) ->
-      if not $CDX._viz_instatiated.isResolved()
-        $.when($CDX.doc_loaded).then(->
-          plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
-            $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
-          s_pc_ref = plotcontext.get('children')[0]
-          s_pc = Continuum.resolve_ref(
-            s_pc_ref.collections, s_pc_ref.type, s_pc_ref.id)
-          plotcontextview = new s_pc.default_view(
-            {'model' : s_pc, 'render_loop':true, 'el' : $('#main-tab-area')});
-          # plotcontextview = new s_pc.default_view(
-          #     model: s_pc,
-          #     el: $CDX.main_tab_set.add_tab_el(
-          #       tab_name:"plot#{plot_num}",  view: {}, route:"plot#{plot_num}"))
-
-          $CDX._viz_instatiated.resolve($CDX.docid))
   }
 
   WorkspaceRouter = Backbone.Router.extend(
@@ -150,16 +145,20 @@ $(() ->
       },
 
     load_published : (docid, modelid) ->
-      if not $CDX._doc_loaded.isResolved()
-        $CDX.utility.instantiate_doc(docid)
-      $.when($CDX.viz_instatiated).then(() ->
-        model = Continuum.Collections['PublishModel'].get(modelid)
-        view = new model.default_view(
-          model : model
-          tab_view : $CDX.main_tab_set
+      $('#cdxMenu').hide()
+      $('#cdxnamespace').hide()
+      $('#cdxPyPane').hide()
+      $CDX.utility.instantiate_doc(docid)
+      $CDX.utility.instantiate_main_tab_set()
+      $.when($CDX.doc_loaded).then(()->
+        $.when($CDX.tab_rendered).then(() ->
+          model = Continuum.Collections['PublishModel'].get(modelid)
+          view = new model.default_view(
+            model : model
+            tab_view : $CDX.main_tab_set
+          )
         )
       )
-
     load_default_document : () ->
       user = $.get('/userinfo/', {}, (data) ->
         docs = JSON.parse(data)['docs']
@@ -173,6 +172,7 @@ $(() ->
       $.when($CDX.doc_loaded).then(
         () ->
           $CDX.utility.instantiate_ipython(docid)
+          $CDX.utility.instantiate_base_tabs()
           view = new ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
       )
 
@@ -186,6 +186,7 @@ $(() ->
       $CDX.utility.instantiate_doc(docid)
       $.when($CDX.doc_loaded).then(
         () ->
+          $CDX.utility.instantiate_base_tabs()
           $CDX.utility.instantiate_ipython(docid)
       )
       console.log('RENDERING')
@@ -226,15 +227,8 @@ $(() ->
   $CDX.layout_render = $CDX.layout.render()
   $.when($CDX.layout_render).then( ->
     $("#layout-root").prepend($CDX.layout_render.el)
-    $CDX.main_tab_set = new $CDX.TabSet(
-      el:"#main-tab-area",
-      tab_view_objs: [{view: $CDX.summaryView, route:'main', tab_name:'Summary'}])
-
-    $CDX.main_tab_set.render()
-    )
-  $CDX.summaryView.render()
+  )
   console.log("history start", Backbone.history.start(pushState:true))
-
   $CDX.IPython.namespace.on('change', -> $CDX.summaryView.render())
 
   )
