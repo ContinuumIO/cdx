@@ -447,6 +447,7 @@ class CDXPlotContextView extends DeferredParent
     safebind(this, @model, 'destroy', @remove)
     safebind(this, @model, 'change', @request_render)
     super()
+
   generate_remove_child_callback : (view) ->
     callback = () =>
       newchildren = (x for x in @mget('children') when x.id != view.model.id)
@@ -476,28 +477,39 @@ class CDXPlotContextView extends DeferredParent
       view.render_deferred_components(force)
 
   events :
-     'click .jsp' : 'newtab'
+    'click .jsp' : 'newtab'
+    'click .plotclose' : 'removeplot'
 
-  newtab : (e) =>
+  removeplot : (e) =>
     plot_num = parseInt($(e.currentTarget).attr('data-plot_num'))
     s_pc = @child_models[plot_num]
-    s_pc.set('render_loop', true)
+
+  newtab : (e) =>
+    plotnum = parseInt($(e.currentTarget).attr('data-plot_num'))
+    s_pc = @model.resolve_ref(@mget('children')[plotnum])
     plotview = new s_pc.default_view(model: s_pc, render_loop:true)
     $CDX.main_tab_set.add_tab_el(
-      tab_name:"plot#{plot_num}",  view: plotview, route:"plot#{plot_num}")
-    $CDX.main_tab_set.activate("plot#{plot_num}")
+      tab_name:s_pc.get('title'),
+      view: plotview,
+      route:s_pc.get('id')
+    )
+    $CDX.main_tab_set.activate("s_pc.get('id')")
 
   render : () ->
     super()
     @build_children()
     @$el.html('')
     to_render = []
-    for view, view_num in _.values(@views)
+    tab_names = {}
+    for modelref, index in @mget('children')
+      view = @views[modelref.id]
       $.when(view.to_png_daturl()).then((data_url) =>
-        to_render.push(
+        tab_name = $CDX.IPython.suggest_variable_name
+        renderobj =
           data_url : data_url
-          view : view
-        )
+          index : index
+          title : view.model.get('title')
+        to_render.push(renderobj)
       )
     template = _.template2($('#plot-context').html())
     html = template(to_render : to_render)
