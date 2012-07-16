@@ -50,18 +50,16 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
       transformed.push(transformedrow)
     data_source.set('data', transformed)
     datatable = Continuum.Collections['DataTable'].create(
-        columns : arraydata['colnames'],
-        data_source : data_source.ref()
-        name : varname
-        url : url
+      columns : arraydata['colnames'],
+      data_source : data_source.ref()
+      name : varname
+      url : url
+      total_rows: arraydata['shape'][0]
       , local : true
     )
-    view = new datatable.default_view(
-      model : datatable,
-    )
+    view = new datatable.default_view model : datatable
     tabelement = $CDX.main_tab_set.add_tab_el(
-      tab_name:varname , view: view, route : varname
-    )
+      tab_name:varname , view: view, route : varname)
   )
 
 $(() ->
@@ -162,7 +160,7 @@ $(() ->
       )
 
     load_default_document : () ->
-      alert('load_default_document')
+      #alert('load_default_document')
 
       user = $.get('/userinfo/', {}, (data) ->
         docs = JSON.parse(data)['docs']
@@ -267,14 +265,11 @@ _.delay(
 )
 
 
-$CDX.popDataTab = (itemName, url) ->
+$CDX.popDataTab = (itemName, url, totalRows) ->
   $.when($CDX.add_blaze_table_tab(itemName, url)).then(->
     $CDX.main_tab_set.activate(itemName))
 
-$CDX.addDataArray = (itemName, url) ->
-  #url = itemName
-  #itemName = itemName.split("/")
-  #itemName = itemName[itemName.length - 1]
+$CDX.addDataArray = (itemName, url, totalRows) ->
   itemName = $CDX.IPython.suggest_variable_name(url)
   command = "#{itemName} = bc.blaze_source('#{url}')"
   console.log(command)
