@@ -21,7 +21,7 @@ class TabSet extends Backbone.View
     @tab_view_dict = {}
     for tab_view_obj in @tab_view_objs
       @add_tab(tab_view_obj)
-
+    @render()
   render: ->
     #$(@el).append($('<h3> from render </h3>'))
     $(@el).append(@tab_holder_el)
@@ -57,7 +57,7 @@ class TabSet extends Backbone.View
     tvo = @tab_view_dict[route]
     $(tvo.tab_el).remove()
     $(tvo.pane_el).remove()
-    
+
 
   _create_tab: (tab_view_obj) ->
     tab = $("<li><a>#{tab_view_obj.tab_name}</a></li>")
@@ -110,3 +110,4 @@ class TabSet extends Backbone.View
 
   remove_tab: (route) ->
     """ TODO """
+window.$CDX.TabSet = TabSet

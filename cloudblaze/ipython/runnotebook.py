@@ -23,7 +23,7 @@ class BlazeKernelManager(kernelmanager.MappingKernelManager):
         self._kernels[kernel_id] = km
         return kernel_id
 
-    def start_kernel(self, notebook_id=None):
+    def start_kernel(self, notebook_id=None, **kwargs):
         #FROM MappingKernelManager
         """Start a kernel for a notebok an return its kernel_id.
 

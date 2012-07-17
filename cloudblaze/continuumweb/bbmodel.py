@@ -193,6 +193,8 @@ class ContinuumModelsClient(object):
         if defer:
             self.buffer.append(model)
         else:
+            if typename == 'CDXPlotContext':
+                print "PUT", typename, len(attributes['children'])
             url = utils.urljoin(self.baseurl, self.docid +"/", typename + "/", id)
             log.debug("create %s", url)
             self.s.put(url, data=self.ph.serialize_web(model.to_json()))

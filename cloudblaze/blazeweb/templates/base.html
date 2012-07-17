@@ -11,7 +11,7 @@
     <script type=text/javascript src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 
 -->
-    <script type=text/javascript src="{{ url_for('static', filename='vendor/jquery.1.7.2.min.js') }}"></script>></script>
+    <script type=text/javascript src="{{ url_for('static', filename='vendor/jquery.1.7.2.min.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='vendor/d3/d3.v2.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='vendor/underscore/underscore.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static', filename='vendor/backbone/backbone.js') }}"></script>
@@ -20,9 +20,6 @@
     <script type=text/javascript src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.js') }}"></script>
 
 	<!-- Continuum scripts -->
-
-        <script type=text/javascript src="{{ url_for('static',filename='js/tab_lib.js') }}"></script>
-
 
     <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/model_base.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static',filename='lib/js/bokeh/view_base.js') }}"></script>
@@ -54,13 +51,16 @@
   <body>
     <div class="navbar">
       <div class="navbar-inner">
+      <a class="brand" href="http://continuum.io" target="_blank"><img src="{{ url_for('static', filename='img/cio_color_on_white_logo.png') }}" width=30 height=20> Continuum Analytics</a>
         <div class="container-fluid">
           <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="#">Continuum Analytics</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li id="homeLink" class="active"><a href="#">CDX</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
           <div class="btn-group pull-right">
             <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
               <i class="icon-user"></i> {{ user }}
@@ -72,13 +72,6 @@
               <li><a href="/logout">Sign Out</a></li>
             </ul>
           </div>
-          <div class="nav-collapse">
-            <ul class="nav">
-              <li id="homeLink" class="active"><a href="#">CDX</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
         </div>
       </div>
     </div>

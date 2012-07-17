@@ -62,8 +62,11 @@ def create(docid, typename):
 
 @app.route("/bb/<docid>/<typename>/<id>", methods=['PUT'])
 def put(docid, typename, id):
-    log.debug("put, %s, %s", docid, typename)
     modeldata = current_app.ph.deserialize_web(request.data)
+    if typename == 'CDXPlotContext':
+        log.debug("put, %s, %s, %s", docid, typename, len(modeldata['children']))
+    else:
+        log.debug("put, %s, %s", docid, typename)
     model = bbmodel.ContinuumModel(typename, **modeldata)
     if model.get('docs') is None:
         model.set('docs', [docid])
