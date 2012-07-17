@@ -89,6 +89,32 @@
 
 
 </script>
+
+<script type="text/template" id="variable-item-template">
+<table>
+  <thead>
+    <tr>
+      <th> Variable Name </th>
+      <th> Type </th>
+    </tr>
+  </thead>
+  <tbody>
+
+  <% _.each(reg_variables, function(variables, category) { %>
+
+    <tr>
+      <td colspan="2"> <strong> <%= category %> </strong> </td>
+    </tr>
+
+    <% _.each(variables, function(item) { %>
+      <tr>
+        <td> <%= item.name %> </td>
+      </tr>
+    <% }); %>
+  <% }); %>
+  </tbody>
+</table>
+</script>
 <script type="text/template" id="variable-summary-template">
   <div class="well">
   <div class="pull-right">
@@ -170,27 +196,10 @@
         <div id="cdxnamespace" class="tabbable span2 cdx-panel-root">
 	    <ul class="nav nav-tabs">
 	      <li class="active"><a href="#dep-tabs1-pane1" data-toggle="tab">Cols</a></li>
-	      <li><a href="#dep-tabs1-pane2" data-toggle="tab">Func</a></li>
-	      <li><a href="#dep-tabs1-pane3" data-toggle="tab">Vars</a></li>
 	    </ul>
 	    <div class="tab-content">
-	      <div class="tab-pane active midPanel" id="dep-tabs1-pane1">
-	        <table class="table-bordered">
-	          <thead><th>name</th><th>range</th></thead>
-	          <tr><td>blah</td><td>0-100</td></tr>
-	          <tr><td>blah</td><td>0-100</td></tr>
-	          <tr><td>blah</td><td>0-100</td></tr>
-	          <tr><td>blah</td><td>0-100</td></tr>
-	          <tr><td>blah</td><td>0-100</td></tr>
-	        </table>
-	      </div>
-	      <div class="tab-pane midPanel" id="dep-tabs1-pane2">
-	        <h4>Pane 2 Content</h4>
-	        <p>Duis congue viverra arcu, ac aliquet turpis rutrum a. Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
-	      </div>
-	      <div class="tab-pane midPanel" id="dep-tabs1-pane3">
-	        <h4>Pane 3 Content</h4>
-	        <p>Phasellus eget justo lacus. Vivamus pharetra ullamcorper massa, nec ultricies metus gravida egestas. Duis congue viverra arcu, ac aliquet turpis rutrum a. Donec semper vestibulum dapibus. Integer et sollicitudin metus. Vivamus at nisi turpis.</p>
+	      <div class="tab-pane active midPanel" id="left-panel">
+                <h3> left panel </h3>
 	      </div>
 	    </div><!-- /.tab-content -->
       </div>

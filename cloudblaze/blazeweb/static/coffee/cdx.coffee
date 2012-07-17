@@ -65,6 +65,22 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
     tabelement = $CDX.main_tab_set.add_tab_el(
       tab_name:varname , view: view, route : varname)
   )
+class NamespaceViewer extends Backbone.View
+  render: () ->
+    console.log('namespaceviewer render')
+    variable_item_template = $('#variable-item-template').html()
+    
+    $.when($CDX.IPython.namespace.get('variables')).then( (array) =>
+      window.namespace = array
+      funcs = _.filter(array, (obj) -> obj.type == 'function')
+      reg_variables = _.reject(array, (obj) -> obj.type in ['function', 'module'])
+      grouped = _.groupBy(reg_variables, (obj) -> obj.type)
+      $(this.el).html(
+        _.template2(variable_item_template, {reg_variables:grouped}))
+      )
+
+
+$CDX.NamespaceViewer = NamespaceViewer
 
 $(() ->
 
@@ -94,6 +110,8 @@ $(() ->
         )
         window.pc = plotcontext
         window.pcv = plotcontextview
+        $CDX.namespaceViewer.el = $("#left-panel");
+        $CDX.namespaceViewer.render()
         $CDX.main_tab_set.add_tab(
           {view: $CDX.summaryView, route:'main', tab_name:'Summary'}
         )
@@ -223,7 +241,8 @@ $(() ->
         $(this.el).html(snip2) )
       return $(this.el)
 
-
+  
+  $CDX.namespaceViewer = new NamespaceViewer()
   $CDX.summaryView = new SummaryView()
   $CDX.layout = new Layout()
   $CDX.router = new WorkspaceRouter()
@@ -232,7 +251,9 @@ $(() ->
     $("#layout-root").prepend($CDX.layout_render.el)
   )
   console.log("history start", Backbone.history.start(pushState:true))
-  $CDX.IPython.namespace.on('change', -> $CDX.summaryView.render())
+  $CDX.IPython.namespace.on('change', ->
+    $CDX.namespaceViewer.render()
+    $CDX.summaryView.render())
 
   )
 
