@@ -31,6 +31,7 @@
 <script type=text/javascript src="{{ url_for('static',filename='js/blaze.js') }}"></script>
 
 <script type="text/template" id="plot-context">
+  <!-- no longer used, because pngs don't work well -->
   <ul>
     <% _.each(to_render, function(renderobj, index){ %>
       <li class='jsp' data-plot_num="<%= index %>">
@@ -38,7 +39,7 @@
 	  <%= renderobj['title'] %>
 	</p>
         <img width='50' height='50' src="<%= renderobj['data_url'] %>"/>
-	<a class='plotclose'>[close]</a>
+
       </li>      
     <% }); %>
   </ul>

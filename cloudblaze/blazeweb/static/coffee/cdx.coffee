@@ -430,9 +430,10 @@ class CDXPlotContextView extends Continuum.ContinuumView
       model = @model.resolve_ref(spec)
       @child_models[plot_num] = model
       view_specific_options.push({'el' : $("<div/>")})
-
     created_views = build_views(
-      @model, @views, @mget('children'), {}, view_specific_options)
+      @model, @views, @mget('children'),
+      {'render_loop': true, 'scale' : 0.3},
+      view_specific_options)
     window.pc_created_views = created_views
     window.pc_views = @views
     return null
@@ -470,17 +471,12 @@ class CDXPlotContextView extends Continuum.ContinuumView
     tab_names = {}
     for modelref, index in @mget('children')
       view = @views[modelref.id]
-      $.when(view.to_png_daturl()).then((data_url) =>
-        tab_name = $CDX.IPython.suggest_variable_name
-        renderobj =
-          data_url : data_url
-          index : index
-          title : view.model.get('title')
-        to_render.push(renderobj)
-      )
-    template = _.template2($('#plot-context').html())
-    html = template(to_render : to_render)
-    @$el.html(html)
+      node = $("<div class='jsp' data-plot_num='#{index}'></div>"  )
+      @$el.append(node)
+      title = view.model.get('title')
+      node.append($("<p>#{title}</p>"))
+      node.append($("<a class='plotclose'>[close]</a>"))
+      node.append(view.el)
     return null
 
 class CDXPlotContext extends Component
