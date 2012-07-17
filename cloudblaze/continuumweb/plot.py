@@ -1,6 +1,12 @@
 import bbmodel
 import protocol
-
+class GridPlot(object):
+    def __init__(self, client, container, children, title):
+        self.plot = container
+        self.children = children
+        self.title = title
+        self.client = client
+        
 class ScatterPlot(object):
     def __init__(self, client, plot, data_source, screen_xrange,
                  screen_yrange, data_xrange, data_yrange,
@@ -45,7 +51,15 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         super(PlotClient, self).__init__(docid, url, self.ph)
         interactive_context = self.fetch(typename='CDXPlotContext')
         self.ic = interactive_context[0]
-
+        
+    def updateic(self):
+        self.updateobj(self.ic)
+        
+    def updateobj(self, obj):
+        newobj = self.fetch(obj.typename, obj.get('id'))
+        obj.attributes = newobj.attributes
+        return obj
+            
     def make_source(self, **kwargs):
         output = []
         flds = kwargs.keys()
@@ -331,21 +345,6 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         self.update(lineplot.plot.typename, lineplot.plot.attributes)
         return lineplot
 
-    def _remove_from_ic(self, plots):
-        toremove = set()
-        for plot in plots:
-            toremove.add(plot.get('id'))
-        children = [x for x in self.ic.get('children') if x['id'] not in toremove]
-        self.ic.set('children', children)
-        self.update(self.ic.typename, self.ic.attributes)
-
-    def _remove_all_grid_parents(self, plots):
-        for plot in plots:
-            if plot.get('parent')['type'] == 'GridPlotContainer':
-                parent = plot.get_ref('parent', self)
-                if parent:
-                    self._remove_from_ic([parent])
-                    self.delete(parent.typename, parent.get('id'))
 
     def grid(self, plots, title=None):
         container = bbmodel.ContinuumModel(
@@ -357,8 +356,6 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         for row in plots:
             for plot in row:
                 flatplots.append(plot.plot)
-        self._remove_from_ic(flatplots)
-        self._remove_all_grid_parents(flatplots)
         for plot in flatplots:
             plot.set('parent', container.ref())
         plotrefs = [[x.plot.ref() for x in row] for row in plots]
@@ -367,7 +364,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         to_update.extend(flatplots)
         self.upsert_all(to_update)
         self.show(container)
-        return container
+        return GridPlot(self, container, plots, title)
 
     def show(self, plot):
         children = self.ic.get('children')

@@ -31,6 +31,7 @@
 <script type=text/javascript src="{{ url_for('static',filename='js/blaze.js') }}"></script>
 
 <script type="text/template" id="plot-context">
+  <!-- no longer used, because pngs don't work well -->
   <ul>
     <% _.each(to_render, function(renderobj, index){ %>
       <li class='jsp' data-plot_num="<%= index %>">
@@ -38,7 +39,7 @@
 	  <%= renderobj['title'] %>
 	</p>
         <img width='50' height='50' src="<%= renderobj['data_url'] %>"/>
-	<a class='plotclose'>[close]</a>
+
       </li>      
     <% }); %>
   </ul>
@@ -52,28 +53,32 @@
     <div class="modal-body">
       <form class="well">
         <label>Choose Some tabs to export</label>
-	<% if (plots.length == 0){ %>
+	<% if (plot_routes.length == 0){ %>
 	  <label> no plots to export </label>
 	<% }else{ %>
 	  <label> Plots </label>
-  	  <% _.each(plots, function(plot){ %>
+  	  <% _.each(plot_routes, function(route, idx){ %>
             <label class="checkbox">
-              <input class="tabselect" type="checkbox" tab="<%= plot %>"/> <%= plot %>
+              <input class="tabselect" type="checkbox" tab="<%= route %>"/> 
+	      <%= plot_titles[idx] %>
             </label>
 	  <% }); %>
 	<% } %>
-	<% if (arrays.length == 0){ %>
+	<% if (array_routes.length == 0){ %>
 	  <label> no arrays to export </label>
 	<% }else{ %>
 	  <label> Arrays </label>
-  	  <% _.each(arrays, function(plot){ %>
+  	  <% _.each(array_routes, function(route, idx){ %>
             <label class="checkbox">
-              <input class="tabselect" type="checkbox" tab="<%= plot %>"/> <%= plot %>
+              <input class="tabselect" type="checkbox" tab="<%= route %>"/>
+	      <%= array_titles[idx] %>	      
             </label>
 	  <% }); %>
 	<% } %>
-	
-	<input class="publishsubmit" type="button" value="Submit"/>
+	<label>
+	  Publish your page, it will open in a new window.
+	<input class="publishsubmit" type="button" value="Publish"/>
+	<label>
       </form>
     </div>
   </div>

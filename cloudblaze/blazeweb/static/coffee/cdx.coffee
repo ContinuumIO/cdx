@@ -42,28 +42,17 @@ $CDX.basetabs_rendered = $CDX._basetabs_rendered.promise()
 $CDX.add_blaze_table_tab = (varname, url, columns) ->
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
     {}, {local:true})
-
-  $.get("/data" + url, {}, (data) ->
-    arraydata = JSON.parse(data)
-    transformed = []
-    for row in arraydata['data']
-      transformedrow = {}
-      for temp in _.zip(row, arraydata['colnames'])
-        [val, colname] = temp
-        transformedrow[colname] = val
-      transformed.push(transformedrow)
-    data_source.set('data', transformed)
-    datatable = Continuum.Collections['DataTable'].create(
-      columns : arraydata['colnames'],
-      data_source : data_source.ref()
-      name : varname
-      url : url
-      total_rows: arraydata['shape'][0]
-      , local : true
-    )
-    view = new datatable.default_view model : datatable
-    tabelement = $CDX.main_tab_set.add_tab_el(
-      tab_name:varname , view: view, route : varname)
+  datatable = Continuum.Collections['DataTable'].create(
+    data_source : data_source.ref()
+    name : varname
+    url : url
+  ,
+    local : true
+  )
+  datatable.load(0)
+  view = new datatable.default_view ({model : datatable})
+  tabelement = $CDX.main_tab_set.add_tab(
+    tab_name:varname , view: view, route : varname
   )
 class NamespaceViewer extends Backbone.View
   render: () ->
@@ -192,8 +181,8 @@ $(() ->
       $CDX.utility.instantiate_doc(docid)
       $.when($CDX.doc_loaded).then(
         () ->
-          $CDX.utility.instantiate_ipython(docid)
           $CDX.utility.instantiate_base_tabs()
+          $CDX.utility.instantiate_ipython(docid)
           view = new ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
       )
 
@@ -335,18 +324,35 @@ class ConfigurePublishView extends Backbone.View
     @render()
 
   render : () ->
+    @publishmodel = Continuum.Collections['PublishModel'].create({}, {'local': true})
+    docid = $CDX.docid
+    modelid = @publishmodel.id
+    @puburl = "/cdx/#{docid}/published/#{modelid}"
+
     template = $('#publish-selection').html()
     tabs = _.keys(@tab_view.tab_view_dict)
-    arrays = []
-    plots = []
+    array_routes = []
+    plot_routes = []
+    plot_titles = []
+    array_titles = []
     for x in tabs
       view = @tab_view.tab_view_dict[x].view
       if view.model
         if view.model.type == 'Plot' || view.model.type == 'GridPlotContainer'
-          plots.push(x)
+          plot_routes.push(x)
+          plot_titles.push(@tab_view.tab_view_dict[x].tab_name)
         if view.model.type == 'DataTable'
-          arrays.push(x)
-    @$el.html(_.template2(template, {'plots' : plots, 'arrays' : arrays}))
+          array_routes.push(x)
+          array_titles.push(@tab_view.tab_view_dict[x].tab_name)
+    @$el.html(
+      _.template2(template,
+          plot_routes : plot_routes
+          array_routes : array_routes
+          plot_titles : plot_titles
+          array_titles : array_titles
+          puburl : "http://" + window.location.host + @puburl
+      )
+    )
     @$el.modal('show')
     return null
 
@@ -374,16 +380,16 @@ class ConfigurePublishView extends Backbone.View
         arrays.push(view.model.ref())
         array_tab_info.push({'tab_name' : tvo.tab_name, 'route' :tvo.route})
 
-    publishmodel = Continuum.Collections['PublishModel'].create(
+    @publishmodel.set(
       plot_tab_info : plot_tab_info
       plots : plots
       arrays : arrays
       array_tab_info : array_tab_info
     )
-    docid = $CDX.docid
-    modelid = publishmodel.id
-    window.open("/cdx/#{docid}/published/#{modelid}", '_blank')
+    @publishmodel.save()
     @$el.modal('hide')
+    window.open(@puburl, '_blank')
+
 class PublishView extends Continuum.ContinuumView
   initialize : (options) ->
     @tab_view = options['tab_view']
@@ -396,13 +402,13 @@ class PublishView extends Continuum.ContinuumView
     for info, idx in @mget('plot_tab_info')
       plotid = @mget('plots')[idx].id
       console.log('ADDTAB', info)
-      @tab_view.add_tab_el(
+      @tab_view.add_tab(
         tab_name: info.tab_name , view: @plots[plotid], route : info.route
       )
     for info, idx in @mget('array_tab_info')
       arrayid = @mget('arrays')[idx].id
       console.log('ADDTAB', info)
-      @tab_view.add_tab_el(
+      @tab_view.add_tab(
         tab_name: info.tab_name , view: @arrays[arrayid], route : info.route
       )
 
@@ -449,9 +455,10 @@ class CDXPlotContextView extends Continuum.ContinuumView
       model = @model.resolve_ref(spec)
       @child_models[plot_num] = model
       view_specific_options.push({'el' : $("<div/>")})
-
     created_views = build_views(
-      @model, @views, @mget('children'), {}, view_specific_options)
+      @model, @views, @mget('children'),
+      {'render_loop': true, 'scale' : 0.2},
+      view_specific_options)
     window.pc_created_views = created_views
     window.pc_views = @views
     return null
@@ -463,7 +470,8 @@ class CDXPlotContextView extends Continuum.ContinuumView
   removeplot : (e) =>
     plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
     s_pc = @model.resolve_ref(@mget('children')[plotnum])
-    view = @views[s_pc.get('id')].remove();
+    view = @views[s_pc.get('id')]
+    view.remove();
     newchildren = (x for x in @mget('children') when x.id != view.model.id)
     @mset('children', newchildren)
     @model.save()
@@ -473,7 +481,7 @@ class CDXPlotContextView extends Continuum.ContinuumView
     plotnum = parseInt($(e.currentTarget).attr('data-plot_num'))
     s_pc = @model.resolve_ref(@mget('children')[plotnum])
     plotview = new s_pc.default_view(model: s_pc, render_loop:true)
-    $CDX.main_tab_set.add_tab_el(
+    $CDX.main_tab_set.add_tab(
       tab_name:s_pc.get('title'),
       view: plotview,
       route:s_pc.get('id')
@@ -488,17 +496,12 @@ class CDXPlotContextView extends Continuum.ContinuumView
     tab_names = {}
     for modelref, index in @mget('children')
       view = @views[modelref.id]
-      $.when(view.to_png_daturl()).then((data_url) =>
-        tab_name = $CDX.IPython.suggest_variable_name
-        renderobj =
-          data_url : data_url
-          index : index
-          title : view.model.get('title')
-        to_render.push(renderobj)
-      )
-    template = _.template2($('#plot-context').html())
-    html = template(to_render : to_render)
-    @$el.html(html)
+      node = $("<div class='jsp' data-plot_num='#{index}'></div>"  )
+      @$el.append(node)
+      title = view.model.get('title')
+      node.append($("<p>#{title}</p>"))
+      node.append($("<a class='plotclose'>[close]</a>"))
+      node.append(view.el)
     return null
 
 class CDXPlotContext extends Component
