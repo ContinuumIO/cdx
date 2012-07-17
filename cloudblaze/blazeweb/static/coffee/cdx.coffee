@@ -174,8 +174,8 @@ $(() ->
       $CDX.utility.instantiate_doc(docid)
       $.when($CDX.doc_loaded).then(
         () ->
-          $CDX.utility.instantiate_ipython(docid)
           $CDX.utility.instantiate_base_tabs()
+          $CDX.utility.instantiate_ipython(docid)
           view = new ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
       )
 
@@ -316,16 +316,27 @@ class ConfigurePublishView extends Backbone.View
   render : () ->
     template = $('#publish-selection').html()
     tabs = _.keys(@tab_view.tab_view_dict)
-    arrays = []
-    plots = []
+    array_routes = []
+    plot_routes = []
+    plot_titles = []
+    array_titles = []
     for x in tabs
       view = @tab_view.tab_view_dict[x].view
       if view.model
         if view.model.type == 'Plot' || view.model.type == 'GridPlotContainer'
-          plots.push(x)
+          plot_routes.push(x)
+          plot_titles.push(@tab_view.tab_view_dict[x].tab_name)
         if view.model.type == 'DataTable'
-          arrays.push(x)
-    @$el.html(_.template2(template, {'plots' : plots, 'arrays' : arrays}))
+          array_routes.push(x)
+          array_titles.push(@tab_view.tab_view_dict[x].tab_name)
+    @$el.html(
+      _.template2(template,
+          plot_routes : plot_routes
+          array_routes : array_routes
+          plot_titles : plot_titles
+          array_titles : array_titles
+      )
+    )
     @$el.modal('show')
     return null
 
