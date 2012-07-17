@@ -44,16 +44,11 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
     {}, {local:true})
 
   $.get("/data" + url, {}, (data) ->
+    datatable = Continuum.Collections['DataTable'].create({}, {'local' : true})
     arraydata = JSON.parse(data)
-    transformed = []
-    for row in arraydata['data']
-      transformedrow = {}
-      for temp in _.zip(row, arraydata['colnames'])
-        [val, colname] = temp
-        transformedrow[colname] = val
-      transformed.push(transformedrow)
+    transformed = datatable.convert_raw_data(arraydata)
     data_source.set('data', transformed)
-    datatable = Continuum.Collections['DataTable'].create(
+    datatable.set(
       columns : arraydata['colnames'],
       data_source : data_source.ref()
       name : varname
@@ -64,6 +59,7 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
     view = new datatable.default_view model : datatable
     tabelement = $CDX.main_tab_set.add_tab_el(
       tab_name:varname , view: view, route : varname)
+
   )
 
 $(() ->
