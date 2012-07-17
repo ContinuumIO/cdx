@@ -45,7 +45,15 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         super(PlotClient, self).__init__(docid, url, self.ph)
         interactive_context = self.fetch(typename='CDXPlotContext')
         self.ic = interactive_context[0]
-
+        
+    def updateic(self):
+        self.updateobj(self.ic)
+        
+    def updateobj(self, obj):
+        newobj = self.fetch(obj.typename, obj.get('id'))
+        obj.attributes = newobj.attributes
+        return obj
+            
     def make_source(self, **kwargs):
         output = []
         flds = kwargs.keys()
