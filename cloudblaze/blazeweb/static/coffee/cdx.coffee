@@ -42,24 +42,17 @@ $CDX.basetabs_rendered = $CDX._basetabs_rendered.promise()
 $CDX.add_blaze_table_tab = (varname, url, columns) ->
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
     {}, {local:true})
-
-  $.get("/data" + url, {}, (data) ->
-    datatable = Continuum.Collections['DataTable'].create({}, {'local' : true})
-    arraydata = JSON.parse(data)
-    transformed = datatable.convert_raw_data(arraydata)
-    data_source.set('data', transformed)
-    datatable.set(
-      columns : arraydata['colnames'],
-      data_source : data_source.ref()
-      name : varname
-      url : url
-      total_rows: arraydata['shape'][0]
-      , local : true
-    )
-    view = new datatable.default_view model : datatable
-    tabelement = $CDX.main_tab_set.add_tab_el(
-      tab_name:varname , view: view, route : varname)
-
+  datatable = Continuum.Collections['DataTable'].create(
+    data_source : data_source.ref()
+    name : varname
+    url : url
+  ,
+    local : true
+  )
+  datatable.load(0)
+  view = new datatable.default_view ({model : datatable})
+  tabelement = $CDX.main_tab_set.add_tab_el(
+    tab_name:varname , view: view, route : varname
   )
 
 $(() ->
