@@ -29,18 +29,6 @@ class TabSet extends Backbone.View
 
   add_tab: (tab_view_obj) ->
     tvo = tab_view_obj
-    @tab_view_dict[tab_view_obj.route] = tab_view_obj
-    tvo.tab_el =  @_create_tab(tab_view_obj)
-    tvo.pane_el = @_create_pane(tab_view_obj)
-    @tab_holder_el.append(tvo.tab_el)
-    @pane_holder_el.append(tvo.pane_el)
-    tvo.pane_el.append(tab_view_obj.view.render())
-    if _.keys(@tab_view_dict).length == 1
-      @activate(_.keys(@tab_view_dict)[0])
-    tvo.route
-
-  add_tab_el: (tab_view_obj) ->
-    tvo = tab_view_obj
     route = tvo.route
     if _.has(@tab_view_dict, route)
       @_remove_tab(route)

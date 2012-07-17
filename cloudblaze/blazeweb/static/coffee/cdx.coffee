@@ -51,7 +51,7 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
   )
   datatable.load(0)
   view = new datatable.default_view ({model : datatable})
-  tabelement = $CDX.main_tab_set.add_tab_el(
+  tabelement = $CDX.main_tab_set.add_tab(
     tab_name:varname , view: view, route : varname
   )
 
@@ -303,6 +303,11 @@ class ConfigurePublishView extends Backbone.View
     @render()
 
   render : () ->
+    @publishmodel = Continuum.Collections['PublishModel'].create({}, {'local': true})
+    docid = $CDX.docid
+    modelid = @publishmodel.id
+    @puburl = "/cdx/#{docid}/published/#{modelid}"
+
     template = $('#publish-selection').html()
     tabs = _.keys(@tab_view.tab_view_dict)
     array_routes = []
@@ -324,6 +329,7 @@ class ConfigurePublishView extends Backbone.View
           array_routes : array_routes
           plot_titles : plot_titles
           array_titles : array_titles
+          puburl : "http://" + window.location.host + @puburl
       )
     )
     @$el.modal('show')
@@ -353,16 +359,16 @@ class ConfigurePublishView extends Backbone.View
         arrays.push(view.model.ref())
         array_tab_info.push({'tab_name' : tvo.tab_name, 'route' :tvo.route})
 
-    publishmodel = Continuum.Collections['PublishModel'].create(
+    @publishmodel.set(
       plot_tab_info : plot_tab_info
       plots : plots
       arrays : arrays
       array_tab_info : array_tab_info
     )
-    docid = $CDX.docid
-    modelid = publishmodel.id
-    window.open("/cdx/#{docid}/published/#{modelid}", '_blank')
+    @publishmodel.save()
     @$el.modal('hide')
+    window.open(@puburl, '_blank')
+
 class PublishView extends Continuum.ContinuumView
   initialize : (options) ->
     @tab_view = options['tab_view']
@@ -375,13 +381,13 @@ class PublishView extends Continuum.ContinuumView
     for info, idx in @mget('plot_tab_info')
       plotid = @mget('plots')[idx].id
       console.log('ADDTAB', info)
-      @tab_view.add_tab_el(
+      @tab_view.add_tab(
         tab_name: info.tab_name , view: @plots[plotid], route : info.route
       )
     for info, idx in @mget('array_tab_info')
       arrayid = @mget('arrays')[idx].id
       console.log('ADDTAB', info)
-      @tab_view.add_tab_el(
+      @tab_view.add_tab(
         tab_name: info.tab_name , view: @arrays[arrayid], route : info.route
       )
 
@@ -449,7 +455,7 @@ class CDXPlotContextView extends Continuum.ContinuumView
     plotnum = parseInt($(e.currentTarget).attr('data-plot_num'))
     s_pc = @model.resolve_ref(@mget('children')[plotnum])
     plotview = new s_pc.default_view(model: s_pc, render_loop:true)
-    $CDX.main_tab_set.add_tab_el(
+    $CDX.main_tab_set.add_tab(
       tab_name:s_pc.get('title'),
       view: plotview,
       route:s_pc.get('id')
