@@ -432,7 +432,7 @@ class CDXPlotContextView extends Continuum.ContinuumView
       view_specific_options.push({'el' : $("<div/>")})
     created_views = build_views(
       @model, @views, @mget('children'),
-      {'render_loop': true, 'scale' : 0.3},
+      {'render_loop': true, 'scale' : 0.2},
       view_specific_options)
     window.pc_created_views = created_views
     window.pc_views = @views
