@@ -438,7 +438,8 @@ class CDXPlotContextView extends Continuum.ContinuumView
   removeplot : (e) =>
     plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
     s_pc = @model.resolve_ref(@mget('children')[plotnum])
-    view = @views[s_pc.get('id')].remove();
+    view = @views[s_pc.get('id')]
+    view.remove();
     newchildren = (x for x in @mget('children') when x.id != view.model.id)
     @mset('children', newchildren)
     @model.save()
