@@ -26,6 +26,9 @@ $CDX.IPython.inject_plot_client = (docid) ->
   execute_code(code)
   code = "array_proxy.client = bc"
   execute_code(code)
+  code = "import blaze.array_proxy.npproxy as npp"
+  execute_code(code)
+
 $CDX.IPython.setup_ipython_events = () ->
   IPython.Kernel.prototype.namespace_request = () ->
     content = {}
