@@ -111,9 +111,13 @@ $(() ->
         $CDX._basetabs_rendered.resolve()
         Continuum.Collections.Plot.on('add', (model, b) ->
           window.event_model = model
+          model.set('render_loop':true)
           _.delay((->
+            pview = new model.default_view(model:model, render_loop:true)
             $CDX.main_tab_set.add_tab(
-              view: new model.default_view(model:model), route: 'foo', tab_name:'new_plot')),
+              view: pview , route: model.get('id'), tab_name:'new_plot')
+
+            $CDX.main_tab_set.activate(model.get('id'))),
             10)
           console.log('plot_add called', model, b))
         # add_plot()
