@@ -1,5 +1,4 @@
 prices = da_hdf5_20100111
-
 GLD_ylds = prices['GLD'][4::4] / prices['GLD'][:-4:4]
 GLD_ylds = GLD_ylds.seval() 
 GLD = prices['GLD'][4::4]

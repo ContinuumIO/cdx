@@ -62,8 +62,9 @@ module.exports = function(grunt) {
             bokeh_test: {
                 dir: 'lib/bokehjs/src/test/unittest',
                 dest: 'lib/bokehjs/lib/test/unittest',
-                bare: true,
+                bare: false,
             },
+	    
             cdx: {
                 dir:  'static/coffee',
                 dest: 'static/js',
@@ -77,7 +78,7 @@ module.exports = function(grunt) {
                 tasks: 'coffee:bokeh ok'
             },
             bokeh_test: {
-                files: 'lib/bokehjs/src/test/unittest/*.coffee',
+                files: 'lib/bokehjs/src/test/unittest/*.coffee', 
                 tasks: 'coffee:bokeh_test ok'
             },
             cdx: {
