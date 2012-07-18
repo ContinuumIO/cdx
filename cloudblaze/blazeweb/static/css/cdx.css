@@ -178,3 +178,21 @@ overflow: auto;
     vertical-align : top;
     padding : 10px;
 }
+
+
+.variable-block.well {
+  padding:10px
+}
+.variable-block  ul {
+  list-style: none;
+  margin-left:5px;
+}
+
+.variable-block .accordion-group {
+  padding: 5px;
+}
+.variable-block ul.category-list > li {
+
+  margin-top:10px;
+
+}
