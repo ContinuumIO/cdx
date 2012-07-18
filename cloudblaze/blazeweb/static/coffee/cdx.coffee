@@ -58,7 +58,7 @@ class NamespaceViewer extends Backbone.View
   render: () ->
     console.log('namespaceviewer render')
     variable_item_template = $('#variable-item-template').html()
-    
+
     $.when($CDX.IPython.namespace.get('variables')).then( (array) =>
       window.namespace = array
       funcs = _.filter(array, (obj) -> obj.type == 'function')
@@ -115,7 +115,7 @@ $(() ->
           _.delay((->
             pview = new model.default_view(model:model, render_loop:true)
             $CDX.main_tab_set.add_tab(
-              view: pview , route: model.get('id'), tab_name:'new_plot')
+              view: pview , route: model.get('id'), tab_name: model.get('title'))
 
             $CDX.main_tab_set.activate(model.get('id'))),
             10)
@@ -243,7 +243,7 @@ $(() ->
         $(this.el).html(snip2) )
       return $(this.el)
 
-  
+
   $CDX.namespaceViewer = new NamespaceViewer()
   $CDX.summaryView = new SummaryView()
   $CDX.layout = new Layout()
