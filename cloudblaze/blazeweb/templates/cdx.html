@@ -119,6 +119,13 @@
   <% }); %>
   </tbody>
 </table>
+
+<h4> Functions </h4>
+<ul>
+  <% _.each(funcs, function(func) { %>
+    <li> <%= func.name %> </li>
+  <% }); %>
+</ul>
 </script>
 <script type="text/template" id="variable-summary-template">
   <div class="well">

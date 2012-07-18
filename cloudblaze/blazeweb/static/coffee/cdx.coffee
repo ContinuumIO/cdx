@@ -65,7 +65,8 @@ class NamespaceViewer extends Backbone.View
       reg_variables = _.reject(array, (obj) -> obj.type in ['function', 'module'])
       grouped = _.groupBy(reg_variables, (obj) -> obj.type)
       $(this.el).html(
-        _.template2(variable_item_template, {reg_variables:grouped}))
+        _.template2(variable_item_template,
+          reg_variables:grouped, funcs:funcs))
       )
 
 
@@ -108,6 +109,14 @@ $(() ->
           {view : plotcontextview, route:'viz', tab_name: 'viz'}
         )
         $CDX._basetabs_rendered.resolve()
+        Continuum.Collections.Plot.on('add', (model, b) ->
+          window.event_model = model
+          _.delay((->
+            $CDX.main_tab_set.add_tab(
+              view: new model.default_view(model:model), route: 'foo', tab_name:'new_plot')),
+            10)
+          console.log('plot_add called', model, b))
+        # add_plot()
         return null
       )
 
@@ -428,7 +437,7 @@ class PublishModels extends Backbone.Collection
 Continuum.register_collection('PublishModel', new PublishModels())
 
 
-add_plot = ->
+window.add_plot = ->
   $CDX.IPython.execute_code("p.line(x=[1,2,3,4,5], y=[1,2,3,4,5])")
 
 class CDXPlotContextView extends Continuum.ContinuumView
