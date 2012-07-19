@@ -87,15 +87,14 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         (plotmodel, data_source)
         """
         if scatterplot is None:
-             scatterplot = self._newscatter(x, y, width=width, height=height, color=color,
-                                            data_source=data_source, container=container)
+             scatterplot = self._newscatter(
+                 x, y, title=title,
+                 width=width, height=height, color=color,
+                 data_source=data_source, container=container)
         else:
-            scatterplot = self._addscatter(scatterplot, x, y, color=color,
-                                           data_source=data_source)
-        if title is not None:
-            scatterplot.plot.set('title', title)
-            self.update(scatterplot.plot.typename, scatterplot.plot.attributes)
-        
+            scatterplot = self._addscatter(
+                scatterplot, x, y, color=color,
+                data_source=data_source)
         return scatterplot
 
     def _addscatter(self, scatterplot, x, y, color="#000", data_source=None):
@@ -125,7 +124,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         return scatterplot
 
     def _newscatter(self, x, y, width=300, height=300, color="#000",
-                data_source=None, container=None):
+                    title='None', data_source=None, container=None):
         """
         Parameters
         ----------
@@ -140,18 +139,15 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         (plotmodel, data_source)
         """
         tocreate = []
+        xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
+        yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
+        plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
+                                      xrange=xr.ref(), yrange=yr.ref())
         if container:
-            xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
-            yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
-            plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
-                                          xrange=xr.ref(), yrange=yr.ref(),
-                                          parent=container.ref())
+            plot.set('parent', container.ref())
         else:
-            xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
-            yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
-            plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
-                                          xrange=xr.ref(), yrange=yr.ref(),
-                                          parent=self.ic.ref())
+            plot.set('parent', self.ic.ref())
+        if title is not None: plot.set('title', title)
         tocreate.append(plot)
         if data_source is None:
             data_source = self.make_source(x=x, y=y)
@@ -217,21 +213,18 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                            pantool, zoomtool, selecttool, selectoverlay,
                            container)
 
-    def _newlineplot(self, x, y, width=300, height=300, lineplot=None,
+    def _newlineplot(self, x, y, title=None, width=300, height=300, lineplot=None,
                      data_source=None, container=None):
         tocreate = []
+        xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
+        yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
+        plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
+                                      xrange=xr.ref(), yrange=yr.ref())
         if container:
-            xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
-            yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
-            plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
-                                          xrange=xr.ref(), yrange=yr.ref(),
-                                          parent=container.ref())
+            plot.set('parent', container.ref())
         else:
-            xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
-            yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
-            plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
-                                          xrange=xr.ref(), yrange=yr.ref(),
-                                          parent=self.ic.ref())
+            plot.set('parent', self.ic.ref())
+        if title is not None: plot.set('title', title)            
         tocreate.append(plot)
         if data_source is None:
             data_source = self.make_source(x=x, y=y)
@@ -300,19 +293,16 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         data_source : optional if x,y are not strings,
             backbonemodel of a data source
         container : bbmodel of container viewmodel
-
+        title : title of plot, only used for new plots
         Returns
         ----------
         (plotmodel, data_source)
         """
         if lineplot is None:
-            lineplot = self._newlineplot(x, y, width=width, height=height,
+            lineplot = self._newlineplot(x, y, title=title, width=width, height=height,
                                      data_source=data_source, container=container)
         else:
             lineplot = self._addline(lineplot, x, y, data_source=data_source)
-        if title is not None:
-            lineplot.plot.set('title', title)
-            self.update(lineplot.plot.typename, lineplot.plot.attributes)
         return lineplot
     
     def _add_source_to_range(self, data_source, columns, range):

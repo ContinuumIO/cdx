@@ -58,7 +58,7 @@ class NamespaceViewer extends Backbone.View
   render: () ->
     console.log('namespaceviewer render')
     variable_item_template = $('#variable-item-template').html()
-    
+
     $.when($CDX.IPython.namespace.get('variables')).then( (array) =>
       window.namespace = array
       funcs = _.filter(array, (obj) -> obj.type == 'function')
@@ -110,20 +110,19 @@ $(() ->
         )
         $CDX._basetabs_rendered.resolve()
         Continuum.Collections.Plot.on('add', (model, b) ->
-          window.event_model = model
-          model.set('render_loop':true)
-          _.delay((->
-            pview = new model.default_view(model:model, render_loop:true)
-            $CDX.main_tab_set.add_tab(
-              view: pview , route: model.get('id'), tab_name:'new_plot')
-
-            $CDX.main_tab_set.activate(model.get('id'))),
-            10)
-          console.log('plot_add called', model, b))
-        # add_plot()
+          $CDX.utility.add_plot_tab(model)
+        )
+        Continuum.Collections.GridPlotContainer.on('add', (model, b) ->
+          $CDX.utility.add_plot_tab(model)
+        )
         return null
       )
 
+    add_plot_tab : (model) ->
+      pview = new model.default_view({model:model, render_loop:true})
+      $CDX.main_tab_set.add_tab(
+        {view: pview , route: model.get('id'), tab_name: model.get('title')})
+      $CDX.main_tab_set.activate(model.get('id'))
 
     instantiate_doc : (docid) ->
       if not $CDX._doc_loaded.isResolved()
@@ -243,7 +242,7 @@ $(() ->
         $(this.el).html(snip2) )
       return $(this.el)
 
-  
+
   $CDX.namespaceViewer = new NamespaceViewer()
   $CDX.summaryView = new SummaryView()
   $CDX.layout = new Layout()
