@@ -452,8 +452,8 @@ class CDXPlotContextView extends Continuum.ContinuumView
     @render()
 
   delegateEvents: ->
-    safebind(this, @model, 'destroy', @remove)
-    safebind(this, @model, 'change', @render)
+    Continuum.safebind(this, @model, 'destroy', @remove)
+    Continuum.safebind(this, @model, 'change', @render)
     super()
 
   generate_remove_child_callback : (view) ->
@@ -467,7 +467,7 @@ class CDXPlotContextView extends Continuum.ContinuumView
       model = @model.resolve_ref(spec)
       @child_models[plot_num] = model
       view_specific_options.push({'el' : $("<div/>")})
-    created_views = build_views(
+    created_views = Continuum.build_views(
       @model, @views, @mget('children'),
       {'render_loop': true, 'scale' : 0.2},
       view_specific_options)
@@ -516,7 +516,7 @@ class CDXPlotContextView extends Continuum.ContinuumView
       node.append(view.el)
     return null
 
-class CDXPlotContext extends Component
+class CDXPlotContext extends Continuum.Component
   type : 'CDXPlotContext',
   default_view : CDXPlotContextView
   url : () ->
