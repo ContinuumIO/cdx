@@ -1,4 +1,8 @@
 
+$(window).unload(->
+  $CDX.helpWindow.close()
+  )
+
 window.$CDX.resizeRoot = () ->
   winHeight = $(window).height()
   winWidth = $(window).width()
@@ -39,9 +43,18 @@ $CDX.Promises.basetabs_rendered = $CDX.Deferreds._basetabs_rendered.promise()
 _.delay(
   () ->
     $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
+    $('#helpCDX').click( -> $CDX.showHelp(event, 'cdx'))
+    $('#helpPython').click( -> $CDX.showHelp(event, 'python'))
     $CDX.resize_loop
   , 1000
 )
+
+$CDX.showHelp = (event, section) ->
+  $CDX.helpWindow = window.open('/cdx_help?section='+section,
+  'CDX Help',
+  'width=600,height=600,scrollbars=yes,resizable=yes,location=no,status=yes')
+  event.preventDefault()
+  return false
 
 window.add_plot = ->
   $CDX.IPython.execute_code("p.line(x=[1,2,3,4,5], y=[1,2,3,4,5])")

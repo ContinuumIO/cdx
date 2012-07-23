@@ -6,3 +6,4 @@
 window.$CDX = {}
 $CDX = window.$CDX
 $CDX.IPython = {}
+$CDX.helpWindow = ''

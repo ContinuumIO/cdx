@@ -68,6 +68,11 @@ module.exports = function(grunt) {
                 dir:  'static/coffee',
                 dest: 'static/js',
                 bare: false,
+            },
+            cdx_help: {
+                dir:  'static/coffee',
+                dest: 'static/js',
+                bare: false,
             }
 
         },
@@ -83,6 +88,10 @@ module.exports = function(grunt) {
             cdx: {
                 files: 'static/coffee/*.coffee',
                 tasks: 'coffee:cdx ok'
+            },
+            cdx_help: {
+                files: 'static/coffee/*.coffee',
+                tasks: 'coffee:cdx_help ok'
             }
         }
     });

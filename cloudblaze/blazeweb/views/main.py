@@ -48,6 +48,17 @@ def index(*unused_all, **kwargs):
         pass
     return render_template('cdx.html')
 
+@app.route('/cdx_help')
+@app.route('/cdx_help/<unused>')
+@app.route('/cdx_help/<unused>/<unused_2>')
+@app.route('/cdx_help/<unused>/<unused_2>/<unused_3>')
+def cdx_help(*unused_all, **kwargs):
+    current_user = maincontroller.get_current_user(current_app, session)
+    if current_user is None:
+        #redirect to login, we don't have login page yet..
+        pass
+    return render_template('cdx_help.html')
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
