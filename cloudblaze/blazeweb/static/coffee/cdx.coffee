@@ -48,6 +48,16 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
   )
 
 
+_.delay(
+  () ->
+    $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
+    $CDX.resize_loop
+  , 1000
+)
+
+window.add_plot = ->
+  $CDX.IPython.execute_code("p.line(x=[1,2,3,4,5], y=[1,2,3,4,5])")
+
 $(() ->
 
   $CDX.utility = {
@@ -192,24 +202,12 @@ $(() ->
 
   MyApp = new Backbone.Marionette.Application()
 
-  Layout = Backbone.Marionette.Layout.extend(
-    template: "#layout-template",
-
-    regions: {
-      viz_tab: "viz-tab"
-      }
-    events:
-      "click .js-navigate" : (e) ->
-        el = $(e.currentTarget)
-        route_target = el.attr("data-route_target")
-        $CDX.router.navigate(route_target, {trigger: true})
-    )
 
 
 
   $CDX.namespaceViewer = new $CDX.Views.NamespaceViewer()
   $CDX.summaryView = new $CDX.Views.SummaryView()
-  $CDX.layout = new Layout()
+  $CDX.layout = new $CDX.Views.Layout()
   $CDX.router = new WorkspaceRouter()
   $CDX.layout_render = $CDX.layout.render()
   $.when($CDX.layout_render).then( ->
@@ -221,14 +219,6 @@ $(() ->
     $CDX.summaryView.render())
 
   )
-
-
-_.delay(
-  () ->
-    $('#menuDataSelect').click( -> $CDX.showModal('#dataSelectModal'))
-    $CDX.resize_loop
-  , 1000
-)
 
 
 $CDX.popDataTab = (itemName, url, totalRows) ->
@@ -286,36 +276,4 @@ $CDX.showModal = (modalID) ->
     )
     return
 
-$CDX.togglePyPane = () ->
-  console.log('togglepypane')
-  #  $("#cdxPyPane").slideToggle()
 
-
-window.add_plot = ->
-  $CDX.IPython.execute_code("p.line(x=[1,2,3,4,5], y=[1,2,3,4,5])")
-
-$CDX.pystate = 'normal'
-$CDX.togglePyPane = () ->
-  if $CDX.pystate == 'normal'
-    $CDX.pystate = 'hidden'
-    $('#main-tab-area').removeClass('span5')
-    $('#main-tab-area').addClass('span10')
-
-    $('#main-tab-area').show()
-    $('#cdxPyPane').hide()
-  else if $CDX.pystate == 'hidden'
-    $CDX.pystate = 'max'
-    $('#cdxPyPane').removeClass('span5')
-    $('#cdxPyPane').addClass('span10')
-
-    $('#main-tab-area').hide()
-    $('#cdxPyPane').show()
-  else if $CDX.pystate =='max'
-    $CDX.pystate = 'normal'
-    $('#cdxPyPane').removeClass('span10')
-    $('#cdxPyPane').addClass('span5')
-    $('#main-tab-area').removeClass('span10')
-    $('#main-tab-area').addClass('span5')
-
-    $('#main-tab-area').show()
-    $('#cdxPyPane').show()

@@ -1,6 +1,7 @@
+$CDX.Models = {}
+$CDX.Collections = {}
 
-
-class PublishModel extends Continuum.HasProperties
+class $CDX.Models.PublishModel extends Continuum.HasProperties
   collections : Continuum.Collections
   type : 'PublishModel'
   default_view : $CDX.Views.PublishView
@@ -10,13 +11,13 @@ class PublishModel extends Continuum.HasProperties
     arrays : []
     array_tab_info : []
 
-class PublishModels extends Backbone.Collection
-  model : PublishModel
+class $CDX.Collections.PublishModels extends Backbone.Collection
+  model : $CDX.Models.PublishModel
 
-Continuum.register_collection('PublishModel', new PublishModels())
+Continuum.register_collection('PublishModel', new $CDX.Collections.PublishModels())
 
 
-class CDXPlotContext extends Continuum.Component
+class $CDX.Models.CDXPlotContext extends Continuum.Component
   type : 'CDXPlotContext',
   default_view : $CDX.Views.CDXPlotContextView
   url : () ->
@@ -26,8 +27,8 @@ class CDXPlotContext extends Continuum.Component
     children : []
     render_loop : true
 
-class CDXPlotContexts extends Backbone.Collection
-  model : CDXPlotContext
+class $CDX.Collections.CDXPlotContexts extends Backbone.Collection
+  model : $CDX.Models.CDXPlotContext
 
-Continuum.register_collection('CDXPlotContext', new CDXPlotContexts())
+Continuum.register_collection('CDXPlotContext', new $CDX.Collections.CDXPlotContexts())
 

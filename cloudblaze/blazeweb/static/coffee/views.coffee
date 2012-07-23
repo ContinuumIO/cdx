@@ -202,3 +202,47 @@ class $CDX.Views.PublishView extends Continuum.ContinuumView
       @tab_view.add_tab(
         tab_name: info.tab_name , view: @arrays[arrayid], route : info.route
       )
+
+
+$CDX.Views.Layout = Backbone.Marionette.Layout.extend(
+  template: "#layout-template",
+
+  regions: {
+    viz_tab: "viz-tab"
+    }
+  events:
+    "click .js-navigate" : (e) ->
+      el = $(e.currentTarget)
+      route_target = el.attr("data-route_target")
+      $CDX.router.navigate(route_target, {trigger: true})
+    "click .js-toggle_py_pane": (e) ->
+      if @pystate == 'normal'
+        @pystate = 'hidden'
+        $('#main-tab-area').removeClass('span5')
+        $('#main-tab-area').addClass('span10')
+
+        $('#main-tab-area').show()
+        $('#cdxPyPane').hide()
+      else if @pystate == 'hidden'
+        @pystate = 'max'
+        $('#cdxPyPane').removeClass('span5')
+        $('#cdxPyPane').addClass('span10')
+
+        $('#main-tab-area').hide()
+        $('#cdxPyPane').show()
+      else if @pystate =='max'
+        @pystate = 'normal'
+        $('#cdxPyPane').removeClass('span10')
+        $('#cdxPyPane').addClass('span5')
+        $('#main-tab-area').removeClass('span10')
+        $('#main-tab-area').addClass('span5')
+
+        $('#main-tab-area').show()
+        $('#cdxPyPane').show()
+
+        
+  pystate: 'normal'
+  )
+
+$CDX.pystate = 'normal'
+$CDX.togglePyPane = () ->
