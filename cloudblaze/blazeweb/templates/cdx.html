@@ -25,10 +25,14 @@
 <script src="{{ url_for('static', filename='vendor/ipython/js/notebook.js') }} " type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('static', filename='vendor/ipython/js/notebookmain.js') }} " type="text/javascript" charset="utf-8"></script>
 
-<script type=text/javascript src="{{ url_for('static',filename='js/cdx.js') }}"></script>
+<script type=text/javascript src="{{ url_for('static',filename='js/cdx_init.js') }}"></script>
+<script type=text/javascript src="{{url_for('static',filename='js/views.js')}}"></script>
+<script type=text/javascript src="{{url_for('static',filename='js/data_model.js')}}"></script>
 <script type=text/javascript src="{{ url_for('static',filename='js/tab_lib.js') }}"></script>
-<script type=text/javascript src="{{ url_for('static',filename='js/ipython.js') }}"></script>
 <script type=text/javascript src="{{ url_for('static',filename='js/blaze.js') }}"></script>
+<script type=text/javascript src="{{ url_for('static',filename='js/cdx.js') }}"></script>
+<script type=text/javascript src="{{ url_for('static',filename='js/ipython.js') }}"></script>
+
 
 <script type="text/template" id="plot-context">
   <!-- no longer used, because pngs don't work well -->
