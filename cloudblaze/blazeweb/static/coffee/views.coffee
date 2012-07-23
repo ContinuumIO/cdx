@@ -16,8 +16,6 @@ class $CDX.Views.NamespaceViewer extends Backbone.View
           reg_variables:grouped, funcs:funcs))
       )
 
-
-
 class $CDX.Views.SummaryView extends Backbone.View
   render: () ->
     console.log('summaryView render')

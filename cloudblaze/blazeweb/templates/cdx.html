@@ -109,7 +109,7 @@
           <h4> <%= category %> </h3>
           <ul class='variable-list'>
             <% _.each(variables, function(item) { %>
-              <li> <%= item.name %> </li>
+              <li> <%= item.name %> <span class='var-value'> <%= item.value %> </span> </li>
             <% }); %>
           </ul>
         </li>

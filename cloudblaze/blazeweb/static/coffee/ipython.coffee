@@ -1,6 +1,8 @@
 $CDX = window.$CDX
 $CDX.IPython = {}
-execute_code = (code) ->
+
+
+execute_code =  (code) ->
   cells = IPython.notebook.cells()
   last_cell = cells[(cells.length - 1)]
   last_cell.set_code(code)
@@ -8,8 +10,6 @@ execute_code = (code) ->
   IPython.notebook.execute_selected_cell()
 
 $CDX.IPython.execute_code = execute_code
-
-
 $CDX.IPython.inject_plot_client = (docid) ->
   url = "http://#{window.location.host}/bb/"
   code = "import cloudblaze.continuumweb.plot as plot"
@@ -36,15 +36,18 @@ $CDX.IPython.setup_ipython_events = () ->
     @shell_channel.send(JSON.stringify(msg))
     return msg.header.msg_id
   IPython.Eventer = _.clone(Backbone.Events)
+
 $CDX.IPython.setup_ipython_events()
-class Namespace extends Continuum.HasProperties
+class $CDX.Models.Namespace extends Continuum.HasProperties
     type : 'Namespace'
     defaults :
       variables : []
-$CDX.IPython.namespace = new Namespace({})
+$CDX.IPython.namespace = new $CDX.Models.Namespace({})
 IPython.Eventer.on('iopub:namespace', (header, content) ->
+  console.log("iopub namespace", header, content)
   $CDX.IPython.namespace.set('variables', content.variables)
 )
+
 
 IPython.Notebook.prototype.scroll_to_bottom = () ->
   element = this.element.parent()

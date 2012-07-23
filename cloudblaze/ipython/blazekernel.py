@@ -11,7 +11,7 @@ import numpy as np
 import notifications
 #import npcframe
 
-    
+
 class CloudBlazeKernelMixin(object):
     def __init__(self, *args, **kwargs):
         self.parent = None
@@ -21,7 +21,7 @@ class CloudBlazeKernelMixin(object):
         self.shell.user_ns  = notify_d
         self.shell.Completer.namespace = notify_d
         self.shell.Completer.global_namespace = notify_d
-        
+
     def namespace_notification(self, key, val):
         if self.parent is None:
             return
@@ -29,7 +29,7 @@ class CloudBlazeKernelMixin(object):
         #        isinstance(val, notifications.DataFrame):
         #     notifications.pub_object(key, val)
         #     val.varname = key
-            
+
     def get_namespace_data(self):
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
         self.log.warning("%s", local_varnames)
@@ -38,12 +38,13 @@ class CloudBlazeKernelMixin(object):
         for var, varname in zip(local_vars, local_varnames):
             local_type = type(var).__name__
             varinfo = {'name' : varname,
-                       'type' : local_type}
+                       'type' : local_type,
+                       'value' : repr(var)}
             if isinstance(var, blaze_array_proxy.BlazeArrayProxy):
                 varinfo['url'] = var.url
             variables.append(varinfo)
         return variables
-    
+
     def execute_request(self, stream, ident, parent):
         #store most recent parent here.... hack.. how should we store this?
         #the issue is we need it to send out pub messages
@@ -53,12 +54,12 @@ class CloudBlazeKernelMixin(object):
                           u'namespace',
                           {u'variables': self.get_namespace_data()},
                           parent=parent)
-        
+
     def namespace_request(self, stream, ident, parent):
         reply_msg = self.session.send(stream, u'namespace',
                                       {u'variables': self.get_namespace_data()},
                                       parent, ident=ident)
-        
+
     def object_request(self, stream, ident, parent):
         if 'varname' in parent['content']:
             msgobj = notifications.get_variable_message(
@@ -78,11 +79,11 @@ class CloudBlazeKernel(CloudBlazeKernelMixin, Kernel):
         self.log.warning('CLOUD BLAZE KERNEL!')
 
 
-        
+
 class CloudBlazeKernelApp(IPKernelApp):
     #cut and paste from ipython project, with my own kernel class instead of
     #theirs... should refactor.
-    
+
     def init_kernel(self):
         shell_stream = ZMQStream(self.shell_socket)
 
@@ -96,7 +97,7 @@ class CloudBlazeKernelApp(IPKernelApp):
         self.kernel = kernel
         kernel.record_ports(self.ports)
         shell = kernel.shell
-    
+
 def cloud_blaze_launcher(*args, **kwargs):
     entry_point.base_launch_kernel(
         'from cloudblaze.ipython.blazekernel import main; main()',
