@@ -1,7 +1,7 @@
 from cloudblaze.blazeweb.app import app
 from flask import (
-	render_template, request, current_app,
-	send_from_directory, make_response)
+    render_template, request, current_app,
+    send_from_directory, make_response)
 import flask
 import os
 import simplejson
@@ -57,7 +57,7 @@ def create_data(datapath):
               'message' : request.form['message']}
     retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
     return retval[0]
-    
+
 @app.route("/data/<path:datapath>", methods=['PATCH'])
 def update_data(datapath):
     newmsg = {'path' : datapath,
@@ -84,5 +84,3 @@ def bulk_summary():
         summaries.append(summary)
     print 'SUMMARIES', summaries
     return current_app.ph.serialize_web(summaries)
-
-

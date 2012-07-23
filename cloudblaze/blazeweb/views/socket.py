@@ -1,6 +1,6 @@
 from flask import (
-	render_template, request, current_app,
-	send_from_directory, make_response)
+    render_template, request, current_app,
+    send_from_directory, make_response)
 import flask
 import os
 import simplejson
@@ -26,4 +26,3 @@ def sub():
             ws, current_app.wsmanager,
             lambda auth, topic : True, current_app.ph)
     return
-
