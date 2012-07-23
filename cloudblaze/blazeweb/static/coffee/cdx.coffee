@@ -16,36 +16,24 @@ window.$CDX.resizeRoot = () ->
 
 $CDX.resize_loop = () ->
   window.$CDX.resizeRoot()
-#  IPython.notebook.scroll_to_bottom()
   resizeTimer = setTimeout($CDX.resize_loop, 500)
 
+
+$CDX.Deferreds = {}
+$CDX.Promises = {}
 # blaze_doc_loaded is a better name, doc_loaded could be confused with
 # the dom event
-$CDX._tab_rendered = $.Deferred()
-$CDX.tab_rendered = $CDX._tab_rendered.promise()
-$CDX._doc_loaded = $.Deferred()
-$CDX.doc_loaded = $CDX._doc_loaded.promise()
-$CDX._ipython_loaded = $.Deferred()
-$CDX.ipython_loaded = $CDX._ipython_loaded.promise()
 
-$CDX._basetabs_rendered = $.Deferred()
-$CDX.basetabs_rendered = $CDX._basetabs_rendered.promise()
+$CDX.Deferreds._tab_rendered = $.Deferred()
+$CDX.Promises.tab_rendered = $CDX.Deferreds._tab_rendered.promise()
+$CDX.Deferreds._doc_loaded = $.Deferred()
+$CDX.Promises.doc_loaded = $CDX.Deferreds._doc_loaded.promise()
+$CDX.Deferreds._ipython_loaded = $.Deferred()
+$CDX.Promises.ipython_loaded = $CDX.Deferreds._ipython_loaded.promise()
 
-$CDX.add_blaze_table_tab = (varname, url, columns) ->
-  data_source = Continuum.Collections['ObjectArrayDataSource'].create(
-    {}, {local:true})
-  datatable = Continuum.Collections['DataTable'].create(
-    data_source : data_source.ref()
-    name : varname
-    url : url
-  ,
-    local : true
-  )
-  datatable.load(0)
-  view = new datatable.default_view ({model : datatable})
-  tabelement = $CDX.main_tab_set.add_tab(
-    tab_name:varname , view: view, route : varname
-  )
+$CDX.Deferreds._basetabs_rendered = $.Deferred()
+$CDX.Promises.basetabs_rendered = $CDX.Deferreds._basetabs_rendered.promise()
+
 
 
 _.delay(
@@ -62,7 +50,7 @@ $(() ->
 
   $CDX.utility = {
     instantiate_main_tab_set : () ->
-      if $CDX._tab_rendered.isResolved()
+      if $CDX.Deferreds._tab_rendered.isResolved()
         return
       $.when($CDX.layout_render).then( ->
         $("#layout-root").prepend($CDX.layout_render.el)
@@ -70,22 +58,20 @@ $(() ->
           el:$("#main-tab-area")
           tab_view_objs: []
         )
-        $CDX._tab_rendered.resolve()
+        $CDX.Deferreds._tab_rendered.resolve()
         return null
       )
     instantiate_base_tabs : () ->
-      if $CDX._basetabs_rendered.isResolved()
+      if $CDX.Deferreds._basetabs_rendered.isResolved()
         return
       @instantiate_main_tab_set()
-      $.when($CDX.tab_rendered).then( ->
+      $.when($CDX.Promises.tab_rendered).then( ->
         plotcontext = Continuum.resolve_ref($CDX.plot_context_ref['collections'],
           $CDX.plot_context_ref['type'], $CDX.plot_context_ref['id'])
         plotcontextview = new plotcontext.default_view(
           model : plotcontext,
           render_loop: true
         )
-        window.pc = plotcontext
-        window.pcv = plotcontextview
         $CDX.namespaceViewer.el = $("#left-panel");
         $CDX.namespaceViewer.render()
         $CDX.main_tab_set.add_tab(
@@ -94,7 +80,7 @@ $(() ->
         $CDX.main_tab_set.add_tab(
           {view : plotcontextview, route:'viz', tab_name: 'viz'}
         )
-        $CDX._basetabs_rendered.resolve()
+        $CDX.Deferreds._basetabs_rendered.resolve()
         Continuum.Collections.Plot.on('add', (model, b) ->
           $CDX.utility.add_plot_tab(model)
         )
@@ -111,7 +97,7 @@ $(() ->
       $CDX.main_tab_set.activate(model.get('id'))
 
     instantiate_doc : (docid) ->
-      if not $CDX._doc_loaded.isResolved()
+      if not $CDX.Deferreds._doc_loaded.isResolved()
         $.get("/cdxinfo/#{docid}", {}, (data) ->
           data = JSON.parse(data)
           $CDX.plot_context_ref = data['plot_context_ref']
@@ -126,11 +112,11 @@ $(() ->
           $CDX.IPython.notebookid = data['notebookid']
           $CDX.IPython.baseurl = data['baseurl']
           $CDX.resize_loop()
-          $CDX._doc_loaded.resolve($CDX.docid)
+          $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
         )
 
     instantiate_ipython: (docid) ->
-      if not $CDX._ipython_loaded.isResolved()
+      if not $CDX.Deferreds._ipython_loaded.isResolved()
           IPython.loadfunc()
           IPython.start_notebook()
           _.delay(
@@ -158,13 +144,12 @@ $(() ->
 
       $CDX.utility.instantiate_doc(docid)
       $CDX.utility.instantiate_main_tab_set()
-      $.when($CDX.doc_loaded).then(()->
-        $.when($CDX.tab_rendered).then(() ->
-          model = Continuum.Collections['PublishModel'].get(modelid)
-          view = new model.default_view(
-            model : model
-            tab_view : $CDX.main_tab_set
-          )
+
+      $.when($CDX.Promises.doc_loaded, $CDX.Promises.tab_rendered).then(() ->
+        model = Continuum.Collections['PublishModel'].get(modelid)
+        view = new model.default_view(
+          model : model
+          tab_view : $CDX.main_tab_set
         )
       )
     load_default_document : () ->
@@ -192,10 +177,9 @@ $(() ->
     load_doc : (docid) ->
       $CDX.docid = docid
       $CDX.utility.instantiate_doc(docid)
-      $.when($CDX.doc_loaded).then(
-        () ->
-          $CDX.utility.instantiate_base_tabs()
-          $CDX.utility.instantiate_ipython(docid)
+      $.when($CDX.Promises.doc_loaded).then(() ->
+        $CDX.utility.instantiate_base_tabs()
+        $CDX.utility.instantiate_ipython(docid)
       )
       console.log('RENDERING')
   )
@@ -220,6 +204,21 @@ $(() ->
 
   )
 
+$CDX.add_blaze_table_tab = (varname, url, columns) ->
+  data_source = Continuum.Collections['ObjectArrayDataSource'].create(
+    {}, {local:true})
+  datatable = Continuum.Collections['DataTable'].create(
+    data_source : data_source.ref()
+    name : varname
+    url : url
+  ,
+    local : true
+  )
+  datatable.load(0)
+  view = new datatable.default_view ({model : datatable})
+  tabelement = $CDX.main_tab_set.add_tab(
+    tab_name:varname , view: view, route : varname
+  )
 
 $CDX.popDataTab = (itemName, url, totalRows) ->
   $.when($CDX.add_blaze_table_tab(itemName, url)).then(->
@@ -233,17 +232,13 @@ $CDX.addDataArray = (itemName, url, totalRows) ->
   $CDX.add_blaze_table_tab(itemName, url)
 
 $CDX.buildTreeNode = (tree, treeData, depth) ->
-    #console.log(JSON.stringify(treeData));
     loopCount = 0
     $.each(treeData, () ->
         loopCount++
         urlStr = JSON.stringify(this.url)
-        #console.log('##\nurl='+urlStr+'\n')
-        #console.log('type='+JSON.stringify(this.type)+'\n##')
         itemName = this.url.split('/').reverse()[0]
         if (this.type == 'group')
           itemID = 'item-' + depth
-
 
           for i in [0..depth]
             #itemID = itemID + '-' + i
@@ -251,14 +246,12 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
           tmp = "<li><input type='checkbox' id='#{itemID}' />"
           tmp += "<label for='#{itemID}'> #{itemName}</label><ul>"
 
-
           tree = tree + tmp
           tree = $CDX.buildTreeNode(tree, this.children, ++depth)
           tree = tree + '\n</ul></li>'
 
         if (this.type == 'array' || this.type =='disco')
           tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{itemName}','#{this.url}')\">#{itemName}</a></li>"
-
           tree = tree + tmp
     ) if treeData
     return tree
@@ -275,5 +268,4 @@ $CDX.showModal = (modalID) ->
         #console.log(tree)
     )
     return
-
 
