@@ -123,15 +123,10 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
     return callback
 
   build_children : () ->
-    view_specific_options = []
-    for spec, plot_num in @mget('children')
-      model = @model.resolve_ref(spec)
-      @child_models[plot_num] = model
-      view_specific_options.push({'el' : $("<div/>")})
     created_views = Continuum.build_views(
       @model, @views, @mget('children'),
-      {'render_loop': true, 'scale' : 0.2},
-      view_specific_options)
+      {'render_loop': true, 'scale' : 0.2})
+
     window.pc_created_views = created_views
     window.pc_views = @views
     return null
@@ -238,7 +233,7 @@ $CDX.Views.Layout = Backbone.Marionette.Layout.extend(
         $('#main-tab-area').show()
         $('#cdxPyPane').show()
 
-        
+
   pystate: 'normal'
   )
 
