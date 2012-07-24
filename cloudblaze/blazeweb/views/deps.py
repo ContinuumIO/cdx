@@ -4,4 +4,4 @@ import cloudblaze.blazeweb.views.dummy
 import cloudblaze.blazeweb.views.socket
 import cloudblaze.blazeweb.views.blaze
 import cloudblaze.blazeweb.views.auth
-import cloudblaze.blazeweb.views.test
+
