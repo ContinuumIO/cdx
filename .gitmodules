@@ -7,3 +7,6 @@
 [submodule "cloudblaze/blazeweb/lib/backbone.marionette"]
 	path = cloudblaze/blazeweb/lib/backbone.marionette
 	url = git://github.com/derickbailey/backbone.marionette.git
+[submodule "cloudblaze/blazeweb/lib/blaze"]
+	path = cloudblaze/blazeweb/lib/blaze
+	url = git@github.com:ContinuumIO/blaze.git
