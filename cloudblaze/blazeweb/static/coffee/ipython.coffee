@@ -18,7 +18,7 @@ $CDX.IPython.inject_plot_client = (docid) ->
   execute_code(code)
   code = "import blaze.server.rpc.client as blazeclient"
   execute_code(code)
-  code = "bc = blazeclient.BlazeClient('tcp://127.0.0.1:5555')"
+  code = "bc = blazeclient.BlazeClient('#{$CDX.blazeaddress}')"
   execute_code(code)
   code = "bc.connect()"
   execute_code(code)

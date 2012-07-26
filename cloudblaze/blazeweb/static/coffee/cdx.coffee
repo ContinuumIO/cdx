@@ -115,6 +115,7 @@ $(() ->
           data = JSON.parse(data)
           $CDX.plot_context_ref = data['plot_context_ref']
           $CDX.docid = data['docid'] # in case the server returns a different docid
+          $CDX.blazeaddress = data['blazeaddress']
           Continuum.docid = $CDX.docid
           $CDX.all_models = data['all_models']
           Continuum.load_models($CDX.all_models)

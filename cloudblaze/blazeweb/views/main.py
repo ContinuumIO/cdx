@@ -108,10 +108,12 @@ def get_cdx_info(docid):
         current_app, docid)
     ipythonbaseurl = request.host.split(':')[0] + ':' + str(runnotebook.app.port)
     returnval = {'plot_context_ref' : plot_context_ref,
-     'docid' : docid,
-     'kernelid' : kernelid,
-     'notebookid' : notebookid,
-     'baseurl' : ipythonbaseurl,
-     'all_models' : all_models}
+                 'docid' : docid,
+                 'kernelid' : kernelid,
+                 'notebookid' : notebookid,
+                 'baseurl' : ipythonbaseurl,
+                 'all_models' : all_models,
+                 'blazeaddress' : current_app.proxy.reqrepaddr
+                 }
     returnval = current_app.ph.serialize_web(returnval)
     return returnval
