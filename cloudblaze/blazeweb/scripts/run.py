@@ -31,6 +31,7 @@ import os.path
 import argparse
 
 def main():
+    run.write_pid('CDX')
     parser = run.argparser()
     args = parser.parse_args()
     redisproc, broker, node = run.start_blaze(args)
