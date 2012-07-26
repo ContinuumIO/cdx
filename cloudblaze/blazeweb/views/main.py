@@ -17,6 +17,7 @@ import cloudblaze.blazeweb.models.user as user
 import cloudblaze.blazeweb.models.docs as docs
 import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
 import cloudblaze.blazeweb.controllers.namespaces as namespaces
+import cloudblaze.ipython.runnotebook as runnotebook
 
 #main pages
 
@@ -91,7 +92,7 @@ def get_ipython_info(docid):
         {'docid' : docid,
          'kernelid' : kernelid,
          'notebookid' : notebookid,
-         'baseurl' : request.host.split(':')[0] + ':8888'
+         'baseurl' : request.host.split(':')[0] + ':' + str(runnotebook.app.port)
          }
         )
 @app.route('/cdxinfo/<docid>')
@@ -105,7 +106,7 @@ def get_cdx_info(docid):
     all_models = [x.to_broadcast_json() for x in all_models]
     docid, kernelid, notebookid = namespaces.create_or_load_namespace(
         current_app, docid)
-    ipythonbaseurl = request.host.split(':')[0] + ':8888'
+    ipythonbaseurl = request.host.split(':')[0] + ':' + str(runnotebook.app.port)
     returnval = {'plot_context_ref' : plot_context_ref,
      'docid' : docid,
      'kernelid' : kernelid,
