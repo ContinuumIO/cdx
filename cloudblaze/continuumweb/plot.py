@@ -67,7 +67,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         for idx in range(len(kwargs.values()[0])):
             point = {}
             for f in flds:
-                point[f] = kwargs[f][idx]
+                point[f] = kwargs[f][idx].tolist()
             output.append(point)
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
