@@ -1,5 +1,6 @@
 import bbmodel
-import protocol
+import blaze.protocol as protocol
+
 class GridPlot(object):
     def __init__(self, client, container, children, title):
         self.plot = container
@@ -366,9 +367,9 @@ class PlotClient(bbmodel.ContinuumModelsClient):
 if __name__ == "__main__":
     import numpy as np
     import requests
-    import simplejson
+    import json
     userdata = requests.get('http://localhost:5000/userinfo/').content
-    userdata = simplejson.loads(userdata)
+    userdata = json.loads(userdata)
     docid = userdata['docs'][0]
     client = PlotClient(docid, "http://localhost:5000/bb/")
     x = np.random.random(100)

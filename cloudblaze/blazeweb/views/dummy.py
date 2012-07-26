@@ -3,7 +3,6 @@ from flask import (
     send_from_directory, make_response, session)
 import flask
 import os
-import simplejson
 import logging
 import uuid
 import urlparse
@@ -36,7 +35,7 @@ def get_dataview(datapath=""):
         table_obj = blazeclient.build_table(
             data, response['shape'], data_slice, datapath)
         return flask.render_template('simpledataset.html',
-                                     table_obj=simplejson.dumps(table_obj))
+                                     table_obj=app.ph.serialize_web(table_obj))
 
 
 #main page for interactive plotting

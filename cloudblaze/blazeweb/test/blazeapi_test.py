@@ -120,7 +120,6 @@ class BlazeApiTestCase(unittest.TestCase):
         responses = simplejson.loads(result.content)
         for idx, response in enumerate(responses):
             if idx == 0 :
-                assert response is None
                 continue
             summary = response['summary']
             columnsummary = response['colsummary']

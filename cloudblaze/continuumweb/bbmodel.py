@@ -1,3 +1,4 @@
+import blaze.protocol as protocol
 import requests
 import urlparse
 import utils
@@ -48,32 +49,13 @@ class ContinuumModel(object):
     
     def __repr__(self):
         return self.__str__()
+    
 """
 In our python interface to the backbone system, we separate the local collection
 which stores models, from the http client which interacts with a remote store
 In applications, we would use a class that combines both
 """
-import simplejson
-def serialize(obj):
-    return simplejson.dumps(obj)
-        
-def deserialize(strdata):
-    if strdata is None:
-        return None
-    else:
-        return simplejson.loads(strdata)
     
-def bbget(client, key):
-    typename, modelid = parse_modelkey(key)
-    attrs = deserialize(client.get(key))
-    if attrs is None:
-        return None
-    else:
-        return ContinuumModel(typename, **attrs)
-
-def bbset(client, key, model):
-    return client.set(key, serialize(model.attributes))
-
 def dockey(docid):
     return 'doc:' + docid
 
@@ -85,21 +67,37 @@ def parse_modelkey(modelkey):
     return (typename, modelid)
 
 class ContinuumModelsStorage(object):
-    def __init__(self, client):
+    def __init__(self, client, ph=None):
+        if ph is None:
+            ph = protocol.ProtocolHelper()
+        self.ph = ph
         self.client = client
+        
+    def bbget(self, client, key):
+        typename, modelid = parse_modelkey(key)
+        attrs = client.get(key)
+        if attrs is None:
+            return None
+
+        else:
+            attrs = self.ph.deserialize_web(attrs)
+            return ContinuumModel(typename, **attrs)
+
+    def bbset(self, client, key, model):
+        return client.set(key, self.ph.serialize_web(model.attributes))
         
     def get_bulk(self, docid, typename=None):
         doc_keys = self.client.smembers(dockey(docid))
         result = []
         for k in doc_keys:
-            m = bbget(self.client, k)
+            m = self.bbget(self.client, k)
             if docid in m.get('docs') and \
                (typename is None or m.typename == typename):
                 result.append(m)
         return result
     
     def get(self, typename, id):
-        return bbget(self.client, modelkey(typename, id))
+        return self.bbget(self.client, modelkey(typename, id))
     
     def add(self, model, retries=10):
         try:
@@ -117,7 +115,7 @@ class ContinuumModelsStorage(object):
         pipe.watch(mkey)
         for doc in model.get('docs'):
             pipe.watch(dockey(doc))
-        oldmodel = bbget(self.client, mkey)
+        oldmodel = self.bbget(self.client, mkey)
         if oldmodel is None:
             olddocs = []
         else:
@@ -131,7 +129,7 @@ class ContinuumModelsStorage(object):
         docs_to_add = set(model.get('docs')).difference(olddocs)
         for doc in docs_to_add:
             pipe.sadd(dockey(doc), mkey)
-        bbset(pipe, mkey, model)
+        self.bbset(pipe, mkey, model)
 
     def attrupdate(self, typename, attributes):
         id = attributes['id']
@@ -147,7 +145,7 @@ class ContinuumModelsStorage(object):
     
     def delete(self, typename, id):
         mkey = modelkey(typename, id)
-        oldmodel = bbget(self.client, mkey)
+        oldmodel = self.bbget(self.client, mkey)
         olddocs = oldmodel.get('docs')
         for doc in olddocs:
             self.client.srem(dockey(doc), mkey)

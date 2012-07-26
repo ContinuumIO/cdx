@@ -1,5 +1,4 @@
 import cloudblaze.blazeweb.models as models
-import simplejson
 from werkzeug import generate_password_hash, check_password_hash
 
 def new_user(client, email, password, docs=None):

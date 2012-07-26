@@ -4,7 +4,6 @@ from flask import (
         send_from_directory, make_response)
 import flask
 import os
-import simplejson
 import logging
 import uuid
 import urlparse

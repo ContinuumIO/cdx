@@ -4,7 +4,6 @@ from flask import (
     send_from_directory, make_response)
 import flask
 import os
-import simplejson
 import logging
 import uuid
 import urlparse
@@ -24,7 +23,7 @@ def get_metadata(datapath="/"):
         depth = int(depth)
     response = blazeclient.get_tree(
         current_app.rpcclient, datapath, depth=depth)
-    return simplejson.dumps(response)
+    return app.ph.serialize_web(response)
 
 @app.route("/data/<path:datapath>", methods=['GET'])
 def get_data(datapath):
@@ -43,27 +42,27 @@ def get_data(datapath):
             else:
                 response['data'] = arr.tolist()
                 response['colnames'] = [str(x) for x in range(arr.shape[1])]
-    return simplejson.dumps(response)
+    return app.ph.serialize_web(response)
 
-@app.route("/data/<path:datapath>", methods=['DELETE'])
-def delete_data(datapath):
-    newmsg = {'path' : datapath}
-    retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
-    return retval[0]
+# @app.route("/data/<path:datapath>", methods=['DELETE'])
+# def delete_data(datapath):
+#     newmsg = {'path' : datapath}
+#     retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
+#     return retval[0]
 
-@app.route("/data/<path:datapath>", methods=['POST'])
-def create_data(datapath):
-    newmsg = {'path' : datapath,
-              'message' : request.form['message']}
-    retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
-    return retval[0]
+# @app.route("/data/<path:datapath>", methods=['POST'])
+# def create_data(datapath):
+#     newmsg = {'path' : datapath,
+#               'message' : request.form['message']}
+#     retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
+#     return retval[0]
 
-@app.route("/data/<path:datapath>", methods=['PATCH'])
-def update_data(datapath):
-    newmsg = {'path' : datapath,
-              'message' : request.form['message']}
-    retval = current_app.proxyclient.request([simplejson.dumps(newmsg)])
-    return retval[0]
+# @app.route("/data/<path:datapath>", methods=['PATCH'])
+# def update_data(datapath):
+#     newmsg = {'path' : datapath,
+#               'message' : request.form['message']}
+#     retval = current_app.proxyclient.request([appsimplejson.dumps(newmsg)])
+#     return retval[0]
 
 
 @app.route("/summary/<path:datapath>")
@@ -73,7 +72,7 @@ def summary(datapath):
 
 @app.route("/bulksummary/")
 def bulk_summary():
-    paths = simplejson.loads(request.args['paths'])
+    paths = app.ph.deserialize_web(request.args['paths'])
     summaries = []
     for p in paths:
         try:

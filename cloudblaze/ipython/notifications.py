@@ -1,5 +1,5 @@
 import numpy as np
-import simplejson
+import json
 import pandas
 import weakref
 import logging
@@ -86,7 +86,7 @@ def get_variable_message(varname, val=None, user_ns=None):
         #for error handling, we need to know whether we can serialize this
         #object in json before we transmit it... this is inefficient,
         #we need a better way at some point
-        simplejson.dumps(json_obj)
+        json.dumps(json_obj)
         return json_obj
     except TypeError:
         return {'error' : 'cannot convert tojson %s' % varname}

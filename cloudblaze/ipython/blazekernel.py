@@ -6,7 +6,6 @@ from IPython.zmq.ipkernel import IPKernelApp
 from zmq.eventloop.zmqstream import ZMQStream
 import blaze.array_proxy.blaze_array_proxy as blaze_array_proxy
 import IPython.zmq.entry_point as entry_point
-import simplejson
 import numpy as np
 import notifications
 #import npcframe

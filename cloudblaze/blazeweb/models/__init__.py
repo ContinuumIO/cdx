@@ -1,4 +1,4 @@
-import simplejson
+import json
 
 class UnauthorizedException(Exception):
     pass
@@ -23,12 +23,12 @@ class ServerModel(object):
         #return User(obj['email'], obj['passhash'], obj['docs'])
     
     def save(self, client):
-        client.set(self.mykey(), simplejson.dumps(self.to_json()))
+        client.set(self.mykey(), json.dumps(self.to_json()))
         
     @classmethod
     def load(cls, client, objid):
         data = client.get(cls.modelkey(objid))
         if data is None:
             return None
-        attrs = simplejson.loads(data)
+        attrs = json.loads(data)
         return cls.from_json(attrs)
