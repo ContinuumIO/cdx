@@ -1,6 +1,6 @@
 from flask import (
     render_template, request, current_app,
-    send_from_directory, make_response)
+    send_from_directory, make_response, session)
 import flask
 import os
 import simplejson
@@ -61,3 +61,9 @@ def interact(docid):
         ))
     #resp.set_cookie('clientid', str(uuid.uuid4()))
     return resp
+
+#used for testing
+@app.route('/authtest', methods=['GET'])
+def test():
+    print 'authtest', session
+    return session.get('username', 'WRONG')
