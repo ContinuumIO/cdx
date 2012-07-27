@@ -27,10 +27,21 @@ class TestCommand(Command):
 
 __version__ = (0, 0, 1)
 
+package_data_dirs = []
+for dirname, _, files in os.walk('cloudblaze/blazeweb/static'):
+    dirname = os.path.relpath(dirname, 'cloudblaze')
+    for f in files:
+        package_data_dirs.append(os.path.join(dirname, f))
+        
+for dirname, _, files in os.walk('cloudblaze/blazeweb/templates'):
+    dirname = os.path.relpath(dirname, 'cloudblaze')
+    for f in files:
+        package_data_dirs.append(os.path.join(dirname, f))
 setup(
     name = 'cloudblaze',
     version = '.'.join([str(x) for x in __version__]),
     packages = find_packages(),
+    package_data = {'cloudblaze' : package_data_dirs},
     entry_points = {
         'console_scripts': [
         ],
