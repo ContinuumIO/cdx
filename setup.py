@@ -42,7 +42,7 @@ setup(
     version = '.'.join([str(x) for x in __version__]),
     packages = find_packages(),
     package_data = {'cloudblaze' : package_data_dirs},
-    scripts = ["cloudblaze/blazeweb/scripts/runcdx.py"],
+    scripts = ["cloudblaze/blazeweb/scripts/runcdx"],
     author = 'Continuum Analytics',
     author_email = '',
     url = '',
