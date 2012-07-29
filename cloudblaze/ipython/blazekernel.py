@@ -5,6 +5,7 @@ from IPython.zmq.ipkernel import Kernel
 from IPython.zmq.ipkernel import IPKernelApp
 from zmq.eventloop.zmqstream import ZMQStream
 import blaze.array_proxy.blaze_array_proxy as blaze_array_proxy
+import blaze.array_proxy.array_proxy as array_proxy
 import IPython.zmq.entry_point as entry_point
 import numpy as np
 import notifications
@@ -20,15 +21,11 @@ class CloudBlazeKernelMixin(object):
         self.shell.user_ns  = notify_d
         self.shell.Completer.namespace = notify_d
         self.shell.Completer.global_namespace = notify_d
-
+        self.changed = set()
+        
     def namespace_notification(self, key, val):
-        if self.parent is None:
-            return
-        # if isinstance(val, pandas.DataFrame) or \
-        #        isinstance(val, notifications.DataFrame):
-        #     notifications.pub_object(key, val)
-        #     val.varname = key
-
+        self.changed.add(key)
+        
     def get_namespace_data(self):
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
         self.log.warning("%s", local_varnames)
@@ -39,7 +36,7 @@ class CloudBlazeKernelMixin(object):
             varinfo = {'name' : varname,
                        'type' : local_type,
                        'value' : repr(var)}
-            if isinstance(var, blaze_array_proxy.BlazeArrayProxy):
+            if isinstance(var, array_proxy.BaseArrayNode):
                 varinfo['url'] = var.url
             variables.append(varinfo)
         return variables
@@ -49,11 +46,18 @@ class CloudBlazeKernelMixin(object):
         #the issue is we need it to send out pub messages
         self.parent = parent
         super(CloudBlazeKernelMixin, self).execute_request(stream, ident, parent)
+        for varname in self.changed:
+            value = self.shell.user_ns[varname]
+            print(varname, isinstance(value, array_proxy.ArrayNode))
+            if isinstance(value, array_proxy.ArrayNode):
+                print('SAVING')
+                value.save_temp()
+        self.changed.clear()
         self.session.send(self.iopub_socket,
                           u'namespace',
                           {u'variables': self.get_namespace_data()},
                           parent=parent)
-
+                
     def namespace_request(self, stream, ident, parent):
         reply_msg = self.session.send(stream, u'namespace',
                                       {u'variables': self.get_namespace_data()},

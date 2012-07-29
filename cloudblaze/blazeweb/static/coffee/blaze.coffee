@@ -2,8 +2,9 @@ $CDX.blaze = {}
 $CDX.blaze.get_summary = (variables, callback) ->
   toquery = []
   for namespaceobj in variables
-    if namespaceobj.type == 'BlazeArrayProxy'
+    if namespaceobj.type == 'BlazeArrayProxy' or namespaceobj.type == 'ArrayNode'
       toquery.push(_.clone(namespaceobj))
+
   urls = (x.url for x in toquery)
   wrapped_callback = (data) ->
     wrapped = _.zip(toquery, data)

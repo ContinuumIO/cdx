@@ -10,23 +10,11 @@ execute_code =  (code) ->
   IPython.notebook.execute_selected_cell()
 
 $CDX.IPython.execute_code = execute_code
-$CDX.IPython.inject_plot_client = (docid) ->
-  url = "http://#{window.location.host}/bb/"
-  code = "import cloudblaze.continuumweb.plot as plot"
+$CDX.IPython.inject_plot_client = () ->
+  code = "import cloudblaze.continuumweb.interactive as interactive"
   execute_code(code)
-  code = "p = plot.PlotClient('#{docid}', '#{url}')"
-  execute_code(code)
-  code = "import blaze.server.rpc.client as blazeclient"
-  execute_code(code)
-  code = "bc = blazeclient.BlazeClient('#{$CDX.blazeaddress}')"
-  execute_code(code)
-  code = "bc.connect()"
-  execute_code(code)
-  code = "import blaze.array_proxy.array_proxy as array_proxy"
-  execute_code(code)
-  code = "array_proxy.client = bc"
-  execute_code(code)
-  code = "import blaze.array_proxy.npproxy as npp"
+  url = document.URL
+  code = "clients = interactive.CDXClient('#{url}')"
   execute_code(code)
 
 $CDX.IPython.setup_ipython_events = () ->
