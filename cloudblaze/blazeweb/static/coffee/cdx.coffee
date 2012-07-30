@@ -180,7 +180,7 @@ $(() ->
         () ->
           $CDX.utility.instantiate_base_tabs()
           $CDX.utility.instantiate_ipython(docid)
-          view = new ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
+          view = new $CDX.Views.ConfigurePublishView({'tab_view' : $CDX.main_tab_set})
       )
 
     sharecurrent : (docid) ->
