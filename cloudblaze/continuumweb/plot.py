@@ -1,5 +1,6 @@
 import bbmodel
 import blaze.protocol as protocol
+import numpy as np
 
 class GridPlot(object):
     def __init__(self, client, container, children, title):
@@ -67,12 +68,86 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         for idx in range(len(kwargs.values()[0])):
             point = {}
             for f in flds:
-                point[f] = kwargs[f][idx].tolist()
+                if isinstance(kwargs[f][idx], np.ndarray):
+                    val = kwargs[f][idx].tolist()
+                else:
+                    val = kwargs[f][idx]
+                point[f] = val
             output.append(point)
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
+    
+    def _xydata(self, x, y, data_source=None):
+        """if data_source is provided, then x and y are names of fields in the data_source
+        if data_source is not provided, a data_source is constructed from x,y
+        """
+        if data_source is None:
+            data_source = self.make_source(x=x, y=y)
+            xfield = 'x'
+            yfield = 'y'
+        else:
+            xfield = x
+            yfield = y
+        return xfield, yfield, data_source
+    
+    def _newxyplot(self, x, y, title=None, width=300, height=300, data_source=None,
+                   is_x_date=False, is_y_date=False, container=None):
+        """
+        Parameters
+        ----------
+        x : string of fieldname in data_source, or 1d vector
+        y : string of fieldname in data_source or 1d_vector
+        data_source : optional if x,y are not strings,
+            backbonemodel of a data source
+        container : bbmodel of container viewmodel
 
+        Returns
+        ----------
+        """
+        xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
+        yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
+        plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
+                                      xrange=xr.ref(), yrange=yr.ref())
+        
+        xfield, yfield, data_source = self._xydata(x, y, data_source=data_source)
+        if container:
+            plot.set('parent', container.ref())
+        else:
+            plot.set('parent', self.ic.ref())
+        if title is not None: plot.set('title', title)
+        datarangex = bbmodel.ContinuumModel(
+            'DataRange1d',
+            sources=[{'ref' : data_source.ref(),
+                      'columns' : [xfield]}])
+        datarangey = bbmodel.ContinuumModel(
+            'DataRange1d',
+            sources=[{'ref' : data_source.ref(),
+                      'columns' : [yfield]}])
+        xmapper = bbmodel.ContinuumModel(
+            'LinearMapper', data_range=datarangex.ref(),
+            screen_range=xr.ref())
+        ymapper = bbmodel.ContinuumModel(
+            'LinearMapper', data_range=datarangey.ref(),
+            screen_range=yr.ref())
+        axisclass = 'D3LinearAxis'
+        if is_x_date: axisclass = 'D3LinearDateAxis'
+        xaxis = bbmodel.ContinuumModel(
+            axisclass, orientation='bottom', ticks=3,
+            mapper=xmapper.ref(), parent=plot.ref())
+        axisclass = 'D3LinearAxis'
+        if is_y_date: axisclass = 'D3LinearDateAxis'
+        yaxis = bbmodel.ContinuumModel(
+            axisclass, orientation='left', ticks=3,
+            mapper=ymapper.ref(), parent=plot.ref())
+        output = dict(plot=plot, xr=xr, yr=yr, xfield=xfield, yfield=yfield,
+                      datarangex=datarangex, datarangey=datarangey,
+                      xmapper=xmapper, ymapper=ymapper,
+                      xaxis=xaxis, yaxis=yaxis,
+                      data_source=data_source)
+        return output
+    
     def scatter(self, x, y, title=None, width=300, height=300, color="#000",
+                is_x_date=False, is_y_date=False,
                 data_source=None, container=None, scatterplot=None):
         """
         Parameters
@@ -91,6 +166,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
              scatterplot = self._newscatter(
                  x, y, title=title,
                  width=width, height=height, color=color,
+                 is_x_date=is_x_date, is_y_date=is_y_date,
                  data_source=data_source, container=container)
         else:
             scatterplot = self._addscatter(
@@ -125,6 +201,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         return scatterplot
 
     def _newscatter(self, x, y, width=300, height=300, color="#000",
+                    is_x_date=False, is_y_date=False,
                     title='None', data_source=None, container=None):
         """
         Parameters
@@ -139,38 +216,18 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         ----------
         (plotmodel, data_source)
         """
+        newobjs = self._newxyplot(x, y, width=width, height=height, title=title,
+                                  is_x_date=is_x_date, is_y_date=is_y_date,
+                                  data_source=data_source, container=container)
         tocreate = []
-        xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
-        yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
-        plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
-                                      xrange=xr.ref(), yrange=yr.ref())
-        if container:
-            plot.set('parent', container.ref())
-        else:
-            plot.set('parent', self.ic.ref())
-        if title is not None: plot.set('title', title)
-        tocreate.append(plot)
-        if data_source is None:
-            data_source = self.make_source(x=x, y=y)
-            xfield = 'x'
-            yfield = 'y'
-        else:
-            xfield = x
-            yfield = y
-        datarange1 = bbmodel.ContinuumModel(
-            'DataRange1d',
-            sources=[{'ref' : data_source.ref(),
-                      'columns' : [xfield]}])
-        datarange2 = bbmodel.ContinuumModel(
-            'DataRange1d',
-            sources=[{'ref' : data_source.ref(),
-                      'columns' : [yfield]}])
-        xmapper = bbmodel.ContinuumModel(
-            'LinearMapper', data_range=datarange1.ref(),
-            screen_range=xr.ref())
-        ymapper = bbmodel.ContinuumModel(
-            'LinearMapper', data_range=datarange2.ref(),
-            screen_range=yr.ref())
+        tocreate.append(newobjs['plot'])
+        datarangex, datarangey = newobjs['datarangex'], newobjs['datarangey']
+        xmapper, ymapper = newobjs['xmapper'], newobjs['ymapper']
+        xr, yr = newobjs['xr'], newobjs['yr']        
+        xaxis, yaxis = newobjs['xaxis'], newobjs['yaxis']        
+        xfield, yfield = newobjs['xfield'], newobjs['yfield']
+        data_source = newobjs['data_source']
+        plot = newobjs['plot']
         pantool = bbmodel.ContinuumModel(
             'PanTool',
             xmappers=[xmapper.ref()],
@@ -180,7 +237,8 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             xmappers=[xmapper.ref()],
             ymappers=[ymapper.ref()])
         scatter = bbmodel.ContinuumModel(
-            'ScatterRenderer', foreground_color=color, data_source=data_source.ref(),
+            'ScatterRenderer', foreground_color=color,
+            data_source=data_source.ref(),
             xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
             ymapper=ymapper.ref(), parent=plot.ref())
         selecttool = bbmodel.ContinuumModel(
@@ -189,65 +247,40 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         selectoverlay = bbmodel.ContinuumModel(
             'ScatterSelectionOverlay',
             renderers=[scatter.ref()])
-        xaxis = bbmodel.ContinuumModel(
-            'D3LinearAxis', orientation='bottom', ticks=3,
-            mapper=xmapper.ref(), parent=plot.ref())
-        yaxis = bbmodel.ContinuumModel(
-            'D3LinearAxis', orientation='left', ticks=3,
-            mapper=ymapper.ref(), parent=plot.ref())
         plot.set('renderers', [scatter.ref()])
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
         plot.set('tools', [pantool.ref(), zoomtool.ref(), selecttool.ref()])
         plot.set('overlays', [selectoverlay.ref()])
-        tocreate.extend([xr, yr, datarange1, datarange2,
+        tocreate.extend([plot, xr, yr, datarangex, datarangey,
                          xaxis, yaxis, xmapper, ymapper,
                          pantool, zoomtool, selecttool, selectoverlay,
                          scatter])
-
         self.upsert_all(tocreate)
         if container is None:
             self.show(plot)
             container = self.ic
         return ScatterPlot(self, plot, data_source, xr, yr,
-                           datarange1, datarange2,
+                           datarangex, datarangey,
                            xmapper, ymapper, scatter,
                            pantool, zoomtool, selecttool, selectoverlay,
                            container)
 
     def _newlineplot(self, x, y, title=None, width=300, height=300, lineplot=None,
+                     is_x_date=False, is_y_date=False,
                      data_source=None, container=None):
         tocreate = []
-        xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
-        yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
-        plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
-                                      xrange=xr.ref(), yrange=yr.ref())
-        if container:
-            plot.set('parent', container.ref())
-        else:
-            plot.set('parent', self.ic.ref())
-        if title is not None: plot.set('title', title)            
-        tocreate.append(plot)
-        if data_source is None:
-            data_source = self.make_source(x=x, y=y)
-            xfield = 'x'
-            yfield = 'y'
-        else:
-            xfield = x
-            yfield = y
-        datarange1 = bbmodel.ContinuumModel(
-            'DataRange1d',
-            sources=[{'ref' : data_source.ref(),
-                      'columns' : [xfield]}])
-        datarange2 = bbmodel.ContinuumModel(
-            'DataRange1d',
-            sources=[{'ref' : data_source.ref(),
-                      'columns' : [yfield]}])
-        xmapper = bbmodel.ContinuumModel(
-            'LinearMapper', data_range=datarange1.ref(),
-            screen_range=xr.ref())
-        ymapper = bbmodel.ContinuumModel(
-            'LinearMapper', data_range=datarange2.ref(),
-            screen_range=yr.ref())
+        newobjs = self._newxyplot(x, y, width=width, height=height, title=title,
+                                  is_x_date=is_x_date, is_y_date=is_y_date,
+                                  data_source=data_source, container=container)
+        tocreate = []
+        tocreate.append(newobjs['plot'])
+        datarangex, datarangey = newobjs['datarangex'], newobjs['datarangey']
+        xmapper, ymapper = newobjs['xmapper'], newobjs['ymapper']
+        xr, yr = newobjs['xr'], newobjs['yr']        
+        xaxis, yaxis = newobjs['xaxis'], newobjs['yaxis']        
+        xfield, yfield = newobjs['xfield'], newobjs['yfield']
+        data_source = newobjs['data_source']
+        plot = newobjs['plot']
         pantool = bbmodel.ContinuumModel(
             'PanTool',
             xmappers=[xmapper.ref()],
@@ -260,12 +293,6 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             'LineRenderer', data_source=data_source.ref(),
             xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
             ymapper=ymapper.ref(), parent=plot.ref())
-        xaxis = bbmodel.ContinuumModel(
-            'D3LinearAxis', orientation='bottom', ticks=3,
-            mapper=xmapper.ref(), parent=plot.ref())
-        yaxis = bbmodel.ContinuumModel(
-            'D3LinearAxis', orientation='left', ticks=3,
-            mapper=ymapper.ref(), parent=plot.ref())
         plot.set('renderers', [line.ref()])
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
         plot.set('tools', [pantool.ref(), zoomtool.ref()])
@@ -300,8 +327,11 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         (plotmodel, data_source)
         """
         if lineplot is None:
-            lineplot = self._newlineplot(x, y, title=title, width=width, height=height,
-                                     data_source=data_source, container=container)
+            lineplot = self._newlineplot(
+                x, y, title=title,
+                is_x_date=is_x_date, is_y_date=is_y_date,
+                width=width, height=height,
+                data_source=data_source, container=container)
         else:
             lineplot = self._addline(lineplot, x, y, data_source=data_source)
         return lineplot
