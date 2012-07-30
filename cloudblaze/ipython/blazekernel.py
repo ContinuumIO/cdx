@@ -25,9 +25,23 @@ class CloudBlazeKernelMixin(object):
         
     def namespace_notification(self, key, val):
         self.changed.add(key)
+        # the following code gets called multiple times per execute_request,
+        # but if we do it in the execute request function, the namespace
+        # does not get updated properly, we should talk to the ipython guys
+        # and figure out where the ns gets updated.
+        for varname in self.changed:
+            value = self.shell.user_ns[varname]
+            if isinstance(value, array_proxy.ArrayNode):
+                value.save_temp()
+        self.session.send(self.iopub_socket,
+                          u'namespace',
+                          {'variables': self.get_namespace_data(),
+                           'newvars' : list(self.changed)})
+        self.changed.clear()
         
     def get_namespace_data(self):
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
+        local_varnames.append("_")        
         self.log.warning("%s", local_varnames)
         variables = []
         local_vars = [self.shell.user_ns[x] for x in local_varnames]
@@ -46,17 +60,6 @@ class CloudBlazeKernelMixin(object):
         #the issue is we need it to send out pub messages
         self.parent = parent
         super(CloudBlazeKernelMixin, self).execute_request(stream, ident, parent)
-        for varname in self.changed:
-            value = self.shell.user_ns[varname]
-            print(varname, isinstance(value, array_proxy.ArrayNode))
-            if isinstance(value, array_proxy.ArrayNode):
-                print('SAVING')
-                value.save_temp()
-        self.changed.clear()
-        self.session.send(self.iopub_socket,
-                          u'namespace',
-                          {u'variables': self.get_namespace_data()},
-                          parent=parent)
                 
     def namespace_request(self, stream, ident, parent):
         reply_msg = self.session.send(stream, u'namespace',

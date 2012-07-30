@@ -30,10 +30,20 @@ class $CDX.Models.Namespace extends Continuum.HasProperties
     type : 'Namespace'
     defaults :
       variables : []
+      newvars : []
+    get_vars : (varnames) ->
+      indexed = {}
+      for varentry in @get('variables')
+        indexed[varentry.name] = varentry
+      return (indexed[x] for x in varnames when indexed[x])
+
 $CDX.IPython.namespace = new $CDX.Models.Namespace({})
 IPython.Eventer.on('iopub:namespace', (header, content) ->
-  console.log("iopub namespace", header, content)
-  $CDX.IPython.namespace.set('variables', content.variables)
+  #console.log("iopub namespace", header, content)
+  $CDX.IPython.namespace.set(
+    'variables' : content.variables,
+    'newvars': content.newvars
+  )
 )
 
 

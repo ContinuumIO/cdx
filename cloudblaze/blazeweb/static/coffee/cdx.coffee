@@ -212,11 +212,19 @@ $(() ->
     $("#layout-root").prepend($CDX.layout_render.el)
   )
   console.log("history start", Backbone.history.start(pushState:true))
-  $CDX.IPython.namespace.on('change', ->
+  $CDX.IPython.namespace.on('change:variables', ->
     $CDX.namespaceViewer.render()
     $CDX.summaryView.render())
 
+  $CDX.IPython.namespace.on('change:newvars', (model, newvars, options) ->
+    newvars = model.get_vars(newvars)
+    console.log('NEWVAR', newvars)
+    for newvar in newvars
+      if newvar.type == 'BlazeArrayProxy' or newvar.type == 'ArrayNode'
+        $CDX.add_data_tab(newvar.name, newvar.url)
   )
+
+)
 
 $CDX.add_blaze_table_tab = (varname, url, columns) ->
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
@@ -234,16 +242,15 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
     tab_name:varname , view: view, route : varname
   )
 
-$CDX.popDataTab = (itemName, url, totalRows) ->
+$CDX.add_data_tab = (itemName, url) ->
   $.when($CDX.add_blaze_table_tab(itemName, url)).then(->
     $CDX.main_tab_set.activate(itemName))
 
-$CDX.addDataArray = (itemName, url, totalRows) ->
+$CDX.add_data_array = (url) ->
   itemName = $CDX.IPython.suggest_variable_name(url)
   command = "#{itemName} = bc.blaze_source('#{url}')"
   console.log(command)
   $CDX.IPython.execute_code(command)
-  $CDX.add_blaze_table_tab(itemName, url)
 
 $CDX.buildTreeNode = (tree, treeData, depth) ->
     loopCount = 0
@@ -265,7 +272,7 @@ $CDX.buildTreeNode = (tree, treeData, depth) ->
           tree = tree + '\n</ul></li>'
 
         if (this.type == 'array' || this.type =='disco')
-          tmp = "<li><a href='#' onClick=\"$CDX.addDataArray('#{itemName}','#{this.url}')\">#{itemName}</a></li>"
+          tmp = "<li><a href='#' onClick=\"$CDX.add_data_array('#{this.url}')\">#{itemName}</a></li>"
           tree = tree + tmp
     ) if treeData
     return tree
