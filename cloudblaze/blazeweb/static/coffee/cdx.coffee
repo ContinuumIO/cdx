@@ -218,10 +218,12 @@ $(() ->
 
   $CDX.IPython.namespace.on('change:newvars', (model, newvars, options) ->
     newvars = model.get_vars(newvars)
-    console.log('NEWVAR', newvars)
     for newvar in newvars
-      if newvar.type == 'BlazeArrayProxy' or newvar.type == 'ArrayNode'
-        $CDX.add_data_tab(newvar.name, newvar.url)
+      if newvar.type == 'BlazeArrayProxy' or
+        newvar.type == 'ArrayNode' or
+        newvar.type == 'ndarray'
+          if newvar.url
+            $CDX.add_data_tab(newvar.name, newvar.url)
   )
 
 )

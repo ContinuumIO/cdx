@@ -9,8 +9,12 @@ import blaze.array_proxy.array_proxy as array_proxy
 import IPython.zmq.entry_point as entry_point
 import numpy as np
 import notifications
-#import npcframe
+import uuid
 
+def save_temp_numpy(client, arr):
+    url  = "/tmp/" + str(uuid.uuid4())
+    client.rpc('store', urls=[url], data=[arr])
+    return url
 
 class CloudBlazeKernelMixin(object):
     def __init__(self, *args, **kwargs):
@@ -22,17 +26,21 @@ class CloudBlazeKernelMixin(object):
         self.shell.Completer.namespace = notify_d
         self.shell.Completer.global_namespace = notify_d
         self.changed = set()
+        self.npurls = {}
         
     def namespace_notification(self, key, val):
         self.changed.add(key)
-        # the following code gets called multiple times per execute_request,
-        # but if we do it in the execute request function, the namespace
-        # does not get updated properly, we should talk to the ipython guys
-        # and figure out where the ns gets updated.
+        
+    def process_changed(self):
         for varname in self.changed:
             value = self.shell.user_ns[varname]
             if isinstance(value, array_proxy.ArrayNode):
                 value.save_temp()
+            if isinstance(value, np.ndarray):
+                print ('BC', 'bc' in self.shell.user_ns)
+                if 'bc' in self.shell.user_ns:
+                    newurl = save_temp_numpy(self.shell.user_ns['bc'], value)
+                    self.npurls[id(value)] = newurl
         self.session.send(self.iopub_socket,
                           u'namespace',
                           {'variables': self.get_namespace_data(),
@@ -50,8 +58,10 @@ class CloudBlazeKernelMixin(object):
             varinfo = {'name' : varname,
                        'type' : local_type,
                        'value' : repr(var)}
-            if isinstance(var, array_proxy.BaseArrayNode):
+            if isinstance(var, (array_proxy.BaseArrayNode)):
                 varinfo['url'] = var.url
+            elif isinstance(var, (np.ndarray)):
+                varinfo['url'] = self.npurls.get(id(var))
             variables.append(varinfo)
         return variables
 
@@ -60,7 +70,9 @@ class CloudBlazeKernelMixin(object):
         #the issue is we need it to send out pub messages
         self.parent = parent
         super(CloudBlazeKernelMixin, self).execute_request(stream, ident, parent)
-                
+        local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
+        self.process_changed()
+        
     def namespace_request(self, stream, ident, parent):
         reply_msg = self.session.send(stream, u'namespace',
                                       {u'variables': self.get_namespace_data()},
