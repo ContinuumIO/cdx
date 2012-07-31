@@ -55,9 +55,12 @@ class CloudBlazeKernelMixin(object):
         local_vars = [self.shell.user_ns[x] for x in local_varnames]
         for var, varname in zip(local_vars, local_varnames):
             local_type = type(var).__name__
+            display_val = repr(var)
+            if len(display_val) > 100:
+                display_val = display_val[:100] + "..."
             varinfo = {'name' : varname,
                        'type' : local_type,
-                       'value' : repr(var)}
+                       'value' : display_val}
             if isinstance(var, (array_proxy.BaseArrayNode)):
                 varinfo['url'] = var.url
             elif isinstance(var, (np.ndarray)):
