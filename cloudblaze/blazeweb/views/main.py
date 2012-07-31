@@ -37,10 +37,8 @@ def pageRender2(filename):
     # Note the corresponding html file must be in the templates folder.
     return render_template("tests/" + filename + '.html')
 
-@app.route('/cdx')
-@app.route('/cdx/<unused>')
-@app.route('/cdx/<unused>/<unused_2>')
-@app.route('/cdx/<unused>/<unused_2>/<unused_3>')
+@app.route('/cdx/')
+@app.route('/cdx/<path:unused>/')
 def index(*unused_all, **kwargs):
     current_user = maincontroller.get_current_user(current_app, session)
     if current_user is None:

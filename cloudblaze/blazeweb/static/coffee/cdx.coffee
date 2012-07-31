@@ -143,10 +143,15 @@ $(() ->
   WorkspaceRouter = Backbone.Router.extend(
     routes: {
       "cdx" : "load_default_document",
+      "cdx/" : "load_default_document",
       "cdx/unknown/sharecurrent": "sharecurrent",
+      "cdx/unknown/sharecurrent/": "sharecurrent",
       "cdx/:docid": "load_doc",
+      "cdx/:docid/": "load_doc",
       "cdx/:docid/share": "share",
+      "cdx/:docid/share/": "share",
       "cdx/:docid/published/:modelid" : "load_published"
+      "cdx/:docid/published/:modelid/" : "load_published"
       },
 
     load_published : (docid, modelid) ->
@@ -176,7 +181,7 @@ $(() ->
     share : (docid) ->
       $CDX.docid = docid
       $CDX.utility.instantiate_doc(docid)
-      $.when($CDX.doc_loaded).then(
+      $.when($CDX.Promises.doc_loaded).then(
         () ->
           $CDX.utility.instantiate_base_tabs()
           $CDX.utility.instantiate_ipython(docid)
