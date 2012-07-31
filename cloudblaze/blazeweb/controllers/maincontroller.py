@@ -7,6 +7,7 @@ gevent_zeromq.monkey_patch()
 import zmq
 from gevent.pywsgi import WSGIServer
 import uuid
+import socket
 import redis
 from geventwebsocket.handler import WebSocketHandler
 
@@ -18,6 +19,9 @@ import cloudblaze.continuumweb.bbmodel as bbmodel
 import cloudblaze.blazeweb.models.user as user
 import cloudblaze.blazeweb.models.docs as docs
 import cloudblaze.ipython.runnotebook as runnotebook
+import logging
+import time
+log = logging.getLogger(__name__)
 
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
@@ -77,5 +81,8 @@ def get_current_user(app, session):
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 def start_app():
     app.ipython_thread = gevent.spawn(runnotebook.launch_new_instance)
+    while not hasattr(runnotebook.app, 'http_server'):
+        time.sleep(0.5)
     http_server.serve_forever()
+    
     

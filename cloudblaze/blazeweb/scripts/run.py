@@ -18,13 +18,13 @@ import blaze.server.scripts.run as run
 import time
 import redis
 import sys
+import socket
 import yaml
 import os
 import logging
 import posixpath as blazepath
 import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
 import collections
-
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 import os.path
@@ -37,8 +37,15 @@ def main():
     redisproc, broker, node = run.start_blaze(args)
     maincontroller.prepare_app(args.front_address, rhost=args.redis_host,
                                rport=args.redis_port)
-    maincontroller.start_app()
-    
+    try:
+        maincontroller.start_app()
+    except socket.error as e:
+        log.error('port unavailable, is CDX already running?')
+        log.error('shutting it all down')
+        broker.kill = True
+        node.kill = True
+        maincontroller.shutdown_app()
+
 if __name__ == "__main__":
     main()
     
