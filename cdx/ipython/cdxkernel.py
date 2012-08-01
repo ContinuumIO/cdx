@@ -10,11 +10,14 @@ import IPython.zmq.entry_point as entry_point
 import numpy as np
 import notifications
 import uuid
+import pandas
 
-def save_temp_numpy(client, arr):
+def save_temp_table(client, arr):
     url  = "/tmp/" + str(uuid.uuid4())
+    print ('STORinG', arr)
     client.rpc('store', urls=[url], data=[arr])
     return url
+
 
 class CDXKernelMixin(object):
     def __init__(self, *args, **kwargs):
@@ -26,7 +29,7 @@ class CDXKernelMixin(object):
         self.shell.Completer.namespace = notify_d
         self.shell.Completer.global_namespace = notify_d
         self.changed = set()
-        self.npurls = {}
+        self.tableurls = {}
         
     def namespace_notification(self, key, val):
         self.changed.add(key)
@@ -36,11 +39,11 @@ class CDXKernelMixin(object):
             value = self.shell.user_ns[varname]
             if isinstance(value, array_proxy.ArrayNode):
                 value.save_temp()
-            if isinstance(value, np.ndarray):
-                print ('BC', 'bc' in self.shell.user_ns)
-                if 'bc' in self.shell.user_ns:
-                    newurl = save_temp_numpy(self.shell.user_ns['bc'], value)
-                    self.npurls[id(value)] = newurl
+            if 'bc' in self.shell.user_ns:
+                if isinstance(value, (np.ndarray, pandas.DataFrame)):
+                    newurl = save_temp_table(
+                        self.shell.user_ns['bc'], value)
+                    self.tableurls[id(value)] = newurl
         self.session.send(self.iopub_socket,
                           u'namespace',
                           {'variables': self.get_namespace_data(),
@@ -63,8 +66,8 @@ class CDXKernelMixin(object):
                        'value' : display_val}
             if isinstance(var, (array_proxy.BaseArrayNode)):
                 varinfo['url'] = var.url
-            elif isinstance(var, (np.ndarray)):
-                varinfo['url'] = self.npurls.get(id(var))
+            elif isinstance(var, (np.ndarray, pandas.DataFrame)):
+                varinfo['url'] = self.tableurls.get(id(var))
             variables.append(varinfo)
         return variables
 

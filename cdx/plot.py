@@ -296,7 +296,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         plot.set('renderers', [line.ref()])
         plot.set('axes', [xaxis.ref(), yaxis.ref()])
         plot.set('tools', [pantool.ref(), zoomtool.ref()])
-        tocreate.extend([xr, yr, datarange1, datarange2,
+        tocreate.extend([xr, yr, datarangex, datarangey,
                          xaxis, yaxis, xmapper, ymapper,
                          pantool, zoomtool,
                          line])
