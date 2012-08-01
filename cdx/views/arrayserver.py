@@ -11,6 +11,7 @@ import cdx.arrayserverclient as arrayserverclient
 import cdx.views.common as common
 import cdx.bbmodel as bbmodel
 import cdx.wsmanager as wsmanager
+import pandas
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +33,10 @@ def get_data(datapath):
         current_app.rpcclient, datapath, data_slice=data_slice)
     if response['type'] != 'group':
         arr = dataobj[0]
-        if arr.dtype.names:
+        if isinstance(arr, pandas.DataFrame):
+            response['colnames'] = arr.columns.tolist()
+            response['data'] = arr.to_records().tolist()
+        elif arr.dtype.names:
             response['data'] = arr.tolist()
             response['colnames'] = arr.dtype.names
         else:

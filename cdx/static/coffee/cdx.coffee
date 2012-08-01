@@ -226,7 +226,8 @@ $(() ->
     for newvar in newvars
       if newvar.type == 'ArrayServerArrayProxy' or
         newvar.type == 'ArrayNode' or
-        newvar.type == 'ndarray'
+        newvar.type == 'ndarray' or
+        newvar.type == 'DataFrame'
           if newvar.url
             $CDX.add_data_tab(newvar.name, newvar.url)
   )
@@ -255,7 +256,7 @@ $CDX.add_data_tab = (itemName, url) ->
 
 $CDX.add_data_array = (url) ->
   itemName = $CDX.IPython.suggest_variable_name(url)
-  command = "#{itemName} = bc.arrayserver_source('#{url}')"
+  command = "#{itemName} = bc.pusharrayserver_source('#{url}')"
   console.log(command)
   $CDX.IPython.execute_code(command)
 
