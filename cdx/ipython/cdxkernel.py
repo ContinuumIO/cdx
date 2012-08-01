@@ -119,7 +119,7 @@ class CDXKernelApp(IPKernelApp):
         kernel.record_ports(self.ports)
         shell = kernel.shell
 
-def CDX_launcher(*args, **kwargs):
+def cdx_launcher(*args, **kwargs):
     entry_point.base_launch_kernel(
         'from cdx.ipython.cdxkernel import main; main()',
         *args, **kwargs)

@@ -11,7 +11,7 @@ execute_code =  (code) ->
 
 $CDX.IPython.execute_code = execute_code
 $CDX.IPython.inject_plot_client = () ->
-  code = "import cloudblaze.continuumweb.interactive as interactive"
+  code = "import cdx.interactive as interactive"
   execute_code(code)
   url = document.URL
   code = "clients = interactive.CDXClient('#{url}')"

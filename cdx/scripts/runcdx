@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import cloudblaze.blazeweb.scripts.run as run
+import cdx.scripts.run as run
 
 if __name__ == "__main__":
     run.main()
