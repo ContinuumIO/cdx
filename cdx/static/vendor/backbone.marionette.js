@@ -1,1 +1,0 @@
-../../lib/backbone.marionette/lib/backbone.marionette.js
