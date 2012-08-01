@@ -60,7 +60,7 @@ module.exports = function(grunt) {
             },
             bokeh_test: {
                 dir: 'submodule/bokehjs/src/test/unittest',
-                dest: 'submodule/bokehjs/submodule/test/unittest',
+                dest: 'submodule/bokehjs/lib/test/unittest',
                 bare: false,
             },
             cdx: {
