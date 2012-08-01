@@ -1,13 +1,13 @@
 import IPython.frontend.html.notebook.notebookapp as notebookapp
 import IPython.frontend.html.notebook.kernelmanager as kernelmanager
 from IPython.zmq.kernelmanager import KernelManager
-import blazekernel
+import cdxkernel
 from tornado import httpserver
 import tornado
 import uuid
 import os
 
-class BlazeKernelManager(kernelmanager.MappingKernelManager):
+class CDXKernelManager(kernelmanager.MappingKernelManager):
     
     def _start_kernel(self, **kwargs):
         ## FROM MultiKernelManager
@@ -18,7 +18,7 @@ class BlazeKernelManager(kernelmanager.MappingKernelManager):
                 self.connection_dir, "kernel-%s.json" % kernel_id),
             config=self.config,
         )
-        km.start_kernel(launcher=blazekernel.cloud_blaze_launcher
+        km.start_kernel(launcher=cdxkernel.cdx_launcher
                         , **kwargs)
         self._kernels[kernel_id] = km
         return kernel_id
@@ -46,7 +46,7 @@ class BlazeKernelManager(kernelmanager.MappingKernelManager):
             self.log.info("Using existing kernel: %s" % kernel_id)
         return kernel_id
     
-notebookapp.MappingKernelManager = BlazeKernelManager
+notebookapp.MappingKernelManager = CDXKernelManager
 class ContinuumEmbeddedNotebookApp(notebookapp.NotebookApp):
     def init_signal(self):
         pass

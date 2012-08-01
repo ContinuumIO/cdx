@@ -15,13 +15,13 @@ import os
 import shelve
 import requests
 
-import cloudblaze.continuumweb.webzmqproxy as webzmqproxy
-import cloudblaze.continuumweb.test.test_utils as test_utils
-import blaze.server.blazebroker as blazebroker
-import blaze.server.blazenode as blazenode
-import blaze.server.blazeconfig as blazeconfig
-import blaze.server.redisutils as redisutils
-import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
+import cdx.webzmqproxy as webzmqproxy
+import cdx.test.test_utils as test_utils
+import arrayserver.server.arrayserverbroker as arrayserverbroker
+import arrayserver.server.arrayservernode as arrayservernode
+import arrayserver.server.arrayserverconfig as arrayserverconfig
+import arrayserver.server.redisutils as redisutils
+import cdx.controllers.maincontroller as maincontroller
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -33,20 +33,20 @@ addr = "inproc://#3"
 baseurl = "http://localhost:5000/"
 
 
-class BlazeApiTestCase(unittest.TestCase):
+class ArrayserverApiTestCase(unittest.TestCase):
     def setUp(self):
         self.servername = 'testserver'
         self.redisproc = redisutils.RedisProcess(9000, '/tmp', save=False)
         time.sleep(0.1)
-        self.config = blazeconfig.BlazeConfig(self.servername, port=9000)
+        self.config = arrayserverconfig.ArrayserverConfig(self.servername, port=9000)
         testroot = os.path.abspath(os.path.dirname(__file__))
         hdfpath = os.path.join(testroot, 'gold.hdf5')
-        blazeconfig.generate_config_hdf5(self.servername, '/hugodata',
+        arrayserverconfig.generate_config_hdf5(self.servername, '/hugodata',
                                          hdfpath, self.config)
-        broker = blazebroker.BlazeBroker(frontaddr, backaddr, self.config)
+        broker = arrayserverbroker.ArrayserverBroker(frontaddr, backaddr, self.config)
         broker.start()
         self.broker = broker
-        rpcserver = blazenode.BlazeNode(backaddr, self.servername, self.config)
+        rpcserver = arrayservernode.ArrayserverNode(backaddr, self.servername, self.config)
         rpcserver.start()
         self.rpcserver = rpcserver
         test_utils.wait_until(lambda : len(broker.nodes) > 0)

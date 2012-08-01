@@ -1,5 +1,5 @@
 import requests
-import blaze.protocol as protocol
+import arrayserver.protocol as protocol
 import urlparse
 
 class CDXClient(object):
@@ -23,19 +23,19 @@ class CDXClient(object):
                                       parsed.netloc, "/bb/", '', '')
         self.backboneurl = parsed.geturl()
         self.docid = data['docid']
-        self.blazeaddress = data['blazeaddress']
+        self.arrayserveraddress = data['arrayserveraddress']
         
     def get_clients(self):
-        import cloudblaze.continuumweb.plot as plot
+        import cdx.plot as plot
         self.p = plot.PlotClient(self.docid, self.backboneurl)
-        import blaze.server.rpc.client as blazeclient
-        self.bc = blazeclient.BlazeClient(self.blazeaddress)
+        import arrayserver.server.rpc.client as arrayserverclient
+        self.bc = arrayserverclient.ArrayserverClient(self.arrayserveraddress)
         self.bc.connect()
-        import blaze.array_proxy.array_proxy as array_proxy
+        import arrayserver.array_proxy.array_proxy as array_proxy
         array_proxy.client = self.bc
         
     def load_clients(self):
-        import blaze.array_proxy.npproxy as npp
+        import arrayserver.array_proxy.npproxy as npp
         ipython = get_ipython()
         ipython.user_ns['bc'] = self.bc
         ipython.user_ns['p'] = self.p

@@ -1,3 +1,3 @@
 import flask
 
-app = flask.Flask('cloudblaze.blazeweb')
+app = flask.Flask('cdx')

@@ -4,11 +4,11 @@ import mock
 import websocket
 import gevent
 
-import blaze.server.tests.test_utils as test_utils
-import blaze.server.redisutils as redisutils
-from cloudblaze.blazeweb.app import app
-import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
-import cloudblaze.continuumweb.bbmodel as bbmodel
+import arrayserver.server.tests.test_utils as test_utils
+import arrayserver.server.redisutils as redisutils
+from cdx.app import app
+import cdx.controllers.maincontroller as maincontroller
+import cdx.bbmodel as bbmodel
 
 frontaddr = "tcp://127.0.0.1:6000"
 

@@ -4,10 +4,10 @@ import mock
 import websocket
 import gevent
 
-import cloudblaze.blazeweb.wsmanager as wsmanager
-import blaze.server.tests.test_utils as test_utils
-from cloudblaze.blazeweb.app import app
-import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
+import cdx.wsmanager as wsmanager
+import arrayserver.server.tests.test_utils as test_utils
+from cdx.app import app
+import cdx.controllers.maincontroller as maincontroller
 
 
 class WSmanagerTestCase(unittest.TestCase):

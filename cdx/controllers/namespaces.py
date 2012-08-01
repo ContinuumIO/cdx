@@ -1,4 +1,4 @@
-import cloudblaze.ipython.runnotebook as runnotebook
+import cdx.ipython.runnotebook as runnotebook
 import tornado.web as tornadoweb
 import os
 from IPython.nbformat import current

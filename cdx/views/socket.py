@@ -7,12 +7,12 @@ import logging
 import uuid
 import urlparse
 
-from cloudblaze.blazeweb.app import app
+from cdx.app import app
 
-import cloudblaze.blazeweb.blazeclient as blazeclient
-import cloudblaze.continuumweb.bbmodel as bbmodel
-import cloudblaze.blazeweb.views.common as common
-import cloudblaze.blazeweb.wsmanager as wsmanager
+import cdx.arrayserverclient as arrayserverclient
+import cdx.bbmodel as bbmodel
+import cdx.views.common as common
+import cdx.wsmanager as wsmanager
 
 log = logging.getLogger(__name__)
 

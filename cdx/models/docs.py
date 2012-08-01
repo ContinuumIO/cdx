@@ -1,5 +1,5 @@
-import cloudblaze.blazeweb.models as models
-import cloudblaze.continuumweb.bbmodel as bbmodel
+import cdx.models as models
+import cdx.bbmodel as bbmodel
 
 def new_doc(flaskapp, docid, title, rw_users=None, r_users=None):
     plot_context = bbmodel.ContinuumModel(

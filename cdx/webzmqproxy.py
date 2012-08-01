@@ -11,7 +11,7 @@ import threading
 import uuid
 import time
 import logging
-import blaze.protocol as protocol
+import arrayserver.protocol as protocol
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class ProxyClient(threading.Thread):
                     try:
                         messages = self.sub.recv_multipart()
                         (clientid, msgid,
-                         msgobj, dataobjs) = self.ph.unpack_blaze(messages)
+                         msgobj, dataobjs) = self.ph.unpack_arrayserver(messages)
                         if msgid in self.queues:
                             self.queues[msgid].put((clientid, msgid,
                                                     msgobj, dataobjs))
@@ -82,7 +82,7 @@ class ProxyClient(threading.Thread):
         msgid = str(uuid.uuid4())
         queue = Queue()
         self.queues[msgid] = queue
-        messages = self.ph.pack_blaze(self.uuid, msgid, msgobj, dataobjs)
+        messages = self.ph.pack_arrayserver(self.uuid, msgid, msgobj, dataobjs)
         self.send_queue.put(messages)
         msgobj = None
         dataobjs = []
@@ -143,7 +143,7 @@ class Proxy(threading.Thread):
             self.pub.close()
             
 
-import blaze.server.rpc.client as client
+import arrayserver.server.rpc.client as client
 
 class ProxyRPCClient(client.BaseRPCClient):
     def __init__(self, proxyclient):

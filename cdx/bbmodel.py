@@ -1,4 +1,4 @@
-import blaze.protocol as protocol
+import arrayserver.protocol as protocol
 import requests
 import urlparse
 import utils

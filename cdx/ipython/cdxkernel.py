@@ -4,8 +4,8 @@ from IPython.utils.traitlets import Instance, Dict
 from IPython.zmq.ipkernel import Kernel
 from IPython.zmq.ipkernel import IPKernelApp
 from zmq.eventloop.zmqstream import ZMQStream
-import blaze.array_proxy.blaze_array_proxy as blaze_array_proxy
-import blaze.array_proxy.array_proxy as array_proxy
+import arrayserver.array_proxy.arrayserver_array_proxy as arrayserver_array_proxy
+import arrayserver.array_proxy.array_proxy as array_proxy
 import IPython.zmq.entry_point as entry_point
 import numpy as np
 import notifications
@@ -16,10 +16,10 @@ def save_temp_numpy(client, arr):
     client.rpc('store', urls=[url], data=[arr])
     return url
 
-class CloudBlazeKernelMixin(object):
+class CDXKernelMixin(object):
     def __init__(self, *args, **kwargs):
         self.parent = None
-        super(CloudBlazeKernelMixin, self).__init__(*args, **kwargs)
+        super(CDXKernelMixin, self).__init__(*args, **kwargs)
         notify_d = notifications.NotificationDict(self.shell.user_ns)
         notify_d.set_notifier = self.namespace_notification
         self.shell.user_ns  = notify_d
@@ -72,7 +72,7 @@ class CloudBlazeKernelMixin(object):
         #store most recent parent here.... hack.. how should we store this?
         #the issue is we need it to send out pub messages
         self.parent = parent
-        super(CloudBlazeKernelMixin, self).execute_request(stream, ident, parent)
+        super(CDXKernelMixin, self).execute_request(stream, ident, parent)
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
         self.process_changed()
         
@@ -91,24 +91,24 @@ class CloudBlazeKernelMixin(object):
                                       msgobj,
                                       parent, ident=ident)
 
-class CloudBlazeKernel(CloudBlazeKernelMixin, Kernel):
+class CDXKernel(CDXKernelMixin, Kernel):
     def __init__(self, **kwargs):
-        super(CloudBlazeKernel, self).__init__(**kwargs)
+        super(CDXKernel, self).__init__(**kwargs)
         new_msg_types = ['namespace_request', 'object_request']
         for msg_type in new_msg_types:
             self.shell_handlers[msg_type] = getattr(self, msg_type)
-        self.log.warning('CLOUD BLAZE KERNEL!')
+        self.log.warning('CDX KERNEL!')
 
 
 
-class CloudBlazeKernelApp(IPKernelApp):
+class CDXKernelApp(IPKernelApp):
     #cut and paste from ipython project, with my own kernel class instead of
     #theirs... should refactor.
 
     def init_kernel(self):
         shell_stream = ZMQStream(self.shell_socket)
 
-        kernel = CloudBlazeKernel(config=self.config, session=self.session,
+        kernel = CDXKernel(config=self.config, session=self.session,
                                 shell_streams=[shell_stream],
                                 iopub_socket=self.iopub_socket,
                                 stdin_socket=self.stdin_socket,
@@ -119,13 +119,13 @@ class CloudBlazeKernelApp(IPKernelApp):
         kernel.record_ports(self.ports)
         shell = kernel.shell
 
-def cloud_blaze_launcher(*args, **kwargs):
+def CDX_launcher(*args, **kwargs):
     entry_point.base_launch_kernel(
-        'from cloudblaze.ipython.blazekernel import main; main()',
+        'from cdx.ipython.cdxkernel import main; main()',
         *args, **kwargs)
 
 def main():
     """Run an IPKernel as an application"""
-    app = CloudBlazeKernelApp.instance()
+    app = CDXKernelApp.instance()
     app.initialize()
     app.start()

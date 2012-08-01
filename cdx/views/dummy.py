@@ -7,22 +7,22 @@ import logging
 import uuid
 import urlparse
 
-from cloudblaze.blazeweb.app import app
+from cdx.app import app
 
-import cloudblaze.blazeweb.blazeclient as blazeclient
-import cloudblaze.continuumweb.bbmodel as bbmodel
-import cloudblaze.blazeweb.views.common as common
-import cloudblaze.blazeweb.wsmanager as wsmanager
+import cdx.arrayserverclient as arrayserverclient
+import cdx.bbmodel as bbmodel
+import cdx.views.common as common
+import cdx.wsmanager as wsmanager
 
 log = logging.getLogger(__name__)
 #test app view code goes here.
 
-#dummy pages for browsing hdf5 data sets in blaze
+#dummy pages for browsing hdf5 data sets in arrayserver
 @app.route("/dataview/", methods=['GET'])
 @app.route("/dataview/<path:datapath>", methods=['GET'])
 def get_dataview(datapath=""):
     data_slice=common.get_slice(request)
-    response, dataobj = blazeclient.raw_get(
+    response, dataobj = arrayserverclient.raw_get(
         current_app.rpcclient, datapath, data_slice=data_slice)
     if response['type'] == 'group':
         base = request.base_url
@@ -32,7 +32,7 @@ def get_dataview(datapath=""):
         return flask.render_template('simplegroup.html', children=child_paths)
     else:
         data = dataobj[0]
-        table_obj = blazeclient.build_table(
+        table_obj = arrayserverclient.build_table(
             data, response['shape'], data_slice, datapath)
         return flask.render_template('simpledataset.html',
                                      table_obj=app.ph.serialize_web(table_obj))

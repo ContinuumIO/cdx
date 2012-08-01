@@ -11,14 +11,14 @@ import socket
 import redis
 from geventwebsocket.handler import WebSocketHandler
 
-import cloudblaze.continuumweb.webzmqproxy as webzmqproxy
-from cloudblaze.blazeweb.app import app
-import cloudblaze.blazeweb.wsmanager as wsmanager
-import blaze.protocol as protocol
-import cloudblaze.continuumweb.bbmodel as bbmodel
-import cloudblaze.blazeweb.models.user as user
-import cloudblaze.blazeweb.models.docs as docs
-import cloudblaze.ipython.runnotebook as runnotebook
+import cdx.webzmqproxy as webzmqproxy
+from cdx.app import app
+import cdx.wsmanager as wsmanager
+import arrayserver.protocol as protocol
+import cdx.bbmodel as bbmodel
+import cdx.models.user as user
+import cdx.models.docs as docs
+import cdx.ipython.runnotebook as runnotebook
 import logging
 import time
 log = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ pushpull = "inproc://apppull"
 def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
                 rport=6379, timeout=1.0, ctx=None):
     #must import views before running apps
-    import cloudblaze.blazeweb.views.deps
+    import cdx.views.deps
     app.debug = True
     app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub,
                                   timeout=timeout, ctx=ctx)
@@ -60,7 +60,7 @@ def shutdown_app():
     
 def ensure_default_user(app):
     email = 'default@continuum.com'
-    password = 'blazeon'
+    password = 'arrayserveron'
     defaultuser = user.User.load(app.model_redis, email)
     if defaultuser is None:
         docid = str(uuid.uuid4())

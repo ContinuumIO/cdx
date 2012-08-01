@@ -1,4 +1,4 @@
-from cloudblaze.blazeweb.app import app
+from cdx.app import app
 from flask import (
         render_template, request, current_app,
         send_from_directory, make_response)
@@ -7,9 +7,9 @@ import os
 import logging
 import uuid
 import urlparse
-import cloudblaze.blazeweb.blazeclient as blazeclient
-import cloudblaze.continuumweb.bbmodel as bbmodel
-import cloudblaze.blazeweb.wsmanager as wsmanager
+import cdx.arrayserverclient as arrayserverclient
+import cdx.bbmodel as bbmodel
+import cdx.wsmanager as wsmanager
 
 log = logging.getLogger(__name__)
 

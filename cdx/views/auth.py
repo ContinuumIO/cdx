@@ -1,10 +1,10 @@
-from cloudblaze.blazeweb.app import app
+from cdx.app import app
 from flask import (
 	render_template, request, current_app,
 	send_from_directory, make_response, session, redirect, url_for)
 import werkzeug.exceptions
-import cloudblaze.blazeweb.models.user as user
-import cloudblaze.blazeweb.models as models
+import cdx.models.user as user
+import cdx.models as models
 import uuid
 
 

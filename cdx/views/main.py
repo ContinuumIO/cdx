@@ -7,16 +7,16 @@ import logging
 import uuid
 import urlparse
 
-from cloudblaze.blazeweb.app import app
+from cdx.app import app
 
-import cloudblaze.blazeweb.blazeclient
-import cloudblaze.continuumweb.bbmodel as bbmodel
-import cloudblaze.blazeweb.wsmanager as wsmanager
-import cloudblaze.blazeweb.models.user as user
-import cloudblaze.blazeweb.models.docs as docs
-import cloudblaze.blazeweb.controllers.maincontroller as maincontroller
-import cloudblaze.blazeweb.controllers.namespaces as namespaces
-import cloudblaze.ipython.runnotebook as runnotebook
+import cdx.arrayserverclient
+import cdx.bbmodel as bbmodel
+import cdx.wsmanager as wsmanager
+import cdx.models.user as user
+import cdx.models.docs as docs
+import cdx.controllers.maincontroller as maincontroller
+import cdx.controllers.namespaces as namespaces
+import cdx.ipython.runnotebook as runnotebook
 
 #main pages
 
@@ -110,7 +110,7 @@ def get_cdx_info(docid):
                  'notebookid' : notebookid,
                  'baseurl' : ipythonbaseurl,
                  'all_models' : all_models,
-                 'blazeaddress' : current_app.proxy.reqrepaddr
+                 'arrayserveraddress' : current_app.proxy.reqrepaddr
                  }
     returnval = current_app.ph.serialize_web(returnval)
     return returnval

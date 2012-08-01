@@ -1,4 +1,4 @@
-da_hdf5_20100111 = bc.blaze_source('/blaze/data/goldrec.hdf5/20100111')
+da_hdf5_20100111 = bc.arrayserver_source('/arrayserver/data/goldrec.hdf5/20100111')
 prices = da_hdf5_20100111
 
 GLD_ylds = prices['GLD'][4::4] / prices['GLD'][:-4:4]

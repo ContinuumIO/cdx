@@ -1,5 +1,5 @@
 import bbmodel
-import blaze.protocol as protocol
+import arrayserver.protocol as protocol
 import numpy as np
 
 class GridPlot(object):

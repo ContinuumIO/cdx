@@ -1,4 +1,4 @@
-from cloudblaze.blazeweb.app import app
+from cdx.app import app
 from flask import (
     render_template, request, current_app,
     send_from_directory, make_response)
@@ -7,28 +7,28 @@ import os
 import logging
 import uuid
 import urlparse
-import cloudblaze.blazeweb.blazeclient as blazeclient
-import cloudblaze.blazeweb.views.common as common
-import cloudblaze.continuumweb.bbmodel as bbmodel
-import cloudblaze.blazeweb.wsmanager as wsmanager
+import cdx.arrayserverclient as arrayserverclient
+import cdx.views.common as common
+import cdx.bbmodel as bbmodel
+import cdx.wsmanager as wsmanager
 
 log = logging.getLogger(__name__)
 
-#http api for blaze server
+#http api for arrayserver server
 @app.route("/metadata/", methods=['GET'])
 @app.route("/metadata/<path:datapath>", methods=['GET'])
 def get_metadata(datapath="/"):
     depth = request.args.get('depth', None)
     if depth is not None:
         depth = int(depth)
-    response = blazeclient.get_tree(
+    response = arrayserverclient.get_tree(
         current_app.rpcclient, datapath, depth=depth)
     return app.ph.serialize_web(response)
 
 @app.route("/data/<path:datapath>", methods=['GET'])
 def get_data(datapath):
     data_slice=common.get_slice(request)
-    response, dataobj = blazeclient.raw_get(
+    response, dataobj = arrayserverclient.raw_get(
         current_app.rpcclient, datapath, data_slice=data_slice)
     if response['type'] != 'group':
         arr = dataobj[0]
@@ -67,7 +67,7 @@ def get_data(datapath):
 
 @app.route("/summary/<path:datapath>")
 def summary(datapath):
-    summary =  blazeclient.get_summary(current_app.rpcclient, datapath)
+    summary =  arrayserverclient.get_summary(current_app.rpcclient, datapath)
     return current_app.ph.serialize_web(summary)
 
 @app.route("/bulksummary/")
@@ -76,7 +76,7 @@ def bulk_summary():
     summaries = []
     for p in paths:
         try:
-            summary = blazeclient.get_summary(current_app.rpcclient, p)
+            summary = arrayserverclient.get_summary(current_app.rpcclient, p)
         except Exception as e:
             log.exception(e)
             summary = None
