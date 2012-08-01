@@ -53,46 +53,36 @@ module.exports = function(grunt) {
         uglify: {},
 
         coffee: {
-
             bokeh: {
-                dir: 'lib/bokehjs/src/coffee',
-                dest: 'lib/bokehjs/lib/js',
+                dir: 'submodule/bokehjs/src/coffee',
+                dest: 'submodule/bokehjs/lib/js',
                 bare: false,
             },
             bokeh_test: {
-                dir: 'lib/bokehjs/src/test/unittest',
-                dest: 'lib/bokehjs/lib/test/unittest',
+                dir: 'submodule/bokehjs/src/test/unittest',
+                dest: 'submodule/bokehjs/submodule/test/unittest',
                 bare: false,
             },
             cdx: {
-                dir:  'static/coffee',
-                dest: 'static/js',
+                dir:  'cdx/static/coffee',
+                dest: 'cdx/static/js',
                 bare: false,
             },
-            cdx_help: {
-                dir:  'static/coffee',
-                dest: 'static/js',
-                bare: false,
-            }
 
         },
         watch: {
             bokeh: {
-                files: 'lib/bokehjs/src/coffee/*.coffee',
+                files: 'submodule/bokehjs/src/coffee/*.coffee',
                 tasks: 'coffee:bokeh ok'
             },
             bokeh_test: {
-                files: 'lib/bokehjs/src/test/unittest/*.coffee',
+                files: 'submodule/bokehjs/src/test/unittest/*.coffee',
                 tasks: 'coffee:bokeh_test ok'
             },
             cdx: {
-                files: 'static/coffee/*.coffee',
+                files: 'cdx/static/coffee/*.coffee',
                 tasks: 'coffee:cdx ok'
             },
-            cdx_help: {
-                files: 'static/coffee/*.coffee',
-                tasks: 'coffee:cdx_help ok'
-            }
         }
     });
 
