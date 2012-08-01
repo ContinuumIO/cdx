@@ -311,6 +311,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
 
 
     def line(self, x, y, title=None, width=300, height=300, lineplot=None,
+             is_x_date=False, is_y_date=False,             
              data_source=None, container=None):
         """
         Parameters
