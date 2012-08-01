@@ -21,7 +21,7 @@ class $CDX.Views.SummaryView extends Backbone.View
     console.log('summaryView render')
     summary_template = $('#variable-summary-template').html()
     snip2 = ''
-    $.when($CDX.blaze.get_summary($CDX.IPython.namespace.get('variables'), (array) ->
+    $.when($CDX.arrayserver.get_summary($CDX.IPython.namespace.get('variables'), (array) ->
       for sa_ele in array
         snip2 += _.template2(summary_template, {item:sa_ele})
       ))

@@ -25,7 +25,7 @@ $CDX.resize_loop = () ->
 
 $CDX.Deferreds = {}
 $CDX.Promises = {}
-# blaze_doc_loaded is a better name, doc_loaded could be confused with
+# arrayserver_doc_loaded is a better name, doc_loaded could be confused with
 # the dom event
 
 $CDX.Deferreds._tab_rendered = $.Deferred()
@@ -115,7 +115,7 @@ $(() ->
           data = JSON.parse(data)
           $CDX.plot_context_ref = data['plot_context_ref']
           $CDX.docid = data['docid'] # in case the server returns a different docid
-          $CDX.blazeaddress = data['blazeaddress']
+          $CDX.arrayserveraddress = data['arrayserveraddress']
           Continuum.docid = $CDX.docid
           $CDX.all_models = data['all_models']
           Continuum.load_models($CDX.all_models)
@@ -224,7 +224,7 @@ $(() ->
   $CDX.IPython.namespace.on('change:newvars', (model, newvars, options) ->
     newvars = model.get_vars(newvars)
     for newvar in newvars
-      if newvar.type == 'BlazeArrayProxy' or
+      if newvar.type == 'ArrayServerArrayProxy' or
         newvar.type == 'ArrayNode' or
         newvar.type == 'ndarray'
           if newvar.url
@@ -233,7 +233,7 @@ $(() ->
 
 )
 
-$CDX.add_blaze_table_tab = (varname, url, columns) ->
+$CDX.add_arrayserver_table_tab = (varname, url, columns) ->
   data_source = Continuum.Collections['ObjectArrayDataSource'].create(
     {}, {local:true})
   datatable = Continuum.Collections['DataTable'].create(
@@ -250,12 +250,12 @@ $CDX.add_blaze_table_tab = (varname, url, columns) ->
   )
 
 $CDX.add_data_tab = (itemName, url) ->
-  $.when($CDX.add_blaze_table_tab(itemName, url)).then(->
+  $.when($CDX.add_arrayserver_table_tab(itemName, url)).then(->
     $CDX.main_tab_set.activate(itemName))
 
 $CDX.add_data_array = (url) ->
   itemName = $CDX.IPython.suggest_variable_name(url)
-  command = "#{itemName} = bc.blaze_source('#{url}')"
+  command = "#{itemName} = bc.arrayserver_source('#{url}')"
   console.log(command)
   $CDX.IPython.execute_code(command)
 

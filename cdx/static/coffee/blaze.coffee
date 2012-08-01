@@ -1,8 +1,8 @@
-$CDX.blaze = {}
-$CDX.blaze.get_summary = (variables, callback) ->
+$CDX.arrayserver = {}
+$CDX.arrayserver.get_summary = (variables, callback) ->
   toquery = []
   for namespaceobj in variables
-    if namespaceobj.type == 'BlazeArrayProxy' or namespaceobj.type == 'ArrayNode'
+    if namespaceobj.type == 'ArrayServerArrayProxy' or namespaceobj.type == 'ArrayNode'
       toquery.push(_.clone(namespaceobj))
 
   urls = (x.url for x in toquery)
@@ -19,7 +19,7 @@ $CDX.blaze.get_summary = (variables, callback) ->
 
   $.ajax(ajaxopts)
 
-$CDX.blaze.set_data_source = (url, data_source) ->
+$CDX.arrayserver.set_data_source = (url, data_source) ->
   deferred = $.get("/data" + url, {}, (data) ->
     arraydata = JSON.parse(data)
     transformed = []
