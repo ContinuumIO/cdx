@@ -29,7 +29,7 @@ class CDXClient(object):
         import cdx.plot as plot
         self.p = plot.PlotClient(self.docid, self.backboneurl)
         import arrayserver.server.rpc.client as arrayserverclient
-        self.bc = arrayserverclient.ArrayserverClient(self.arrayserveraddress)
+        self.bc = arrayserverclient.ArrayServerClient(self.arrayserveraddress)
         self.bc.connect()
         import arrayserver.array_proxy.array_proxy as array_proxy
         array_proxy.client = self.bc

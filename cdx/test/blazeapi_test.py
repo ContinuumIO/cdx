@@ -33,20 +33,20 @@ addr = "inproc://#3"
 baseurl = "http://localhost:5000/"
 
 
-class ArrayserverApiTestCase(unittest.TestCase):
+class ArrayServerApiTestCase(unittest.TestCase):
     def setUp(self):
         self.servername = 'testserver'
         self.redisproc = redisutils.RedisProcess(9000, '/tmp', save=False)
         time.sleep(0.1)
-        self.config = arrayserverconfig.ArrayserverConfig(self.servername, port=9000)
+        self.config = arrayserverconfig.ArrayServerConfig(self.servername, port=9000)
         testroot = os.path.abspath(os.path.dirname(__file__))
         hdfpath = os.path.join(testroot, 'gold.hdf5')
         arrayserverconfig.generate_config_hdf5(self.servername, '/hugodata',
                                          hdfpath, self.config)
-        broker = arrayserverbroker.ArrayserverBroker(frontaddr, backaddr, self.config)
+        broker = arrayserverbroker.ArrayServerBroker(frontaddr, backaddr, self.config)
         broker.start()
         self.broker = broker
-        rpcserver = arrayservernode.ArrayserverNode(backaddr, self.servername, self.config)
+        rpcserver = arrayservernode.ArrayServerNode(backaddr, self.servername, self.config)
         rpcserver.start()
         self.rpcserver = rpcserver
         test_utils.wait_until(lambda : len(broker.nodes) > 0)
