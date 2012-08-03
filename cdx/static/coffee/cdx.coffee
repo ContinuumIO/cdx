@@ -256,7 +256,7 @@ $CDX.add_data_tab = (itemName, url) ->
 
 $CDX.add_data_array = (url) ->
   itemName = $CDX.IPython.suggest_variable_name(url)
-  command = "#{itemName} = bc.arrayserver_source('#{url}')"
+  command = "#{itemName} = bc.get('#{url}')"
   console.log(command)
   $CDX.IPython.execute_code(command)
 
