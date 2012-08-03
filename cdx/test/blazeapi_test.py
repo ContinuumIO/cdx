@@ -104,7 +104,7 @@ class ArrayServerApiTestCase(unittest.TestCase):
         assert summary['colnames'] == [0, 1, 2]
         assert '0' in columnsummary
         assert '2' in columnsummary
-        assert columnsummary['1']['mean'] == 64.07833333333333
+        assert columnsummary['1']['mean'] == 109.39397501601509
 
     def test_bulk_summary(self):
         s = requests.session()
@@ -127,7 +127,7 @@ class ArrayServerApiTestCase(unittest.TestCase):
             assert summary['colnames'] == [0, 1, 2]
             assert '0' in columnsummary
             assert '2' in columnsummary
-            assert columnsummary['1']['mean'] == 64.07833333333333
+            assert columnsummary['1']['mean'] == 109.39397501601509            
 
 
     
