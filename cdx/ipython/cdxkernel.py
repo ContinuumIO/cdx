@@ -12,11 +12,6 @@ import notifications
 import uuid
 import pandas
 
-def save_temp_table(client, arr):
-    url  = "/tmp/" + str(uuid.uuid4())
-    print ('STORinG', arr)
-    client.rpc('store', urls=[url], data=[arr])
-    return url
 
 
 class CDXKernelMixin(object):
@@ -31,6 +26,13 @@ class CDXKernelMixin(object):
         self.changed = set()
         self.tableurls = {}
         
+    def save_temp_table(self, client, arr):
+        self.log.warning('storing arr %s, %s', id(arr), arr)
+        url  = self.tableurls.get(id(arr), "/tmp/" + str(uuid.uuid4()))
+        self.log.warning('storing %s', url)
+        client.rpc('store', urls=[url], data=[arr])
+        self.tableurls[id(arr)] = url
+        
     def namespace_notification(self, key, val):
         self.changed.add(key)
         
@@ -41,9 +43,7 @@ class CDXKernelMixin(object):
                 value.save_temp()
             if 'bc' in self.shell.user_ns:
                 if isinstance(value, (np.ndarray, pandas.DataFrame)):
-                    newurl = save_temp_table(
-                        self.shell.user_ns['bc'], value)
-                    self.tableurls[id(value)] = newurl
+                    self.save_temp_table(self.shell.user_ns['bc'], value)
         self.session.send(self.iopub_socket,
                           u'namespace',
                           {'variables': self.get_namespace_data(),
