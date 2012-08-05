@@ -85,6 +85,8 @@ $(() ->
           model : plotcontext,
           render_loop: true
         )
+        $CDX.plotcontext = plotcontext
+        $CDX.plotcontextview = plotcontextview
         $CDX.namespaceViewer.el = $("#left-panel");
         $CDX.namespaceViewer.render()
         $CDX.main_tab_set.add_tab(
