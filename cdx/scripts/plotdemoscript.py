@@ -1,3 +1,5 @@
+import pandas
+
 da_hdf5_20100111 = bc.get('/arrayserver/data/goldrec.hdf5/20100111')
 prices = da_hdf5_20100111
 
@@ -14,7 +16,17 @@ USO = prices['USO'][4::4]
 USO = USO / USO[0]
 
 timestamp = 1000.0 * prices['timestamp'][4::4]
-source = p.make_source(GLD_ylds=GLD_ylds, GLD=GLD, GDX_ylds=GDX_ylds, GDX=GDX, USO=USO, USO_ylds=USO_ylds, timestamp=timestamp)
+mydf = pandas.DataFrame({
+    'GLD_ylds' : GLD_ylds,
+    'GLD' : GLD,
+    'GDX_ylds' : GDX_ylds,
+    'GDX' : GDX,
+    'USO' : USO,
+    'USO_ylds' : USO_ylds,
+    't imestamp' : timestamp
+    })
+
+source = p.make_arrayserver_source(mydf)
 
 gldgdx = p.scatter(x='GLD_ylds', y='GDX_ylds', title='GLD vs GDX', data_source=source)
 glduso = p.scatter(x='GLD_ylds', y='USO_ylds', title='GLD vs USO', data_source=source)
