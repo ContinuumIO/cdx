@@ -231,7 +231,9 @@ $(() ->
         newvar.type == 'ndarray' or
         newvar.type == 'DataFrame'
           if newvar.url
-            $CDX.add_data_tab(newvar.name, newvar.url)
+            data_source = $CDX.get_arrayserver_source(newvar.url)
+            data_source.load(0)
+            $CDX.add_data_tab(newvar.name, data_source)
     return null
   )
 
@@ -246,7 +248,6 @@ $CDX.get_arrayserver_source = (url) ->
       id : objid
     )
     Continuum.Collections[data_source.type].add(data_source)
-    data_source.load(0)
   return data_source
 
 $CDX.add_arrayserver_table_tab = (varname, data_source) ->
@@ -261,14 +262,7 @@ $CDX.add_arrayserver_table_tab = (varname, data_source) ->
   tabelement = $CDX.main_tab_set.add_tab(
     tab_name:varname , view: view, route : varname
   )
-  #$.when(tableloaded).then(() => data_source.save())[
-  window.mysource = data_source
-  window.myview = view
-  window.mytable = datatable
-  data_source.on('change:columns', () -> debugger)
-  datatable.on('change:columns', (first, second, third) ->
-    console.log('what the', first, second, third)
-  )
+  $.when(tableloaded).then(() => data_source.save())[
 
 
 $CDX.add_data_tab = (itemName, url) ->
