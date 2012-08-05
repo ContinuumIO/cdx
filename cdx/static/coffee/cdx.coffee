@@ -2,7 +2,7 @@
 $(window).unload(->
   $CDX.helpWindow.close()
   )
-
+Continuum.HasProperties.prototype.sync = Backbone.sync
 window.$CDX.resizeRoot = () ->
   winHeight = $(window).height()
   winWidth = $(window).width()
