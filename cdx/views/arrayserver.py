@@ -34,7 +34,9 @@ def get_data(datapath):
     if response['type'] != 'group':
         arr = dataobj[0]
         if isinstance(arr, pandas.DataFrame):
-            response['colnames'] = arr.columns.tolist()
+            cols = arr.columns.tolist()
+            cols.insert(0, 'Index')
+            response['colnames'] = cols
             response['data'] = arr.to_records().tolist()
         elif arr.dtype.names:
             response['data'] = arr.tolist()
