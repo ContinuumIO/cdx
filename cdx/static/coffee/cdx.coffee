@@ -236,15 +236,22 @@ $(() ->
   )
 
 )
+$CDX.get_arrayserver_source = (url) ->
+  objid = url.replace(/\//g, "_")
+  collection = Continuum.Collections['ArrayServerObjectArrayDataSource']
+  data_source = collection.get(objid)
+  if not data_source
+    data_source = new Bokeh.ArrayServerObjectArrayDataSource(
+      url : url,
+      id : objid
+    )
+    Continuum.Collections[data_source.type].add(data_source)
+    data_source.load(0)
+  return data_source
 
-$CDX.add_arrayserver_table_tab = (varname, url, columns) ->
-  ## hack right now we coerce the id based on url, so that we can link our js
-  ## and python objects together
-  data_source = new Bokeh.ArrayServerObjectArrayDataSource(
-    url : url,
-    id : url.replace(/\//g, "_")
-  )
-  Continuum.Collections[data_source.type].add(data_source)
+$CDX.add_arrayserver_table_tab = (varname, data_source) ->
+  if _.isString(data_source)
+    data_source = $CDX.get_arrayserver_source(data_source)
   datatable = new Continuum.ui.DataTable(
     data_source : data_source.ref()
     name : varname
@@ -265,9 +272,8 @@ $CDX.add_arrayserver_table_tab = (varname, url, columns) ->
 
 
 $CDX.add_data_tab = (itemName, url) ->
-  # $.when($CDX.add_arrayserver_table_tab(itemName, url)).then(->
-  #   $CDX.main_tab_set.activate(itemName))
   $CDX.add_arrayserver_table_tab(itemName, url)
+  $CDX.main_tab_set.activate(itemName)
 
 $CDX.add_data_array = (url) ->
   itemName = $CDX.IPython.suggest_variable_name(url)
