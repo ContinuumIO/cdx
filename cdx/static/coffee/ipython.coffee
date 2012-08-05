@@ -56,6 +56,7 @@ $CDX.IPython.suggest_variable_name = (target) ->
   target = target.replace(/\//g, '_')
   target = target.replace(/\./g, '_')
   target = target.replace(/-/g, '_')
+  target = target.replace(/:/g, '_')
   # Trim the name down to only include the last two parts.
   urlParts = target.split('_')
   if (urlParts.length >= 2)

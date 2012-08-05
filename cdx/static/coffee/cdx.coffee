@@ -230,17 +230,18 @@ $(() ->
         newvar.type == 'DataFrame'
           if newvar.url
             $CDX.add_data_tab(newvar.name, newvar.url)
+    return null
   )
 
 )
 
 $CDX.add_arrayserver_table_tab = (varname, url, columns) ->
-  data_source = Continuum.Collections['ObjectArrayDataSource'].create(
-    {}, {local:true})
+  data_source = Continuum.Collections['ArrayServerObjectArrayDataSource'].create(
+      id : url
+    , {local:true})
   datatable = Continuum.Collections['DataTable'].create(
     data_source : data_source.ref()
     name : varname
-    url : url
   ,
     local : true
   )
