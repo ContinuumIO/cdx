@@ -1,6 +1,8 @@
 import bbmodel
 import arrayserver.protocol as protocol
 import numpy as np
+import logging
+log = logging.getLogger(__name__)
 
 class GridPlot(object):
     def __init__(self, client, container, children, title):
@@ -61,7 +63,20 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         newobj = self.fetch(obj.typename, obj.get('id'))
         obj.attributes = newobj.attributes
         return obj
-            
+    
+    def make_arrayserver_source(self, obj):
+        ## hack right now we coerce the id based on url, so that we can link our js
+        ## and python objects together
+        if hasattr(obj, 'url'):
+            url = obj.url
+        else:
+            url = get_ipython().tableurls.get(id(obj), None)
+        if url is None:
+            log.debug("could not find url for object")
+        else:
+            return self.create('ArrayServerObjectArrayDataSource',
+                               {'url' : url, 'id' : url.replace("/", "_")})
+        
     def make_source(self, **kwargs):
         output = []
         flds = kwargs.keys()
