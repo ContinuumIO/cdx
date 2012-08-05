@@ -1,25 +1,19 @@
-da_hdf5_20100111 = bc.arrayserver_source('/arrayserver/data/goldrec.hdf5/20100111')
+da_hdf5_20100111 = bc.get('/arrayserver/data/goldrec.hdf5/20100111')
 prices = da_hdf5_20100111
 
 GLD_ylds = prices['GLD'][4::4] / prices['GLD'][:-4:4]
-GLD_ylds = GLD_ylds.seval() 
 GLD = prices['GLD'][4::4]
-GLD = GLD.seval()
 GLD = GLD / GLD[0]
 
 GDX_ylds = prices['GDX'][4::4] / prices['GDX'][:-4:4]
-GDX_ylds = GDX_ylds.seval() 
 GDX = prices['GDX'][4::4]
-GDX = GDX.seval()
 GDX = GDX / GDX[0]
 
 USO_ylds = prices['USO'][4::4] / prices['USO'][:-4:4]
-USO_ylds = USO_ylds.seval() 
 USO = prices['USO'][4::4]
-USO = USO.seval()
 USO = USO / USO[0]
 
-timestamp = 1000.0 * prices['timestamp'][4::4].seval()
+timestamp = 1000.0 * prices['timestamp'][4::4]
 source = p.make_source(GLD_ylds=GLD_ylds, GLD=GLD, GDX_ylds=GDX_ylds, GDX=GDX, USO=USO, USO_ylds=USO_ylds, timestamp=timestamp)
 
 gldgdx = p.scatter(x='GLD_ylds', y='GDX_ylds', title='GLD vs GDX', data_source=source)
