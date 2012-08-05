@@ -23,21 +23,21 @@ class CDXKernelMixin(object):
         self.shell.user_ns  = notify_d
         self.shell.Completer.namespace = notify_d
         self.shell.Completer.global_namespace = notify_d
-        self.changed = set()
-        self.tableurls = {}
+        self.shell.changed = set()
+        self.shell.tableurls = {}
         
     def save_temp_table(self, client, arr):
         self.log.warning('storing arr %s, %s', id(arr), arr)
-        url  = self.tableurls.get(id(arr), "/tmp/" + str(uuid.uuid4()))
+        url  = self.shell.tableurls.get(id(arr), "/tmp/" + str(uuid.uuid4()))
         self.log.warning('storing %s', url)
         client.rpc('store', urls=[url], data=[arr])
-        self.tableurls[id(arr)] = url
+        self.shell.tableurls[id(arr)] = url
         
     def namespace_notification(self, key, val):
-        self.changed.add(key)
+        self.shell.changed.add(key)
         
     def process_changed(self):
-        for varname in self.changed:
+        for varname in self.shell.changed:
             value = self.shell.user_ns[varname]
             if isinstance(value, array_proxy.ArrayNode):
                 value.save_temp()
@@ -47,8 +47,8 @@ class CDXKernelMixin(object):
         self.session.send(self.iopub_socket,
                           u'namespace',
                           {'variables': self.get_namespace_data(),
-                           'newvars' : list(self.changed)})
-        self.changed.clear()
+                           'newvars' : list(self.shell.changed)})
+        self.shell.changed.clear()
         
     def get_namespace_data(self):
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
@@ -67,7 +67,7 @@ class CDXKernelMixin(object):
             if isinstance(var, (array_proxy.BaseArrayNode)):
                 varinfo['url'] = var.url
             elif isinstance(var, (np.ndarray, pandas.DataFrame)):
-                varinfo['url'] = self.tableurls.get(id(var))
+                varinfo['url'] = self.shell.tableurls.get(id(var))
             variables.append(varinfo)
         return variables
 
