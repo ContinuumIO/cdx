@@ -2,9 +2,11 @@ $CDX.arrayserver = {}
 $CDX.arrayserver.get_summary = (variables, callback) ->
   toquery = []
   for namespaceobj in variables
-    if namespaceobj.type == 'ArrayServerArrayProxy' or namespaceobj.type == 'ArrayNode'
-      toquery.push(_.clone(namespaceobj))
-
+    if namespaceobj.type == 'ArrayServerArrayProxy' or
+      namespaceobj.type == 'ArrayNode' or
+      namespaceobj.type == 'DataFrame' or
+      namespaceobj.type == 'ndarray'
+        toquery.push(_.clone(namespaceobj))
   urls = (x.url for x in toquery)
   wrapped_callback = (data) ->
     wrapped = _.zip(toquery, data)
