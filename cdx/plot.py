@@ -65,17 +65,19 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         return obj
     
     def make_arrayserver_source(self, obj):
-        ## hack right now we coerce the id based on url, so that we can link our js
+        ## hack right now we coerce the id based on url,
+        ## so that we can link our js
         ## and python objects together
         if hasattr(obj, 'url'):
             url = obj.url
         else:
-            url = get_ipython().tableurls.get(id(obj), None)
-        if url is None:
-            log.debug("could not find url for object")
-        else:
-            return self.create('ArrayServerObjectArrayDataSource',
-                               {'url' : url, 'id' : url.replace("/", "_")})
+            _ip = get_ipython()            
+            url = _ip.tableurls.get(id(obj), None)
+            if url is None:
+                _ip.kernel.save_temp_table(_ip.user_ns['bc'], obj)
+            url = _ip.tableurls[id(obj)]
+        return self.create('ArrayServerObjectArrayDataSource',
+                           {'url' : url, 'id' : url.replace("/", "_")})
         
     def make_source(self, **kwargs):
         output = []

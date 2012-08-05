@@ -25,6 +25,7 @@ class CDXKernelMixin(object):
         self.shell.Completer.global_namespace = notify_d
         self.shell.changed = set()
         self.shell.tableurls = {}
+        self.shell.kernel = self
         
     def save_temp_table(self, client, arr):
         self.log.warning('storing arr %s, %s', id(arr), arr)
