@@ -238,8 +238,11 @@ $(() ->
 )
 
 $CDX.add_arrayserver_table_tab = (varname, url, columns) ->
+  ## hack right now we coerce the id based on url, so that we can link our js
+  ## and python objects together
   data_source = Continuum.Collections['ArrayServerObjectArrayDataSource'].create(
-      id : url
+      url : url,
+      id : url.replace(/\//g, "_")
     , {local:true})
   datatable = Continuum.Collections['DataTable'].create(
     data_source : data_source.ref()
