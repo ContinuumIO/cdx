@@ -262,7 +262,7 @@ $CDX.add_arrayserver_table_tab = (varname, data_source) ->
   tabelement = $CDX.main_tab_set.add_tab(
     tab_name:varname , view: view, route : varname
   )
-  $.when(tableloaded).then(() => data_source.save())[
+  $.when(tableloaded).then(() => data_source.save())
 
 
 $CDX.add_data_tab = (itemName, url) ->
