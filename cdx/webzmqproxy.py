@@ -84,19 +84,23 @@ class ProxyClient(threading.Thread):
         self.queues[msgid] = queue
         messages = self.ph.pack_arrayserver(self.uuid, msgid, msgobj, dataobjs)
         self.send_queue.put(messages)
-        msgobj = None
+        responseobj = None
         dataobjs = []
         while True:
             try:
-                (clientid, msgid, msgobj, dataobjs) = self.queues[msgid].get(timeout=self.timeout)
-                if msgobj.get('msgtype') == 'rpcresponse':
+                (clientid, msgid, responseobj, dataobjs) = self.queues[msgid].get(timeout=self.timeout)
+                if responseobj.get('msgtype') == 'rpcresponse':
                     break
                 else:
-                    log.debug("%s, %s, %s, %s", clientid, msgid, msgobj, dataobjs)
+                    responseobj = None
+                    dataobjs = []
+                    log.debug("%s, %s, %s, %s", clientid, msgid, responseobj, dataobjs)
             except gevent.queue.Empty as e:
+                log.debug("empty!, no response for proxy after %s seconds", self.timeout)                
+     
                 break
         del self.queues[msgid]
-        return (msgobj, dataobjs)
+        return (responseobj, dataobjs)
     
 class Proxy(threading.Thread):
     def __init__(self, reqrepaddr, pushpulladdr, pubsubaddr, timeout=2, ctx=None):
@@ -151,6 +155,6 @@ class ProxyRPCClient(client.BaseRPCClient):
         self.ph = proxyclient.ph
         
     def reqrep(self, requestobj, dataobjs):
-        (responseobj, dataobjs) = self.proxyclient.request(requestobj, dataobjs)
-        return (responseobj, dataobjs)
-    
+        (msgobj, dataobjs) = self.proxyclient.request(requestobj, dataobjs)
+        return msgobj, dataobjs
+            

@@ -27,7 +27,7 @@ pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
 
 def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
-                rport=6379, timeout=1.0, ctx=None):
+                rport=6379, timeout=15.0, ctx=None):
     #must import views before running apps
     import cdx.views.deps
     app.debug = True
