@@ -51,7 +51,7 @@ class TestUserModelWeb(unittest.TestCase):
         maincontroller.prepare_app(frontaddr, timeout=0.1)        
         self.servert = gevent.spawn(maincontroller.start_app)
         self.redisproc = redisutils.RedisProcess(6379, '/tmp', save=False)
-        time.sleep(0.1)
+        time.sleep(1.0)
         
     def tearDown(self):
         maincontroller.shutdown_app()
