@@ -28,12 +28,15 @@ def get_metadata(datapath="/"):
 
 @app.route("/data/<path:datapath>", methods=['GET'])
 def get_data(datapath):
+    log.debug("CALLING GET DATA %s", datapath)
     data_slice=common.get_slice(request)
     response, dataobj = arrayserverclient.raw_get(
         current_app.rpcclient, datapath, data_slice=data_slice)
+    log.debug("GET DATA %s, %s", datapath, response)
     if response['type'] != 'group':
         arr = dataobj[0]
         if isinstance(arr, pandas.DataFrame):
+            arr = arr.fillna(-9999999999999)            
             cols = arr.columns.tolist()
             cols.insert(0, 'Index')
             response['colnames'] = cols
