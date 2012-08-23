@@ -1,6 +1,6 @@
 
 $(window).unload(->
-  $CDX.helpWindow.close()
+  #$CDX.helpWindow.close()
   )
 Continuum.HasProperties.prototype.sync = Backbone.sync
 window.$CDX.resizeRoot = () ->
@@ -50,9 +50,11 @@ _.delay(
 )
 
 $CDX.showHelp = (event, section) ->
+  """
   $CDX.helpWindow = window.open('/cdx_help?section='+section,
-  'CDX Help',
-  'width=600,height=600,scrollbars=yes,resizable=yes,location=no,status=yes')
+    'CDX Help',
+    'width=600,height=600,scrollbars=yes,resizable=yes,location=no,status=yes')
+  """
   event.preventDefault()
   return false
 
