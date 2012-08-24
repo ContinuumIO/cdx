@@ -33,6 +33,22 @@
 <script type=text/javascript src="{{ url_for('static',filename='js/cdx.js') }}"></script>
 <script type=text/javascript src="{{ url_for('static',filename='js/ipython.js') }}"></script>
 
+<style>
+  .all_can_wrapper {position:relative; }
+  .can_wrapper {position:absolute; }
+  .main_ can_wrapper {border:1px dotted green;}
+  .main_can {border:1px solid blue}
+  .x_can_wrapper { border:1px solid orange; }
+  .y_can_wrapper { border:1px solid purple; }
+  .y_can {}
+  ._shader {display:none; } 
+  .shading ._shader {display:block; border:1px dashed green; position: absolute; z-index:-10;}
+  
+  .gridplot_container {position: relative;}
+  .gridplot_container .gp_plotwrapper { position:absolute; } 
+
+
+</style>
 
 <script type="text/template" id="plot-context">
   <!-- no longer used, because pngs don't work well -->
