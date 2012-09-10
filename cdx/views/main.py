@@ -9,14 +9,11 @@ import urlparse
 
 from cdx.app import app
 
-import cdx.arrayserverclient
 import cdx.bbmodel as bbmodel
 import cdx.wsmanager as wsmanager
 import cdx.models.user as user
 import cdx.models.docs as docs
 import cdx.controllers.maincontroller as maincontroller
-import cdx.controllers.namespaces as namespaces
-import cdx.ipython.runnotebook as runnotebook
 
 #main pages
 
@@ -81,17 +78,7 @@ def get_user():
     user = maincontroller.get_current_user(current_app, session)
     return current_app.ph.serialize_web(user.to_public_json())
 
-@app.route('/ipythoninfo/<docid>')
-def get_ipython_info(docid):
-    docid, kernelid, notebookid = namespaces.create_or_load_namespace(
-        current_app, docid)
-    return current_app.ph.serialize_web(
-        {'docid' : docid,
-         'kernelid' : kernelid,
-         'notebookid' : notebookid,
-         'baseurl' : request.host.split(':')[0] + ':' + str(runnotebook.app.port)
-         }
-        )
+
 @app.route('/cdxinfo/<docid>')
 def get_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
@@ -101,16 +88,16 @@ def get_cdx_info(docid):
     plot_context_ref = doc.plot_context_ref
     all_models = current_app.collections.get_bulk(docid)
     all_models = [x.to_broadcast_json() for x in all_models]
-    docid, kernelid, notebookid = namespaces.create_or_load_namespace(
-        current_app, docid)
-    ipythonbaseurl = request.host.split(':')[0] + ':' + str(runnotebook.app.port)
+    #docid, kernelid, notebookid = namespaces.create_or_load_namespace(
+    #    current_app, docid)
+    #ipythonbaseurl = request.host.split(':')[0] + ':' + str(runnotebook.app.port)
     returnval = {'plot_context_ref' : plot_context_ref,
                  'docid' : docid,
-                 'kernelid' : kernelid,
-                 'notebookid' : notebookid,
-                 'baseurl' : ipythonbaseurl,
+                 #'kernelid' : kernelid,
+                 #'notebookid' : notebookid,
+                 #'baseurl' : ipythonbaseurl,
                  'all_models' : all_models,
-                 'arrayserveraddress' : current_app.proxy.reqrepaddr
+                 #'arrayserveraddress' : current_app.proxy.reqrepaddr
                  }
     returnval = current_app.ph.serialize_web(returnval)
     return returnval

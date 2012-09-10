@@ -5,7 +5,8 @@ import weakref
 import logging
 # log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
-    
+1/0
+
 class NotificationDict(dict):
     def __init__(self, *args, **kwargs):
         self.get_notifier = None
@@ -15,23 +16,23 @@ class NotificationDict(dict):
         get_notifier = function that takes key,val as args
         set_notifier = function that takes key,val as args
         """
-        
+
     def __getitem__(self, key):
         val = dict.__getitem__(self, key)
         if self.get_notifier is not None:
             self.get_notifier(key, val)
-            
+
         return val
 
     def __setitem__(self, key, val):
-        dict.__setitem__(self, key, val)        
+        dict.__setitem__(self, key, val)
         if self.set_notifier is not None:
             self.set_notifier(key, val)
-        
+
     def __repr__(self):
         dictrepr = dict.__repr__(self)
         return '%s(%s)' % (type(self).__name__, dictrepr)
-    
+
     def update(self, *args, **kwargs):
         for k, v in dict(*args, **kwargs).iteritems():
             self[k] = v
@@ -68,7 +69,7 @@ class DataFrame(pandas.DataFrame):
         publish_display_data('notifications.DataFrame', data)
 
 
-        
+
 from IPython.core.displaypub import publish_display_data
 def pub_object(varname, val):
     payload = get_variable_message(varname, val=val)
@@ -108,7 +109,7 @@ def json_representation(obj):
             returnobj['json'] = obj.tolist()
     elif isinstance(obj, pandas.DataFrame):
         returnobj['names'] = list(obj);
-        returnobj['names'].insert(0, 'Index') 
+        returnobj['names'].insert(0, 'Index')
         returnobj['type'] = 'DataFrame'
         jsonobj = {}
         for col in obj:
@@ -118,4 +119,3 @@ def json_representation(obj):
     else:
         returnobj['json'] = obj
     return returnobj
-

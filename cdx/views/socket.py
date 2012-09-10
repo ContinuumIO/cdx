@@ -9,7 +9,6 @@ import urlparse
 
 from cdx.app import app
 
-import cdx.arrayserverclient as arrayserverclient
 import cdx.bbmodel as bbmodel
 import cdx.views.common as common
 import cdx.wsmanager as wsmanager

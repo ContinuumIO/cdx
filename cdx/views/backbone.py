@@ -7,7 +7,6 @@ import os
 import logging
 import uuid
 import urlparse
-import cdx.arrayserverclient as arrayserverclient
 import cdx.bbmodel as bbmodel
 import cdx.wsmanager as wsmanager
 
@@ -50,7 +49,7 @@ def create(docid, typename):
     current_app.collections.add(model)
     if model.typename == 'ObjectArrayDataSource':
         print current_app.collections.get(model.typename, model.id)
-        print current_app.collections.get(model.typename, model.id).id        
+        print current_app.collections.get(model.typename, model.id).id
     clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
         current_app.wsmanager.send(doc, app.ph.serialize_web(

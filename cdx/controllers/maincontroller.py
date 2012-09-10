@@ -11,14 +11,14 @@ import socket
 import redis
 from geventwebsocket.handler import WebSocketHandler
 
-import cdx.webzmqproxy as webzmqproxy
+#import cdx.webzmqproxy as webzmqproxy
 from cdx.app import app
 import cdx.wsmanager as wsmanager
-import arrayserver.protocol as protocol
+#import arrayserver.protocol as protocol
 import cdx.bbmodel as bbmodel
 import cdx.models.user as user
 import cdx.models.docs as docs
-import cdx.ipython.runnotebook as runnotebook
+#import cdx.ipython.runnotebook as runnotebook
 import logging
 import time
 log = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
     #must import views before running apps
     import cdx.views.deps
     app.debug = True
+    '''
     app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub,
                                   timeout=timeout, ctx=ctx)
     app.proxy.start()
@@ -38,9 +39,11 @@ def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
                                               timeout=timeout,
                                               ctx=ctx)
     app.proxyclient.start()
+
     app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
+    '''
     app.wsmanager = wsmanager.WebSocketManager()
-    app.ph = protocol.ProtocolHelper()
+    #app.ph = protocol.ProtocolHelper()
     app.collections = bbmodel.ContinuumModelsStorage(
         redis.Redis(host=rhost, port=rport, db=2)
         )
@@ -52,12 +55,12 @@ def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
 
 def shutdown_app():
     print 'shutting down app!'
-    runnotebook.app.http_server.stop()
-    app.ipython_thread.kill()    
+    #runnotebook.app.http_server.stop()
+    #app.ipython_thread.kill()
     app.proxy.kill = True
     app.proxyclient.kill = True
 
-    
+
 def ensure_default_user(app):
     email = 'default@continuum.com'
     password = 'arrayserveron'
@@ -80,9 +83,7 @@ def get_current_user(app, session):
 
 http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
 def start_app():
-    app.ipython_thread = gevent.spawn(runnotebook.launch_new_instance)
-    while not hasattr(runnotebook.app, 'http_server'):
-        time.sleep(0.5)
+    #app.ipython_thread = gevent.spawn(runnotebook.launch_new_instance)
+    #while not hasattr(runnotebook.app, 'http_server'):
+    #    time.sleep(0.5)
     http_server.serve_forever()
-    
-    

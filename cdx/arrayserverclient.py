@@ -1,24 +1,24 @@
 import urlparse
-
+1/0
 def get_summary(client, datapath):
     if not datapath.startswith("/"):
-        datapath = "/" + datapath        
+        datapath = "/" + datapath
     summary, _ = client.rpc(
         'summary', datapath)
     return summary
-    
+
 def get_tree(client, datapath, depth=None):
     if not datapath.startswith("/"):
-        datapath = "/" + datapath        
+        datapath = "/" + datapath
     tree, _ = client.rpc(
         'get_metadata_tree', datapath,
         depth=depth)
     return tree
 
-        
+
 def raw_get(client, datapath, data_slice=None):
     if not datapath.startswith("/"):
-        datapath = "/" + datapath        
+        datapath = "/" + datapath
     retval, dataobj = client.rpc(
         'get', datapath,
         data_slice=data_slice)
@@ -39,5 +39,3 @@ def build_table(array, shape, data_slice, datapath, columns=None):
                 data_slice=data_slice,
                 total_rows=shape[0],
                 url=urlparse.urljoin("/data/", datapath))
-
-

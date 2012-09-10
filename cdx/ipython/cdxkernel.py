@@ -12,7 +12,7 @@ import notifications
 import uuid
 import pandas
 
-
+1/0
 
 class CDXKernelMixin(object):
     def __init__(self, *args, **kwargs):
@@ -26,17 +26,17 @@ class CDXKernelMixin(object):
         self.shell.changed = set()
         self.shell.tableurls = {}
         self.shell.kernel = self
-        
+
     def save_temp_table(self, client, arr):
         self.log.warning('storing arr %s, %s', id(arr), arr)
         url  = self.shell.tableurls.get(id(arr), "/tmp/" + str(uuid.uuid4()))
         self.log.warning('storing %s', url)
         client.rpc('store', urls=[url], data=[arr])
         self.shell.tableurls[id(arr)] = url
-        
+
     def namespace_notification(self, key, val):
         self.shell.changed.add(key)
-        
+
     def process_changed(self):
         for varname in self.shell.changed:
             value = self.shell.user_ns[varname]
@@ -50,10 +50,10 @@ class CDXKernelMixin(object):
                           {'variables': self.get_namespace_data(),
                            'newvars' : list(self.shell.changed)})
         self.shell.changed.clear()
-        
+
     def get_namespace_data(self):
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
-        local_varnames.append("_")        
+        local_varnames.append("_")
         self.log.warning("%s", local_varnames)
         variables = []
         local_vars = [self.shell.user_ns[x] for x in local_varnames]
@@ -79,7 +79,7 @@ class CDXKernelMixin(object):
         super(CDXKernelMixin, self).execute_request(stream, ident, parent)
         local_varnames = self.shell.magics_manager.magics['line']['who_ls']()
         self.process_changed()
-        
+
     def namespace_request(self, stream, ident, parent):
         reply_msg = self.session.send(stream, u'namespace',
                                       {u'variables': self.get_namespace_data()},

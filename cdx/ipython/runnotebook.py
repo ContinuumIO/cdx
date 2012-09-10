@@ -6,9 +6,10 @@ from tornado import httpserver
 import tornado
 import uuid
 import os
+1/0
 
 class CDXKernelManager(kernelmanager.MappingKernelManager):
-    
+
     def _start_kernel(self, **kwargs):
         ## FROM MultiKernelManager
         kernel_id = unicode(uuid.uuid4())
@@ -45,7 +46,7 @@ class CDXKernelManager(kernelmanager.MappingKernelManager):
         else:
             self.log.info("Using existing kernel: %s" % kernel_id)
         return kernel_id
-    
+
 notebookapp.MappingKernelManager = CDXKernelManager
 class ContinuumEmbeddedNotebookApp(notebookapp.NotebookApp):
     def init_signal(self):
@@ -63,4 +64,3 @@ def launch_new_instance():
     app.web_app.notebook_manager.list_notebooks()
 if __name__ == "__main__":
     launch_new_instance()
-    

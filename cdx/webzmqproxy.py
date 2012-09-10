@@ -14,6 +14,7 @@ import logging
 import arrayserver.protocol as protocol
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
+1/0
 
 class ProxyClient(threading.Thread):
     def __init__(self, pushpulladdr, pubsubaddr,
@@ -32,7 +33,7 @@ class ProxyClient(threading.Thread):
         super(ProxyClient, self).__init__()
         self.kill = False
         self.uuid = str(uuid.uuid4())
-        
+
     def run_send(self):
         self.push = self.ctx.socket(zmq.PUSH)
         self.push.connect(self.pushpulladdr)
@@ -47,7 +48,7 @@ class ProxyClient(threading.Thread):
             log.exception(e)
         finally:
             self.push.close()
-            
+
     def run_recv(self):
         self.sub = self.ctx.socket(zmq.SUB)
         self.sub.setsockopt(zmq.SUBSCRIBE,'')
@@ -71,13 +72,13 @@ class ProxyClient(threading.Thread):
             log.exception(e)
         finally:
             self.sub.close()
-            
+
     def run(self):
         t = threading.Thread(target=self.run_send)
         t.start()
         self.run_recv()
         t.join()
-        
+
     def request(self, msgobj, dataobjs):
         msgid = str(uuid.uuid4())
         queue = Queue()
@@ -88,20 +89,22 @@ class ProxyClient(threading.Thread):
         dataobjs = []
         while True:
             try:
-                (clientid, msgid, responseobj, dataobjs) = self.queues[msgid].get(timeout=self.timeout)
+                clientid, msgid, responseobj, dataobjs = self.queues[msgid].get(
+                    timeout=self.timeout)
                 if responseobj.get('msgtype') == 'rpcresponse':
                     break
                 else:
                     responseobj = None
                     dataobjs = []
-                    log.debug("%s, %s, %s, %s", clientid, msgid, responseobj, dataobjs)
+                    log.debug("%s, %s, %s, %s",
+                        clientid, msgid, responseobj, dataobjs)
             except gevent.queue.Empty as e:
-                log.debug("empty!, no response for proxy after %s seconds", self.timeout)                
-     
+                log.debug("empty!, no response for proxy after %s seconds",
+                          self.timeout)
                 break
         del self.queues[msgid]
         return (responseobj, dataobjs)
-    
+
 class Proxy(threading.Thread):
     def __init__(self, reqrepaddr, pushpulladdr, pubsubaddr, timeout=2, ctx=None):
         self.timeout = timeout
@@ -113,7 +116,7 @@ class Proxy(threading.Thread):
         self.pubsubaddr = pubsubaddr
         self.kill = False
         super(Proxy, self).__init__()
-        
+
     def init_sockets(self):
         self.dealer = self.ctx.socket(zmq.DEALER)
         self.dealer.connect(self.reqrepaddr)
@@ -122,7 +125,7 @@ class Proxy(threading.Thread):
         self.pull.bind(self.pushpulladdr)
         self.pub = self.ctx.socket(zmq.PUB)
         self.pub.bind(self.pubsubaddr)
-        
+
     def run(self):
         self.init_sockets()
         poller = zmq.Poller()
@@ -145,7 +148,7 @@ class Proxy(threading.Thread):
             self.dealer.close()
             self.pull.close()
             self.pub.close()
-            
+
 
 import arrayserver.server.rpc.client as client
 
@@ -153,8 +156,7 @@ class ProxyRPCClient(client.BaseRPCClient):
     def __init__(self, proxyclient):
         self.proxyclient = proxyclient
         self.ph = proxyclient.ph
-        
+
     def reqrep(self, requestobj, dataobjs):
         (msgobj, dataobjs) = self.proxyclient.request(requestobj, dataobjs)
         return msgobj, dataobjs
-            

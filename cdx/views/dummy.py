@@ -9,7 +9,7 @@ import urlparse
 
 from cdx.app import app
 
-import cdx.arrayserverclient as arrayserverclient
+#import cdx.arrayserverclient as arrayserverclient
 import cdx.bbmodel as bbmodel
 import cdx.views.common as common
 import cdx.wsmanager as wsmanager
@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 #test app view code goes here.
 
 #dummy pages for browsing hdf5 data sets in arrayserver
+"""
 @app.route("/dataview/", methods=['GET'])
 @app.route("/dataview/<path:datapath>", methods=['GET'])
 def get_dataview(datapath=""):
@@ -36,6 +37,7 @@ def get_dataview(datapath=""):
             data, response['shape'], data_slice, datapath)
         return flask.render_template('simpledataset.html',
                                      table_obj=app.ph.serialize_web(table_obj))
+"""
 
 
 #main page for interactive plotting
