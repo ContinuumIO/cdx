@@ -101,6 +101,9 @@ $(() ->
         Continuum.Collections.Plot.on('add', (model, b) ->
           $CDX.utility.add_plot_tab(model)
         )
+        Continuum.Collections.Table.on('add', (model, b) ->
+          $CDX.utility.add_plot_tab(model)
+        )
         Continuum.Collections.GridPlotContainer.on('add', (model, b) ->
           $CDX.utility.add_plot_tab(model)
         )
