@@ -14,7 +14,7 @@ from geventwebsocket.handler import WebSocketHandler
 #import cdx.webzmqproxy as webzmqproxy
 from cdx.app import app
 import cdx.wsmanager as wsmanager
-#import arrayserver.protocol as protocol
+import arrayserver.protocol as protocol
 import cdx.bbmodel as bbmodel
 import cdx.models.user as user
 import cdx.models.docs as docs
@@ -43,7 +43,7 @@ def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
     app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
     '''
     app.wsmanager = wsmanager.WebSocketManager()
-    #app.ph = protocol.ProtocolHelper()
+    app.ph = protocol.ProtocolHelper()
     app.collections = bbmodel.ContinuumModelsStorage(
         redis.Redis(host=rhost, port=rport, db=2)
         )
