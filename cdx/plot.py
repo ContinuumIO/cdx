@@ -10,7 +10,7 @@ class GridPlot(object):
         self.children = children
         self.title = title
         self.client = client
-        
+
 class ScatterPlot(object):
     def __init__(self, client, plot, data_source, screen_xrange,
                  screen_yrange, data_xrange, data_yrange,
@@ -49,21 +49,38 @@ class LinePlot(object):
         self.zoomtool = zoomtool
         self.parent = parent
 
+class TablePlot(object):
+    def __init__(self, client, plot, data_source, screen_xrange,
+                 screen_yrange, data_xrange, data_yrange,
+                 xmapper, ymapper, renderer, pantool, zoomtool, parent):
+        self.plot = plot
+        self.data_source = data_source
+        self.screen_xrange = screen_xrange
+        self.screen_yrange = screen_yrange
+        self.data_xrange = data_xrange
+        self.data_yrange = data_yrange
+        self.xmapper = xmapper
+        self.ymapper = ymapper
+        self.renderer = renderer
+        self.pantool = pantool
+        self.zoomtool = zoomtool
+        self.parent = parent
+
 class PlotClient(bbmodel.ContinuumModelsClient):
     def __init__(self, docid, url):
         self.ph = protocol.ProtocolHelper()
         super(PlotClient, self).__init__(docid, url, self.ph)
         interactive_context = self.fetch(typename='CDXPlotContext')
         self.ic = interactive_context[0]
-        
+
     def updateic(self):
         self.updateobj(self.ic)
-        
+
     def updateobj(self, obj):
         newobj = self.fetch(obj.typename, obj.get('id'))
         obj.attributes = newobj.attributes
         return obj
-    
+
     def make_arrayserver_source(self, obj):
         ## hack right now we coerce the id based on url,
         ## so that we can link our js
@@ -71,14 +88,14 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         if hasattr(obj, 'url'):
             url = obj.url
         else:
-            _ip = get_ipython()            
+            _ip = get_ipython()
             url = _ip.tableurls.get(id(obj), None)
             if url is None:
                 _ip.kernel.save_temp_table(_ip.user_ns['bc'], obj)
             url = _ip.tableurls[id(obj)]
         return self.create('ArrayServerObjectArrayDataSource',
                            {'url' : url, 'id' : url.replace("/", "_")})
-        
+
     def make_source(self, **kwargs):
         output = []
         flds = kwargs.keys()
@@ -93,7 +110,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             output.append(point)
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
-    
+
     def _xydata(self, x, y, data_source=None):
         """if data_source is provided, then x and y are names of fields in the data_source
         if data_source is not provided, a data_source is constructed from x,y
@@ -106,7 +123,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             xfield = x
             yfield = y
         return xfield, yfield, data_source
-    
+
     def _newxyplot(self, x, y, title=None, width=300, height=300, data_source=None,
                    is_x_date=False, is_y_date=False, container=None):
         """
@@ -125,7 +142,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
         plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
                                       xrange=xr.ref(), yrange=yr.ref())
-        
+
         xfield, yfield, data_source = self._xydata(x, y, data_source=data_source)
         if container:
             plot.set('parent', container.ref())
@@ -162,7 +179,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                       xaxis=xaxis, yaxis=yaxis,
                       data_source=data_source)
         return output
-    
+
     def scatter(self, x, y, title=None, width=300, height=300, color="#000",
                 is_x_date=False, is_y_date=False,
                 data_source=None, container=None, scatterplot=None):
@@ -240,8 +257,8 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         tocreate.append(newobjs['plot'])
         datarangex, datarangey = newobjs['datarangex'], newobjs['datarangey']
         xmapper, ymapper = newobjs['xmapper'], newobjs['ymapper']
-        xr, yr = newobjs['xr'], newobjs['yr']        
-        xaxis, yaxis = newobjs['xaxis'], newobjs['yaxis']        
+        xr, yr = newobjs['xr'], newobjs['yr']
+        xaxis, yaxis = newobjs['xaxis'], newobjs['yaxis']
         xfield, yfield = newobjs['xfield'], newobjs['yfield']
         data_source = newobjs['data_source']
         plot = newobjs['plot']
@@ -282,6 +299,121 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                            pantool, zoomtool, selecttool, selectoverlay,
                            container)
 
+    def table(self, x, y, title=None, width=300, height=300, color="#000",
+                is_x_date=False, is_y_date=False,
+                data_source=None, container=None, scatterplot=None):
+        """
+        Parameters
+        ----------
+        x : string of fieldname in data_source, or 1d vector
+        y : string of fieldname in data_source or 1d_vector
+        data_source : optional if x,y are not strings,
+            backbonemodel of a data source
+        container : bbmodel of container viewmodel
+
+        Returns
+        ----------
+        (plotmodel, data_source)
+        """
+        if scatterplot is None:
+             scatterplot = self._newtable(
+                 x, y, title=title,
+                 width=width, height=height, color=color,
+                 is_x_date=is_x_date, is_y_date=is_y_date,
+                 data_source=data_source, container=container)
+        return scatterplot
+
+    def _newxytable(self, x, y, title=None, width=300, height=300, data_source=None,
+                   is_x_date=False, is_y_date=False, container=None):
+        """
+        Parameters
+        ----------
+        x : string of fieldname in data_source, or 1d vector
+        y : string of fieldname in data_source or 1d_vector
+        data_source : optional if x,y are not strings,
+            backbonemodel of a data source
+        container : bbmodel of container viewmodel
+
+        Returns
+        ----------
+        """
+        xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
+        yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
+        plot = bbmodel.ContinuumModel('Table', width=width, height=height,
+                                      xrange=xr.ref(), yrange=yr.ref())
+
+        xfield, yfield, data_source = self._xydata(x, y, data_source=data_source)
+        if container:
+            plot.set('parent', container.ref())
+        else:
+            plot.set('parent', self.ic.ref())
+        if title is not None: plot.set('title', title)
+        datarangex = bbmodel.ContinuumModel(
+            'DataRange1d',
+            sources=[{'ref' : data_source.ref(),
+                      'columns' : [xfield]}])
+        datarangey = bbmodel.ContinuumModel(
+            'DataRange1d',
+            sources=[{'ref' : data_source.ref(),
+                      'columns' : [yfield]}])
+        xmapper = bbmodel.ContinuumModel(
+            'LinearMapper', data_range=datarangex.ref(),
+            screen_range=xr.ref())
+        ymapper = bbmodel.ContinuumModel(
+            'LinearMapper', data_range=datarangey.ref(),
+            screen_range=yr.ref())
+        output = dict(plot=plot, xr=xr, yr=yr, xfield=xfield, yfield=yfield,
+                      datarangex=datarangex, datarangey=datarangey,
+                      xmapper=xmapper, ymapper=ymapper,
+                      data_source=data_source)
+        return output
+
+
+    def _newtable(self, x, y, width=300, height=300, color="#000",
+                    is_x_date=False, is_y_date=False,
+                    title='None', data_source=None, container=None):
+        """
+        Parameters
+        ----------
+        x : string of fieldname in data_source, or 1d vector
+        y : string of fieldname in data_source or 1d_vector
+        data_source : optional if x,y are not strings,
+            backbonemodel of a data source
+        container : bbmodel of container viewmodel
+
+        Returns
+        ----------
+        (plotmodel, data_source)
+        """
+        newobjs = self._newxytable(x, y, width=width, height=height, title=title,
+                                  is_x_date=is_x_date, is_y_date=is_y_date,
+                                  data_source=data_source, container=container)
+        tocreate = []
+        tocreate.append(newobjs['plot'])
+        datarangex, datarangey = newobjs['datarangex'], newobjs['datarangey']
+        xmapper, ymapper = newobjs['xmapper'], newobjs['ymapper']
+        xr, yr = newobjs['xr'], newobjs['yr']
+        xfield, yfield = newobjs['xfield'], newobjs['yfield']
+        data_source = newobjs['data_source']
+        plot = newobjs['plot']
+        table = bbmodel.ContinuumModel(
+            'TableRenderer', foreground_color=color,
+            data_source=data_source.ref(),
+            xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
+            ymapper=ymapper.ref(), parent=plot.ref())
+        plot.set('renderers', [table.ref()])
+        tocreate.extend([plot, xr, yr, datarangex, datarangey,
+                         xmapper, ymapper, table])
+        self.upsert_all(tocreate)
+        if container is None:
+            self.show(plot)
+            container = self.ic
+        return TablePlot(self, plot, data_source, xr, yr,
+                           datarangex, datarangey,
+                           xmapper, ymapper, table,
+                           None, None, container)
+
+
     def _newlineplot(self, x, y, title=None, width=300, height=300, lineplot=None,
                      is_x_date=False, is_y_date=False,
                      data_source=None, container=None):
@@ -293,8 +425,8 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         tocreate.append(newobjs['plot'])
         datarangex, datarangey = newobjs['datarangex'], newobjs['datarangey']
         xmapper, ymapper = newobjs['xmapper'], newobjs['ymapper']
-        xr, yr = newobjs['xr'], newobjs['yr']        
-        xaxis, yaxis = newobjs['xaxis'], newobjs['yaxis']        
+        xr, yr = newobjs['xr'], newobjs['yr']
+        xaxis, yaxis = newobjs['xaxis'], newobjs['yaxis']
         xfield, yfield = newobjs['xfield'], newobjs['yfield']
         data_source = newobjs['data_source']
         plot = newobjs['plot']
@@ -328,7 +460,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
 
 
     def line(self, x, y, title=None, width=300, height=300, lineplot=None,
-             is_x_date=False, is_y_date=False,             
+             is_x_date=False, is_y_date=False,
              data_source=None, container=None):
         """
         Parameters
@@ -353,7 +485,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         else:
             lineplot = self._addline(lineplot, x, y, data_source=data_source)
         return lineplot
-    
+
     def _add_source_to_range(self, data_source, columns, range):
         sources = range.get('sources')
         added = False
