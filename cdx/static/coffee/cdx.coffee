@@ -270,6 +270,10 @@ $CDX.add_data_tab = (itemName, url) ->
   $CDX.main_tab_set.activate(itemName)
 
 $CDX.add_data_array = (url) ->
+  console.log("add_data_array");
+  if true
+    return
+  
   itemName = $CDX.IPython.suggest_variable_name(url)
   command = "#{itemName} = bc.get('#{url}')"
   console.log(command)

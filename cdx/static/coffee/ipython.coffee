@@ -2,6 +2,9 @@ $CDX = window.$CDX
 $CDX.IPython = {}
 
 
+
+
+"""
 execute_code =  (code) ->
   cells = IPython.notebook.cells()
   last_cell = cells[(cells.length - 1)]
@@ -72,3 +75,4 @@ $CDX.IPython.suggest_variable_name = (target) ->
     candidate = target + String(counter)
     counter += 1
   return candidate
+"""

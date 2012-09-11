@@ -5,7 +5,7 @@ class $CDX.Views.NamespaceViewer extends Backbone.View
   render: () ->
     console.log('namespaceviewer render')
     variable_item_template = $('#variable-item-template').html()
-
+    """
     $.when($CDX.IPython.namespace.get('variables')).then( (array) =>
       window.namespace = array
       funcs = _.filter(array, (obj) -> obj.type == 'function')
@@ -15,6 +15,7 @@ class $CDX.Views.NamespaceViewer extends Backbone.View
         _.template2(variable_item_template,
           reg_variables:grouped, funcs:funcs))
       )
+    """
 
 class $CDX.Views.SummaryView extends Backbone.View
   render: () ->
