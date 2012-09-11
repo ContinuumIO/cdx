@@ -57,10 +57,10 @@ $CDX.showHelp = (event, section) ->
   """
   event.preventDefault()
   return false
-
+"""
 window.add_plot = ->
   $CDX.IPython.execute_code("p.line(x=[1,2,3,4,5], y=[1,2,3,4,5])")
-
+"""
 $(() ->
 
   $CDX.utility = {
@@ -126,22 +126,18 @@ $(() ->
           ws_conn_string = "ws://#{window.location.host}/sub"
           socket = Continuum.submodels(ws_conn_string, $CDX.docid)
 
-          $CDX.IPython.kernelid = data['kernelid']
-          $CDX.IPython.notebookid = data['notebookid']
-          $CDX.IPython.baseurl = data['baseurl']
+          #$CDX.IPython.kernelid = data['kernelid']
+          #$CDX.IPython.notebookid = data['notebookid']
+          #$CDX.IPython.baseurl = data['baseurl']
           $CDX.resize_loop()
           $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
         )
 
     instantiate_ipython: (docid) ->
       if not $CDX.Deferreds._ipython_loaded.isResolved()
-          IPython.loadfunc()
-          IPython.start_notebook()
-          _.delay(
-            () =>
-              $CDX.IPython.inject_plot_client($CDX.docid)
-            , 1000
-          )
+          #IPython.loadfunc()
+          #IPython.start_notebook()
+          _.delay((() -> a = 1+1), 1000)
   }
 
   WorkspaceRouter = Backbone.Router.extend(
@@ -221,6 +217,7 @@ $(() ->
     $("#layout-root").prepend($CDX.layout_render.el)
   )
   console.log("history start", Backbone.history.start(pushState:true))
+  """
   $CDX.IPython.namespace.on('change:variables', ->
     $CDX.namespaceViewer.render()
     $CDX.summaryView.render())
@@ -238,6 +235,7 @@ $(() ->
             $CDX.add_data_tab(newvar.name, data_source)
     return null
   )
+  """
 
 )
 $CDX.get_arrayserver_source = (url) ->
