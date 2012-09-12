@@ -240,3 +240,4 @@ $CDX.Views.Layout = Backbone.Marionette.Layout.extend(
 
 $CDX.pystate = 'normal'
 $CDX.togglePyPane = () ->
+  

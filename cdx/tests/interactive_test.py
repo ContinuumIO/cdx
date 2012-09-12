@@ -1,6 +1,6 @@
 import cdx.interactive as interactive
 clients = interactive.CDXClient(
-    'http://localhost:5000/cdx/aedb3711-ee5b-4797-b2c2-42ed9f09d229/')
+    'http://localhost:5000/cdx/a34b134a-2e85-4e22-9cd7-a30f1fd91e7b')
 import numpy as np
 
 x = np.random.random(100)
