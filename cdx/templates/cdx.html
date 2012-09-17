@@ -58,8 +58,9 @@
     <script type=text/javascript src="{{ url_for('static',filename='js/blaze.js') }}"></script>
     <script type=text/javascript src="{{ url_for('static',filename='js/cdx.js') }}"></script>
 {% else %}
-  <script type=text/javascript src="{{ url_for('static',filename='js/min.js') }}"></script>
+  <script type=text/javascript src="{{ url_for('static', filename='vendor/catted.js') }}"></script>
 {% endif %}
+
 <style>
   .all_can_wrapper {position:relative; }
   .can_wrapper {position:absolute; }

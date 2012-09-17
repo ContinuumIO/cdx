@@ -1,2 +1,2 @@
 #!/bin/bash
-cat js_for_cat | xargs cat > ../../cdx/static/js/min.js ; du -h ../../cdx/static/js/min.js
+cat js_for_cat | xargs cat > ../../submodule/cdx-compiledjs/catted.js ; du -h  ../../submodule/cdx-compiledjs/catted.js ; du -h

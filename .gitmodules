@@ -22,3 +22,6 @@
 [submodule "submodule/arrayserver"]
 	path = submodule/arrayserver
 	url = git@github.com:ContinuumIO/ArrayServer.git
+[submodule "submodule/cdx-compiledjs"]
+	path = submodule/cdx-compiledjs
+	url = git@github.com:ContinuumIO/cdx-compiledjs.git
