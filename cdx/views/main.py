@@ -41,7 +41,7 @@ def index(*unused_all, **kwargs):
     if current_user is None:
         #redirect to login, we don't have login page yet..
         pass
-    return render_template('cdx.html')
+    return render_template('cdx.html', NODE_INSTALLED=False)
 
 @app.route('/cdx_help')
 @app.route('/cdx_help/<unused>')

@@ -7,33 +7,20 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-	<!-- Vendor scripts 
-    <script type=text/javascript src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 
--->
-    <script type=text/javascript src="{{ url_for('static', filename='vendor/jquery.1.7.2.min.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static', filename='vendor/d3/d3.v2.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static', filename='vendor/underscore/underscore.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static', filename='vendor/backbone/backbone.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static', filename='vendor/backbone.marionette.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static', filename='vendor/buckets/buckets.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.js') }}"></script>
+    {% if not  NODE_INSTALLED %}
+      <!-- node not installed  -->
+      <!-- Vendor scripts -->
 
-	<!-- Continuum scripts -->
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/base.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/view_base.js') }}"></script>       <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/model_base.js') }}"></script>
+{% else %}
 
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/ui_view.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/ui_model.js') }}"></script>    
 
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/bokeh_views.js') }}"></script>
 
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/ticks.js') }}"></script>       
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/tools.js') }}"></script>       
+{% endif %}
 
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/bokeh_model.js') }}"></script>    
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/custom.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static',filename='vendor/bokehjs/js/svg_to_dataurl.js') }}"></script>
+
+
+
 
 
 	<!-- Vendor Styles -->
