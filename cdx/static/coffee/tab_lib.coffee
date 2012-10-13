@@ -46,13 +46,13 @@ class TabSet extends Backbone.View
     $(tvo.tab_el).remove()
     $(tvo.pane_el).remove()
 
-
   _create_tab: (tab_view_obj) ->
     tab = $("<li><a>#{tab_view_obj.tab_name}</a></li>")
     tab.click( (e) =>
       @activate(tab_view_obj.route))
     # add click handler for x button to remove the tab
     tab
+
   _create_pane: (tab_view_obj) ->
     pane = $("<div class='pane'></div>")
     pane.append(tab_view_obj.view.el)

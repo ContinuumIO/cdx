@@ -104,6 +104,10 @@ $(() ->
         Continuum.Collections.Table.on('add', (model, b) ->
           $CDX.utility.add_plot_tab(model)
         )
+        Continuum.Collections.Table.on('remove', (model, b) ->
+          $CDX.utility.remove_plot_tab(model)
+        )
+        
         Continuum.Collections.GridPlotContainer.on('add', (model, b) ->
           $CDX.utility.add_plot_tab(model)
         )
@@ -115,6 +119,9 @@ $(() ->
       $CDX.main_tab_set.add_tab(
         {view: pview , route: model.get('id'), tab_name: model.get('title')})
       $CDX.main_tab_set.activate(model.get('id'))
+
+    remove_plot_tab : (model) ->
+      $CDX.main_tab_set._remove_tab(model.get('id'))
 
     instantiate_doc : (docid) ->
       if not $CDX.Deferreds._doc_loaded.isResolved()

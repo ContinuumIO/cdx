@@ -33,7 +33,7 @@ import argparse
 def main():
     parser = run.argparser()
     args = parser.parse_args()
-    run.write_pid(args.datapath, 'CDX')    
+    run.write_pid(args.datapath, 'CDX')
     redisproc, broker, node = run.start_arrayserver(args)
     maincontroller.prepare_app(args.front_address, rhost=args.redis_host,
                                rport=args.redis_port)
@@ -48,4 +48,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
