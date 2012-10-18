@@ -156,10 +156,20 @@ class ContinuumModelsClient(object):
     def __init__(self, docid, baseurl, ph):
         self.ph = ph
         self.baseurl = baseurl
+        parsed = urlparse.urlsplit(baseurl)
+        self.hostpath = urlparse.urlunsplit(parsed.scheme,
+                                            parsed.netloc,
+                                            '','','')
         self.docid = docid
         self.s = requests.session(headers={'content-type':'application/json'})
         super(ContinuumModelsClient, self).__init__()
         self.buffer = []
+        
+    def authenticate(self):
+        loginpage = urlparse.urljoin(self.hostpath, "/usermgmt/login")
+        data = self.s.get(loginpage)
+        import pdb;pdb.set_trace()
+        #self.s.post("/usermgmt/login")
         
     def delete(self, typename, id):
         url = utils.urljoin(self.baseurl, self.docid +"/", typename + "/", id)
