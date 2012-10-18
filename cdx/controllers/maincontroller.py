@@ -18,6 +18,11 @@ import arrayserver.protocol as protocol
 import cdx.bbmodel as bbmodel
 import cdx.models.user as user
 import cdx.models.docs as docs
+from wakariserver.djangointerface import (get_session_data,
+                                          get_user,
+                                          get_current_user,
+                                          login_required
+                                          )
 #import cdx.ipython.runnotebook as runnotebook
 import logging
 import time
@@ -31,17 +36,6 @@ def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
     #must import views before running apps
     import cdx.views.deps
     app.debug = True
-    '''
-    app.proxy = webzmqproxy.Proxy(reqrepaddr, pushpull, pubsub,
-                                  timeout=timeout, ctx=ctx)
-    app.proxy.start()
-    app.proxyclient = webzmqproxy.ProxyClient(pushpull, pubsub,
-                                              timeout=timeout,
-                                              ctx=ctx)
-    app.proxyclient.start()
-
-    app.rpcclient = webzmqproxy.ProxyRPCClient(app.proxyclient)
-    '''
     app.wsmanager = wsmanager.WebSocketManager()
     app.ph = protocol.ProtocolHelper()
     app.collections = bbmodel.ContinuumModelsStorage(
@@ -53,37 +47,35 @@ def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
     app.desktopmode = desktopmode
     return app
 
+def get_cdx_user(app, session=None):
+    """reads django user information, if a user is present,
+    we create/ensure an equivalent one lives in our DB.
+    We'll call this every time for now.. but we can be more
+    efficient about it in the future
+    """
+    try:
+        dbsession = session if session else app.Session() 
+        auth_user, wakari_user = get_current_user(dbsession, request)
+        if auth_user is None or wakari_user is None:
+            return None
+        else:
+            cdxuser = user.User.load(app.model_redis, auth_user.username)
+            if cdxuser is None:
+                docid = str(uuid.uuid4())
+                doc = docs.new_doc(app, docid, 'main', [email])
+                cdxuser = user.new_user(app.model_redis,
+                                        auth_user.email, str(uuid.uuid4()), docs=[doc.docid])
+            return cdxuser
+    finally:
+        #close session if it was not passed  in
+        if not session:
+            dbsession.close()
+        
 def shutdown_app():
     print 'shutting down app!'
-    #runnotebook.app.http_server.stop()
-    #app.ipython_thread.kill()
     app.proxy.kill = True
     app.proxyclient.kill = True
 
-
-def ensure_default_user(app):
-    email = 'default@continuum.com'
-    password = 'arrayserveron'
-    defaultuser = user.User.load(app.model_redis, email)
-    if defaultuser is None:
-        docid = str(uuid.uuid4())
-        doc = docs.new_doc(app, docid, 'main', [email])
-        defaultuser = user.new_user(app.model_redis,
-                                    email, password, docs=[doc.docid])
-    return defaultuser
-
-def get_current_user(app, session):
-    current_user = None
-    if 'username' in session:
-        current_user = user.User.load(app.model_redis, session['username'])
-    if current_user is None:
-        if app.desktopmode:
-            current_user = ensure_default_user(app)
-    return current_user
-
-http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
+http_server = WSGIServer(('', 5006), app, handler_class=WebSocketHandler)
 def start_app():
-    #app.ipython_thread = gevent.spawn(runnotebook.launch_new_instance)
-    #while not hasattr(runnotebook.app, 'http_server'):
-    #    time.sleep(0.5)
     http_server.serve_forever()
