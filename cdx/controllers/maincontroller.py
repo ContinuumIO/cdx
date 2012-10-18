@@ -56,7 +56,6 @@ def get_cdx_user(app, request, session=None):
     efficient about it in the future
     """
     try:
-        import pdb;pdb.set_trace()
         dbsession = session if session else app.Session() 
         auth_user, wakari_user = get_current_user(dbsession, request)
         if auth_user is None or wakari_user is None:
