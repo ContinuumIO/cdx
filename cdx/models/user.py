@@ -22,7 +22,7 @@ def auth_user(client, username, password):
         return user
     else:
         raise models.UnauthorizedException
-    
+
 class User(models.ServerModel):
     idfield = 'username'
     typename = 'user'

@@ -13,6 +13,7 @@ import cdx.bbmodel as bbmodel
 import cdx.wsmanager as wsmanager
 import cdx.models.user as user
 import cdx.models.docs as docs
+import cdx.models.convenience as mconv
 import cdx.controllers.maincontroller as maincontroller
 
 #main pages
@@ -20,7 +21,7 @@ import cdx.controllers.maincontroller as maincontroller
 # @app.route('/cdx/')
 # @app.route('/cdx/<path:unused>/')
 # def index(*unused_all, **kwargs):
-#     current_user = maincontroller.get_cdx_user(current_app, request)
+#     current_user = mconv.from_wakari(current_app, request)
 #     if current_user is None:
 #         #redirect to login, we don't have login page yet..
 #         pass
@@ -29,7 +30,7 @@ import cdx.controllers.maincontroller as maincontroller
 # @app.route('/cdx_help')
 # @app.route('/cdx_help/<path:unused>/')
 # def cdx_help(*unused_all, **kwargs):
-#     current_user = maincontroller.get_cdx_user(current_app, request)
+#     current_user = mconv.from_wakari(current_app, request)
 #     if current_user is None:
 #         #redirect to login, we don't have login page yet..
 #         pass
@@ -42,14 +43,14 @@ def favicon():
 
 @app.route('/cdx/userinfo/')
 def get_user():
-    user = maincontroller.get_cdx_user(current_app, request)
+    user = mconv.from_wakari(current_app, request)
     return current_app.ph.serialize_web(user.to_public_json())
 
 
 @app.route('/cdx/cdxinfo/<docid>')
 def get_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
-    user = maincontroller.get_cdx_user(current_app, request)
+    user = mconv.from_wakari(current_app, request)
     if not ((user.username in doc.rw_users) or (user.username in doc.r_users)):
         return null
     plot_context_ref = doc.plot_context_ref
@@ -58,6 +59,6 @@ def get_cdx_info(docid):
     returnval = {'plot_context_ref' : plot_context_ref,
                  'docid' : docid,
                  'all_models' : all_models,
-                 }
+                 'apikey' : doc.apikey}
     returnval = current_app.ph.serialize_web(returnval)
     return returnval

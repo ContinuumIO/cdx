@@ -1,7 +1,11 @@
-import bbmodel
-import arrayserver.protocol as protocol
 import numpy as np
 import logging
+import urlparse
+import requests
+
+import bbmodel
+import arrayserver.protocol as protocol
+
 log = logging.getLogger(__name__)
 
 class GridPlot(object):
@@ -67,12 +71,16 @@ class TablePlot(object):
         self.parent = parent
 
 class PlotClient(bbmodel.ContinuumModelsClient):
-    def __init__(self, docid, url):
-        self.ph = protocol.ProtocolHelper()
-        super(PlotClient, self).__init__(docid, url, self.ph)
+    def __init__(self, docid, serverloc, apikey, ph=None):
+        url = urlparse.urljoin(serverloc, "/cdx/bb/")
+        print url
+        if not ph:
+            ph = protocol.ProtocolHelper()
+        self.ph = ph
+        super(PlotClient, self).__init__(docid, url, apikey, self.ph)
         interactive_context = self.fetch(typename='CDXPlotContext')
         self.ic = interactive_context[0]
-
+        
     def updateic(self):
         self.updateobj(self.ic)
 

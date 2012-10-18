@@ -1,14 +1,13 @@
-import cdx.interactive as interactive
-clients = interactive.CDXClient(
-    'http://localhost:5000/cdx/a34b134a-2e85-4e22-9cd7-a30f1fd91e7b')
+from cdx import plot
+p = plot.PlotClient('24d603e8-1838-4514-a33b-4f02aaa50c9e', 'https://localhost', 'f3ae0299-b3a9-46f3-adfb-8b21285bf446')
 import numpy as np
 
 x = np.random.random(100)
 y = np.random.random(100)
-data_source = clients.p.make_source(idx=range(100), x=x, y=y)
-scatterplot1 = clients.p.scatter(
+data_source = p.make_source(idx=range(100), x=x, y=y)
+scatterplot1 = p.scatter(
     x='idx', y='x', color='#F00',
     data_source=data_source, title='paddy_from_py')
-tableplot1 = clients.p.table(
+tableplot1 = p.table(
     x='idx', y='x', color='#F00',
     data_source=data_source, title='paddy_table_py')
