@@ -17,23 +17,23 @@ import cdx.controllers.maincontroller as maincontroller
 
 #main pages
 
-@app.route('/cdx/')
-@app.route('/cdx/<path:unused>/')
-def index(*unused_all, **kwargs):
-    current_user = maincontroller.get_cdx_user(current_app)
-    if current_user is None:
-        #redirect to login, we don't have login page yet..
-        pass
-    return render_template('cdx.html', NODE_INSTALLED=False)
+# @app.route('/cdx/')
+# @app.route('/cdx/<path:unused>/')
+# def index(*unused_all, **kwargs):
+#     current_user = maincontroller.get_cdx_user(current_app, request)
+#     if current_user is None:
+#         #redirect to login, we don't have login page yet..
+#         pass
+#     return render_template('cdx.html', NODE_INSTALLED=False)
 
-@app.route('/cdx_help')
-@app.route('/cdx/<path:unused>/')
-def cdx_help(*unused_all, **kwargs):
-    current_user = maincontroller.get_cdx_user(current_app)
-    if current_user is None:
-        #redirect to login, we don't have login page yet..
-        pass
-    return render_template('cdx_help.html')
+# @app.route('/cdx_help')
+# @app.route('/cdx_help/<path:unused>/')
+# def cdx_help(*unused_all, **kwargs):
+#     current_user = maincontroller.get_cdx_user(current_app, request)
+#     if current_user is None:
+#         #redirect to login, we don't have login page yet..
+#         pass
+#     return render_template('cdx_help.html')
 
 @app.route('/cdx/favicon.ico')
 def favicon():
@@ -42,15 +42,15 @@ def favicon():
 
 @app.route('/cdx/userinfo/')
 def get_user():
-    user = maincontroller.get_cdx_user(current_app)
+    user = maincontroller.get_cdx_user(current_app, request)
     return current_app.ph.serialize_web(user.to_public_json())
 
 
 @app.route('/cdx/cdxinfo/<docid>')
 def get_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
-    user = maincontroller.get_cdx_user(current_app)
-    if not ((user.email in doc.rw_users) or (user.email in doc.r_users)):
+    user = maincontroller.get_cdx_user(current_app, request)
+    if not ((user.username in doc.rw_users) or (user.username in doc.r_users)):
         return null
     plot_context_ref = doc.plot_context_ref
     all_models = current_app.collections.get_bulk(docid)

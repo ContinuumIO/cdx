@@ -9,9 +9,11 @@ from gevent.pywsgi import WSGIServer
 import uuid
 import socket
 import redis
+from sqlalchemy.orm import sessionmaker
 from geventwebsocket.handler import WebSocketHandler
 
 #import cdx.webzmqproxy as webzmqproxy
+import cdx.settings as settings
 from cdx.app import app
 import cdx.wsmanager as wsmanager
 import arrayserver.protocol as protocol
@@ -31,8 +33,7 @@ log = logging.getLogger(__name__)
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
 
-def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
-                rport=6379, timeout=15.0, ctx=None):
+def prepare_app(rhost='localhost', rport=6379):
     #must import views before running apps
     import cdx.views.deps
     app.debug = True
@@ -44,16 +45,18 @@ def prepare_app(reqrepaddr, rhost='localhost', desktopmode=True,
     #for non-backbone models
     app.model_redis = redis.Redis(host=rhost, port=rport, db=3)
     app.secret_key = str(uuid.uuid4())
-    app.desktopmode = desktopmode
+    app.dbengine = settings.get_sqlalchemy_engine()
+    app.Session = sessionmaker(bind=app.dbengine)
     return app
 
-def get_cdx_user(app, session=None):
+def get_cdx_user(app, request, session=None):
     """reads django user information, if a user is present,
     we create/ensure an equivalent one lives in our DB.
     We'll call this every time for now.. but we can be more
     efficient about it in the future
     """
     try:
+        import pdb;pdb.set_trace()
         dbsession = session if session else app.Session() 
         auth_user, wakari_user = get_current_user(dbsession, request)
         if auth_user is None or wakari_user is None:
@@ -62,9 +65,12 @@ def get_cdx_user(app, session=None):
             cdxuser = user.User.load(app.model_redis, auth_user.username)
             if cdxuser is None:
                 docid = str(uuid.uuid4())
-                doc = docs.new_doc(app, docid, 'main', [email])
-                cdxuser = user.new_user(app.model_redis,
-                                        auth_user.email, str(uuid.uuid4()), docs=[doc.docid])
+                doc = docs.new_doc(app, docid, 'main', [auth_user.username])
+                cdxuser = user.new_user(
+                    app.model_redis,
+                    auth_user.username,
+                    str(uuid.uuid4()),
+                    docs=[doc.docid])
             return cdxuser
     finally:
         #close session if it was not passed  in
@@ -76,6 +82,13 @@ def shutdown_app():
     app.proxy.kill = True
     app.proxyclient.kill = True
 
-http_server = WSGIServer(('', 5006), app, handler_class=WebSocketHandler)
+http_server = WSGIServer(('', settings.port), app, handler_class=WebSocketHandler)
 def start_app():
     http_server.serve_forever()
+
+if __name__ == "__main__":
+    prepare_app()    
+    import werkzeug.serving
+    @werkzeug.serving.run_with_reloader
+    def helper ():
+        start_app()

@@ -32,7 +32,7 @@ class Doc(models.ServerModel):
     @staticmethod
     def from_json(obj):
         return Doc(obj['docid'], obj['title'],
-                   obj['r_users'], obj['rw_users'],
+                   obj['rw_users'], obj['r_users'],
                    obj['plot_context_ref'])
     
 

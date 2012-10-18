@@ -20,7 +20,6 @@ class ServerModel(object):
     @staticmethod
     def from_json(obj):
         raise NotImplementedError        
-        #return User(obj['email'], obj['passhash'], obj['docs'])
     
     def save(self, client):
         client.set(self.mykey(), json.dumps(self.to_json()))

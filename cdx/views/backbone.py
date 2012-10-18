@@ -13,7 +13,7 @@ import cdx.wsmanager as wsmanager
 log = logging.getLogger(__name__)
 
 #backbone model apis
-@app.route("/bb/<docid>/bulkupsert", methods=['POST'])
+@app.route("/cdx/bb/<docid>/bulkupsert", methods=['POST'])
 def bulk_upsert(docid):
     data = current_app.ph.deserialize_web(request.data)
     models = [bbmodel.ContinuumModel(x['type'], **x['attributes']) \
@@ -37,8 +37,8 @@ def bulk_upsert(docid):
         {'msgtype' : 'modelpush',
          'modelspecs' : [x.to_broadcast_json() for x in relevant_models]})
 
-@app.route("/bb/<docid>/<typename>/", methods=['POST'])
-@app.route("/bb/<docid>/<typename>", methods=['POST'])
+@app.route("/cdx/bb/<docid>/<typename>/", methods=['POST'])
+@app.route("/cdx/bb/<docid>/<typename>", methods=['POST'])
 def create(docid, typename):
     log.debug("create, %s, %s", docid, typename)
     modeldata = current_app.ph.deserialize_web(request.data)
@@ -58,7 +58,7 @@ def create(docid, typename):
             exclude={clientid})
     return app.ph.serialize_web(model.to_json())
 
-@app.route("/bb/<docid>/<typename>/<id>", methods=['PUT'])
+@app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['PUT'])
 def put(docid, typename, id):
     modeldata = current_app.ph.deserialize_web(request.data)
     if typename == 'CDXPlotContext':
@@ -77,9 +77,9 @@ def put(docid, typename, id):
                                    exclude={clientid})
     return app.ph.serialize_web(model.to_json())
 
-@app.route("/bb/<docid>/", methods=['GET'])
-@app.route("/bb/<docid>/<typename>/", methods=['GET'])
-@app.route("/bb/<docid>/<typename>/<id>", methods=['GET'])
+@app.route("/cdx/bb/<docid>/", methods=['GET'])
+@app.route("/cdx/bb/<docid>/<typename>/", methods=['GET'])
+@app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['GET'])
 def get(docid, typename=None, id=None):
     if typename is not None and id is not None:
         model = current_app.collections.get(typename, id)
@@ -93,7 +93,7 @@ def get(docid, typename=None, id=None):
         else:
             return app.ph.serialize_web([x.to_broadcast_json() for x in models])
 
-@app.route("/bb/<docid>/<typename>/<id>", methods=['DELETE'])
+@app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['DELETE'])
 def delete(docid, typename, id):
     model = current_app.collections.get(typename, id)
     log.debug("DELETE, %s, %s", docid, typename)

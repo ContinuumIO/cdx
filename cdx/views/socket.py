@@ -10,7 +10,6 @@ import urlparse
 from cdx.app import app
 
 import cdx.bbmodel as bbmodel
-import cdx.views.common as common
 import cdx.wsmanager as wsmanager
 
 log = logging.getLogger(__name__)
