@@ -35,18 +35,18 @@ def cdx_help(*unused_all, **kwargs):
         pass
     return render_template('cdx_help.html')
 
-@app.route('/favicon.ico')
+@app.route('/cdx/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/x-icon')
 
-@app.route('/userinfo/')
+@app.route('/cdx/userinfo/')
 def get_user():
     user = maincontroller.get_cdx_user(current_app)
     return current_app.ph.serialize_web(user.to_public_json())
 
 
-@app.route('/cdxinfo/<docid>')
+@app.route('/cdx/cdxinfo/<docid>')
 def get_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
     user = maincontroller.get_cdx_user(current_app)

@@ -16,7 +16,7 @@ import cdx.wsmanager as wsmanager
 log = logging.getLogger(__name__)
 
 #web socket subscriber
-@app.route('/sub')
+@app.route('/cdx/sub')
 def sub():
     if request.environ.get('wsgi.websocket'):
         ws = request.environ['wsgi.websocket']
