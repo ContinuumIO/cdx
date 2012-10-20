@@ -1,5 +1,5 @@
 from cdx import plot
-p = plot.PlotClient('24d603e8-1838-4514-a33b-4f02aaa50c9e', 'https://localhost', 'f3ae0299-b3a9-46f3-adfb-8b21285bf446')
+p = plot.PlotClient('d6f7f400-06f2-49db-aab9-f7540f04f193', 'https://localhost', 'eb53fc5c-53b5-4e43-a52f-5bbba1bebce4')
 import numpy as np
 
 x = np.random.random(100)
