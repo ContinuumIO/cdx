@@ -49,7 +49,11 @@ def shutdown_app():
     app.proxy.kill = True
     app.proxyclient.kill = True
 
-http_server = WSGIServer(('', settings.port), app, handler_class=WebSocketHandler)
+http_server = WSGIServer(('', settings.port), app,
+                         handler_class=WebSocketHandler,
+                         keyfile="/etc/nginx/wakari.key",
+                         certfile="/etc/nginx/wakari.crt"
+                         )
 def start_app():
     http_server.serve_forever()
 
