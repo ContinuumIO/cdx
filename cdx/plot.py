@@ -546,6 +546,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         return GridPlot(self, container, plots, title)
 
     def show(self, plot):
+        self.updateic()
         children = self.ic.get('children')
         if children is None: children = []
         children.append(plot.ref())
