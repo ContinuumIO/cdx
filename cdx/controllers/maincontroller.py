@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
 
-def prepare_app(rhost='localhost', rport=6379):
+def prepare_app(rhost='127.0.0.1', rport=6379):
     #must import views before running apps
     import cdx.views.deps
     app.debug = True
