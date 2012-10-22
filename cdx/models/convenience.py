@@ -2,6 +2,12 @@ import uuid
 
 from . import user
 from . import docs
+from wakariserver.djangointerface import (
+    get_session_data,
+    get_user,
+    get_current_user,
+    login_required
+    )
 
 def from_wakari(app, request, session=None):
     """reads django user information, if a user is present,
@@ -9,12 +15,6 @@ def from_wakari(app, request, session=None):
     We'll call this every time for now.. but we can be more
     efficient about it in the future
     """
-    from wakariserver.djangointerface import (
-        get_session_data,
-        get_user,
-        get_current_user,
-        login_required
-        )
     try:
         dbsession = session if session else app.Session() 
         auth_user, wakari_user = get_current_user(dbsession, request)
