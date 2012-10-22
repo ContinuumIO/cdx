@@ -22,6 +22,6 @@ scatterplot2 = p.line(
     x='x', y='z', 
     data_source=data_source, lineplot=scatterplot2)
 
-tableplot1 = p.table(
-    x='idx', y='x', color='#F00',
-    data_source=data_source, title='paddy_table_py')
+table1 = p.table(
+    data_source, columns=['idx', 'x', 'y']
+    )

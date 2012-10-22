@@ -132,7 +132,8 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             yfield = y
         return xfield, yfield, data_source
 
-    def _newxyplot(self, x, y, title=None, width=300, height=300, data_source=None,
+    def _newxyplot(self, x, y, title=None, width=300, height=300,
+                   data_source=None,
                    is_x_date=False, is_y_date=False, container=None):
         """
         Parameters
@@ -307,76 +308,19 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                            pantool, zoomtool, selecttool, selectoverlay,
                            container)
 
-    def table(self, x, y, title=None, width=300, height=300, color="#000",
-                is_x_date=False, is_y_date=False,
-                data_source=None, container=None, scatterplot=None):
-        """
-        Parameters
-        ----------
-        x : string of fieldname in data_source, or 1d vector
-        y : string of fieldname in data_source or 1d_vector
-        data_source : optional if x,y are not strings,
-            backbonemodel of a data source
-        container : bbmodel of container viewmodel
-
-        Returns
-        ----------
-        (plotmodel, data_source)
-        """
-        if scatterplot is None:
-             scatterplot = self._newtable(
-                 x, y, title=title,
-                 width=width, height=height, color=color,
-                 is_x_date=is_x_date, is_y_date=is_y_date,
-                 data_source=data_source, container=container)
-        return scatterplot
-
-    def _newxytable(self, x, y, title=None, width=300, height=300, data_source=None,
-                   is_x_date=False, is_y_date=False, container=None):
-        """
-        Parameters
-        ----------
-        x : string of fieldname in data_source, or 1d vector
-        y : string of fieldname in data_source or 1d_vector
-        data_source : optional if x,y are not strings,
-            backbonemodel of a data source
-        container : bbmodel of container viewmodel
-
-        Returns
-        ----------
-        """
-        xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
-        yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
-        plot = bbmodel.ContinuumModel('Table', width=width, height=height,
-                                      xrange=xr.ref(), yrange=yr.ref())
-
-        xfield, yfield, data_source = self._xydata(x, y, data_source=data_source)
-        if container:
-            plot.set('parent', container.ref())
+    def table(self, data_source, columns, title=None,
+              width=300, height=300, container=None):
+        if container is None:
+            parent = self.ic
         else:
-            plot.set('parent', self.ic.ref())
-        if title is not None: plot.set('title', title)
-        datarangex = bbmodel.ContinuumModel(
-            'DataRange1d',
-            sources=[{'ref' : data_source.ref(),
-                      'columns' : [xfield]}])
-        datarangey = bbmodel.ContinuumModel(
-            'DataRange1d',
-            sources=[{'ref' : data_source.ref(),
-                      'columns' : [yfield]}])
-        xmapper = bbmodel.ContinuumModel(
-            'LinearMapper', data_range=datarangex.ref(),
-            screen_range=xr.ref())
-        ymapper = bbmodel.ContinuumModel(
-            'LinearMapper', data_range=datarangey.ref(),
-            screen_range=yr.ref())
-        output = dict(plot=plot, xr=xr, yr=yr, xfield=xfield, yfield=yfield,
-                      datarangex=datarangex, datarangey=datarangey,
-                      xmapper=xmapper, ymapper=ymapper,
-                      data_source=data_source)
-        return output
-
-
+            parent = container
+        table = bbmodel.ContinuumModel(
+            'DataTable', data_source=data_source.ref(),
+            columns=columns, parent=parent.ref())
+        self.update(table.typename, table.attributes)
+        if container is None:
+            self.show(table)
+            
     def _newtable(self, x, y, width=300, height=300, color="#000",
                     is_x_date=False, is_y_date=False,
                     title='None', data_source=None, container=None):
@@ -404,11 +348,6 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         xfield, yfield = newobjs['xfield'], newobjs['yfield']
         data_source = newobjs['data_source']
         plot = newobjs['plot']
-        table = bbmodel.ContinuumModel(
-            'TableRenderer', foreground_color=color,
-            data_source=data_source.ref(),
-            xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
-            ymapper=ymapper.ref(), parent=plot.ref())
         plot.set('renderers', [table.ref()])
         tocreate.extend([plot, xr, yr, datarangex, datarangey,
                          xmapper, ymapper, table])
