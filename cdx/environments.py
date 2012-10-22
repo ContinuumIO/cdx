@@ -21,6 +21,7 @@ class DEV(BASE_ENV):
 class PROD(BASE_ENV):
     DEBUG = False
     USE_CHMOD = True
+    @staticmethod    
     def get_sqlalchemy_engine():
         import wakariserver
         """need to change this"""
