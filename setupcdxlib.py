@@ -9,7 +9,7 @@ setup(
     name = 'cdxlib',
     version = '.'.join([str(x) for x in __version__]),
     author = 'Continuum Analytics',
-    packages = packages
+    packages = packages,
     author_email = '',
     url = '',
     description = 'CDX library',
