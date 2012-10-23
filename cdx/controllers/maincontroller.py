@@ -12,11 +12,10 @@ import redis
 from sqlalchemy.orm import sessionmaker
 from geventwebsocket.handler import WebSocketHandler
 
-#import cdx.webzmqproxy as webzmqproxy
 import cdx.settings as settings
 from cdx.app import app
 import cdx.wsmanager as wsmanager
-import arrayserver.protocol as protocol
+from cdxlib import protocol
 import cdx.bbmodel as bbmodel
 import cdx.models.user as user
 import cdx.models.docs as docs

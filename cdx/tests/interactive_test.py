@@ -1,4 +1,4 @@
-from cdx import plot
+from cdxlib import plot
 p = plot.PlotClient('d6f7f400-06f2-49db-aab9-f7540f04f193', 'https://localhost', 'eb53fc5c-53b5-4e43-a52f-5bbba1bebce4')
 import numpy as np
 
