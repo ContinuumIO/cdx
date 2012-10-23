@@ -36,3 +36,18 @@ def from_wakari(app, request, session=None):
         if not session:
             dbsession.close()
 
+def can_read_doc_api(docid, apikey, app):
+    doc = docs.Doc.load(app.model_redis, docid)
+    return apikey == doc.apikey
+
+def can_write_doc_api(docid, apikey, app):
+    doc = docs.Doc.load(app.model_redis, docid)
+    return apikey == doc.apikey
+
+def can_read_doc(doc, cdxuser):
+    return cdxuser.username in doc.r_users    
+
+def can_write_doc(doc, cdxuser):
+    return cdxuser.username in doc.rw_users
+
+

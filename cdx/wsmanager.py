@@ -92,5 +92,6 @@ def run_socket(socket, manager, auth_function,
                         ['subscribesuccess', msgobj['topic'], clientid])))
             else:
                 socket.send(ph.serialize_msg(ph.error_obj('unauthorized')))
-                
+                return
+            
         
