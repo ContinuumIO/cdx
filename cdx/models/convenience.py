@@ -50,4 +50,10 @@ def can_read_doc(doc, cdxuser):
 def can_write_doc(doc, cdxuser):
     return cdxuser.username in doc.rw_users
 
-
+def can_write_from_request(docid, request, app):
+    doc = docs.Doc.load(app.model_redis, docid)    
+    if request.cookies['CDX-api-key']:
+        return doc.apikey == request.cookies['CDX-api-key']
+    else:
+        user = from_wakari(app, request)
+        return can_write_doc(doc, user)

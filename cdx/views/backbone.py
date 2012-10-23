@@ -9,12 +9,17 @@ import uuid
 import urlparse
 import cdx.bbmodel as bbmodel
 import cdx.wsmanager as wsmanager
-
+import cdx.models.convenience as convenience
 log = logging.getLogger(__name__)
 
 #backbone model apis
 @app.route("/cdx/bb/<docid>/bulkupsert", methods=['POST'])
 def bulk_upsert(docid):
+    if not convenience.can_write_from_request(docid, request, app):
+        return app.ph.serialize_web(
+            {'msgtype' : 'error',
+             'msg' : 'unauthorized'}
+            )
     data = current_app.ph.deserialize_web(request.data)
     models = [bbmodel.ContinuumModel(x['type'], **x['attributes']) \
               for x in data]
@@ -40,6 +45,11 @@ def bulk_upsert(docid):
 @app.route("/cdx/bb/<docid>/<typename>/", methods=['POST'])
 @app.route("/cdx/bb/<docid>/<typename>", methods=['POST'])
 def create(docid, typename):
+    if not convenience.can_write_from_request(docid, request, app):
+        return app.ph.serialize_web(
+            {'msgtype' : 'error',
+             'msg' : 'unauthorized'}
+            )
     log.debug("create, %s, %s", docid, typename)
     modeldata = current_app.ph.deserialize_web(request.data)
     model = bbmodel.ContinuumModel(typename, **modeldata)
@@ -60,6 +70,11 @@ def create(docid, typename):
 
 @app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['PUT'])
 def put(docid, typename, id):
+    if not convenience.can_write_from_request(docid, request, app):
+        return app.ph.serialize_web(
+            {'msgtype' : 'error',
+             'msg' : 'unauthorized'}
+            )
     modeldata = current_app.ph.deserialize_web(request.data)
     if typename == 'CDXPlotContext':
         log.debug("put, %s, %s, %s", docid, typename, len(modeldata['children']))
@@ -81,6 +96,11 @@ def put(docid, typename, id):
 @app.route("/cdx/bb/<docid>/<typename>/", methods=['GET'])
 @app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['GET'])
 def get(docid, typename=None, id=None):
+    if not convenience.can_write_from_request(docid, request, app):
+        return app.ph.serialize_web(
+            {'msgtype' : 'error',
+             'msg' : 'unauthorized'}
+            )
     if typename is not None and id is not None:
         model = current_app.collections.get(typename, id)
         if model is not None and docid in model.get('docs'):
@@ -95,6 +115,11 @@ def get(docid, typename=None, id=None):
 
 @app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['DELETE'])
 def delete(docid, typename, id):
+    if not convenience.can_write_from_request(docid, request, app):
+        return app.ph.serialize_web(
+            {'msgtype' : 'error',
+             'msg' : 'unauthorized'}
+            )
     model = current_app.collections.get(typename, id)
     log.debug("DELETE, %s, %s", docid, typename)
     clientid = request.headers.get('Continuum-Clientid', None)
