@@ -58,7 +58,7 @@ else:
 def _write_plot_file(username, homedir, docid, apikey, url):
     fpath = os.path.join(homedir, 'scripts', 'wkplot.py')
     with open(fpath, 'w+') as f:
-        f.write("from cdx import plot\n")
+        f.write("from cdxlib import plot\n")
         clientcode = "p = plot.PlotClient('%s', '%s', '%s')\n"
         clientcode = clientcode % (docid, url, apikey)
         f.write(clientcode)
