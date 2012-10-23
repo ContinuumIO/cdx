@@ -52,7 +52,7 @@ def can_write_doc(doc, cdxuser):
 
 def can_write_from_request(docid, request, app):
     doc = docs.Doc.load(app.model_redis, docid)    
-    if request.cookies['CDX-api-key']:
+    if request.cookies.get('CDX-api-key'):
         return doc.apikey == request.cookies['CDX-api-key']
     else:
         user = from_wakari(app, request)
