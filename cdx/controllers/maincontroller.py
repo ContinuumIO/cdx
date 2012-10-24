@@ -30,7 +30,7 @@ pushpull = "inproc://apppull"
 def prepare_app(rhost='127.0.0.1', rport=6379):
     #must import views before running apps
     import cdx.views.deps
-    app.debug = True
+    app.debug = settings.ENV.DEBUG
     app.wsmanager = wsmanager.WebSocketManager()
     app.ph = protocol.ProtocolHelper()
     app.collections = bbmodel.ContinuumModelsStorage(
