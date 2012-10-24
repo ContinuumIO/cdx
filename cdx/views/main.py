@@ -58,7 +58,7 @@ else:
 def _write_plot_file(username, homedir, docid, apikey, url):
     fpath = os.path.join(homedir, 'scripts', 'wkplot.py')
     with open(fpath, 'w+') as f:
-        f.write("from cdx import plot\n")
+        f.write("from cdxlib import plot\n")
         clientcode = "p = plot.PlotClient('%s', '%s', '%s')\n"
         clientcode = clientcode % (docid, url, apikey)
         f.write(clientcode)
@@ -79,7 +79,7 @@ def write_plot_file(docid, apikey, url):
 def get_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
     user = mconv.from_wakari(current_app, request)
-    if not ((user.username in doc.rw_users) or (user.username in doc.r_users)):
+    if not mconv.can_write_doc(doc, user):
         return null
     plot_context_ref = doc.plot_context_ref
     all_models = current_app.collections.get_bulk(docid)

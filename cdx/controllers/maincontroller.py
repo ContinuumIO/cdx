@@ -12,11 +12,10 @@ import redis
 from sqlalchemy.orm import sessionmaker
 from geventwebsocket.handler import WebSocketHandler
 
-#import cdx.webzmqproxy as webzmqproxy
 import cdx.settings as settings
 from cdx.app import app
 import cdx.wsmanager as wsmanager
-import arrayserver.protocol as protocol
+from cdxlib import protocol
 import cdx.bbmodel as bbmodel
 import cdx.models.user as user
 import cdx.models.docs as docs
@@ -28,7 +27,7 @@ log = logging.getLogger(__name__)
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
 
-def prepare_app(rhost='localhost', rport=6379):
+def prepare_app(rhost='127.0.0.1', rport=6379):
     #must import views before running apps
     import cdx.views.deps
     app.debug = True

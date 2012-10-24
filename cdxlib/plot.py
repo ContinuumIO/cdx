@@ -4,7 +4,7 @@ import urlparse
 import requests
 
 import bbmodel
-import arrayserver.protocol as protocol
+import protocol
 
 log = logging.getLogger(__name__)
 
