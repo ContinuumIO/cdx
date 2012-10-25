@@ -7,6 +7,18 @@ import bbmodel
 import protocol
 
 log = logging.getLogger(__name__)
+colors = [
+      "#1f77b4", "#aec7e8",
+      "#ff7f0e", "#ffbb78",
+      "#2ca02c", "#98df8a",
+      "#d62728", "#ff9896",
+      "#9467bd", "#c5b0d5",
+      "#8c564b", "#c49c94",
+      "#e377c2", "#f7b6d2",
+      "#7f7f7f", "#c7c7c7",
+      "#bcbd22", "#dbdb8d",
+      "#17becf", "#9edae5"
+    ]
 
 class GridPlot(object):
     def __init__(self, client, container, children, title):
@@ -52,8 +64,8 @@ class XYPlot(object):
             self.xaxis,
             self.yaxis])
         self.last_source = None
-        
-    def plot(self, x, y=None, color='black', data_source=None):
+        self.color_index = 0
+    def plot(self, x, y=None, color=None, data_source=None):
         def source_from_array(x, y):
             if y.ndim == 1:
                 source = self.client.make_source(x=x, y=y)
@@ -99,8 +111,13 @@ class XYPlot(object):
                 source = self.last_source
         self.last_source = source
         for yfield in yfields:
-            self.scatter(xfield, yfield, source, color)
-            self.line(xfield, yfield, source, color)
+            if color is None:
+                use_color = colors[self.color_index]
+            else:
+                use_color = color
+            self.color_index += 1
+            self.scatter(xfield, yfield, source, use_color)
+            self.line(xfield, yfield, source, use_color)
         
     def ensure_source_exists(self, sourcerefs, source, columns):
         sources = [x for x in sourcerefs if x['ref']['id'] == source.get('id')]
@@ -285,7 +302,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
     def clf(self):
         self._plot = None
         
-    def plot(self, x, y=None, title=None, width=300, height=300, color='red',
+    def plot(self, x, y=None, title=None, width=300, height=300, color=None,
              is_x_date=False, is_y_date=False,
              data_source=None, container=None):
         if not self._plot:
@@ -296,7 +313,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                 container=container
                 )
         self._plot.plot(x, y=y, color=color, data_source=data_source)
-
+        return self._plot
 
     def table(self, data_source, columns, title=None,
               width=300, height=300, container=None):
@@ -331,10 +348,10 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         flatplots = []
         for row in plots:
             for plot in row:
-                flatplots.append(plot.plot)
+                flatplots.append(plot.plotmodel)
         for plot in flatplots:
             plot.set('parent', container.ref())
-        plotrefs = [[x.plot.ref() for x in row] for row in plots]
+        plotrefs = [[x.plotmodel.ref() for x in row] for row in plots]
         container.set('children', plotrefs)
         to_update = [self.ic, container]
         to_update.extend(flatplots)

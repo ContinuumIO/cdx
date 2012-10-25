@@ -9,15 +9,15 @@ z = np.cos(x)
 data_source = p.make_source(idx=range(100), x=x, y=y, z=z)
 data_source2 = p.make_source(idx=range(100), x2=x, y2=y, z2=z)
 p.plot('x', 'y', data_source=data_source)
-p.plot('x', 'z')
+plot1 = p.plot('x', 'z')
 p.clf()
 p.plot(x, y, color='blue')
-p.plot(x, z, color='green')
+plot2 = p.plot(x, z, color='green')
 
 p.clf()
 data = np.random.random((100, 3))
-p.plot(data)
-
+plot3 = p.plot(data)
+p.grid([[plot1, plot2]])
 
 # scatterplot1 = p.scatter(
 #     x='x', y='y', color='#F00',
