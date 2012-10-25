@@ -53,18 +53,18 @@ class XYPlot(object):
             self.yaxis])
         self.last_source = None
         
-    def plot(self, x, y=None, color='red', data_source=None):
+    def plot(self, x, y=None, color='black', data_source=None):
         def source_from_array(x, y):
-            if x.ndim == 1:
+            if y.ndim == 1:
                 source = self.client.make_source(x=x, y=y)
                 xfield = 'x'
                 yfields = ['y']
-            elif x.ndim == 2:
+            elif y.ndim == 2:
                 kwargs = {}
                 kwargs['x'] = x
                 colnames = []
                 for colnum in range(y.shape[1]):
-                    colname = 'y' + int(colnum)
+                    colname = 'y' + str(colnum)
                     kwargs[colname] = y[:,colnum]
                     colnames.append(colname)
                 source = self.client.make_source(**kwargs)
@@ -76,7 +76,7 @@ class XYPlot(object):
         if not isinstance(x, basestring):
             if y is None:
                 y = x
-                x = range(y)
+                x = range(len(y))
                 if isinstance(y, np.ndarray):
                     source, xfield, yfields = source_from_array(x, y)
                 else:
@@ -295,7 +295,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                 is_x_date=is_x_date, is_y_date=is_y_date,
                 container=container
                 )
-        self._plot.plot(x, y, color=color, data_source=data_source)
+        self._plot.plot(x, y=y, color=color, data_source=data_source)
 
 
     def table(self, data_source, columns, title=None,

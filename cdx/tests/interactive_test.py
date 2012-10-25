@@ -9,10 +9,15 @@ z = np.cos(x)
 data_source = p.make_source(idx=range(100), x=x, y=y, z=z)
 data_source2 = p.make_source(idx=range(100), x2=x, y2=y, z2=z)
 p.plot('x', 'y', data_source=data_source)
-p.plot('x', 'z', data_source=data_source)
+p.plot('x', 'z')
 p.clf()
-p.plot(x, y)
-p.plot(x, z)
+p.plot(x, y, color='blue')
+p.plot(x, z, color='green')
+
+p.clf()
+data = np.random.random((100, 3))
+p.plot(data)
+
 
 # scatterplot1 = p.scatter(
 #     x='x', y='y', color='#F00',
