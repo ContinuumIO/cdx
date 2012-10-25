@@ -58,8 +58,8 @@ else:
 def _write_plot_file(username, homedir, docid, apikey, url):
     fpath = os.path.join(homedir, 'scripts', 'wkplot.py')
     with open(fpath, 'w+') as f:
-        f.write("from cdxlib import plot\n")
-        clientcode = "p = plot.PlotClient('%s', '%s', '%s')\n"
+        f.write("from cdxlib import mpl\n")
+        clientcode = "p = mpl.PlotClient('%s', '%s', '%s')\n"
         clientcode = clientcode % (docid, url, apikey)
         f.write(clientcode)
     if ENV.USE_CHMOD:
