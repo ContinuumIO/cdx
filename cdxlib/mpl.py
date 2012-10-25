@@ -8,7 +8,7 @@ import protocol
 
 log = logging.getLogger(__name__)
 colors = [
-      "#1f77b4", "#aec7e8",
+      "#1f77b4",
       "#ff7f0e", "#ffbb78",
       "#2ca02c", "#98df8a",
       "#d62728", "#ff9896",
@@ -65,7 +65,8 @@ class XYPlot(object):
             self.yaxis])
         self.last_source = None
         self.color_index = 0
-    def plot(self, x, y=None, color=None, data_source=None):
+    def plot(self, x, y=None, color=None, data_source=None,
+             scatter=False):
         def source_from_array(x, y):
             if y.ndim == 1:
                 source = self.client.make_source(x=x, y=y)
@@ -117,7 +118,8 @@ class XYPlot(object):
                 use_color = color
             self.color_index += 1
             self.scatter(xfield, yfield, source, use_color)
-            self.line(xfield, yfield, source, use_color)
+            if not scatter:
+                self.line(xfield, yfield, source, use_color)
         
     def ensure_source_exists(self, sourcerefs, source, columns):
         sources = [x for x in sourcerefs if x['ref']['id'] == source.get('id')]
@@ -303,7 +305,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         self._plot = None
         
     def plot(self, x, y=None, title=None, width=300, height=300, color=None,
-             is_x_date=False, is_y_date=False,
+             scatter=False, is_x_date=False, is_y_date=False,
              data_source=None, container=None):
         if not self._plot:
             self._plot =self._newxyplot(
@@ -312,7 +314,10 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                 is_x_date=is_x_date, is_y_date=is_y_date,
                 container=container
                 )
-        self._plot.plot(x, y=y, color=color, data_source=data_source)
+        self._plot.plot(x, y=y, color=color,
+                        data_source=data_source,
+                        scatter=scatter
+                        )
         return self._plot
 
     def table(self, data_source, columns, title=None,

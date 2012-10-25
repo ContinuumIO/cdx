@@ -19,6 +19,8 @@ data = np.random.random((100, 3))
 plot3 = p.plot(data)
 p.grid([[plot1, plot2]])
 
+p.clf()
+plot4 = p.plot(data, scatter=True)
 # scatterplot1 = p.scatter(
 #     x='x', y='y', color='#F00',
 #     data_source=data_source, title='paddy_from_py')
