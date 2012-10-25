@@ -53,12 +53,55 @@ class XYPlot(object):
             self.yaxis])
         self.last_source = None
         
-    def plot(self, x, y, color='red', data_source=None):
-        if data_source is None:
-            data_source = self.last_source
+    def plot(self, x, y=None, color='red', data_source=None):
+        def source_from_array(x, y):
+            if x.ndim == 1:
+                source = self.client.make_source(x=x, y=y)
+                xfield = 'x'
+                yfields = ['y']
+            elif x.ndim == 2:
+                kwargs = {}
+                kwargs['x'] = x
+                colnames = []
+                for colnum in range(y.shape[1]):
+                    colname = 'y' + int(colnum)
+                    kwargs[colname] = y[:,colnum]
+                    colnames.append(colname)
+                source = self.client.make_source(**kwargs)
+                xfield = 'x'
+                yfields = colnames
+            else:
+                raise Exception, "too many dims"
+            return source, xfield, yfields
+        if not isinstance(x, basestring):
+            if y is None:
+                y = x
+                x = range(y)
+                if isinstance(y, np.ndarray):
+                    source, xfield, yfields = source_from_array(x, y)
+                else:
+                    source = self.client.make_source(x=x, y=y)
+                    xfield, yfields = ('x', ['y'])
+            else:
+                if isinstance(y, np.ndarray):
+                    source, xfield, yfields = source_from_array(x, y)
+                else:
+                    source = self.client.make_source(x=x, y=y)
+                    xfield, yfields = ('x', ['y'])                    
         else:
-            self.last_source = data_source
-        self.scatter(x, y, data_source, color)
+            xfield = x
+            if y is None:
+                raise Exception, 'must specify X and Y when calling with strings'
+            yfields = [y]
+            if data_source:
+                source = data_source
+            else:
+                source = self.last_source
+        self.last_source = source
+        for yfield in yfields:
+            self.scatter(xfield, yfield, source, color)
+            #self.line(xfield, yfield, source, color)
+        
     def ensure_source_exists(self, sourcerefs, source, columns):
         sources = [x for x in sourcerefs if x['ref']['id'] == source.get('id')]
         existed = True
@@ -77,7 +120,6 @@ class XYPlot(object):
         existed = self.ensure_source_exists(
             self.data_xrange.get('sources'),
             data_source, [x])
-        import pdb;pdb.set_trace()
         if not existed : update.append(self.data_xrange)
         existed = self.ensure_source_exists(
             self.data_yrange.get('sources'),
@@ -93,13 +135,41 @@ class XYPlot(object):
             ymapper=self.ymapper.ref(),
             parent=self.plotmodel.ref())
         self.plotmodel.get('renderers').append(scatterrenderer.ref())
+        self.selectiontool.get('renderers').append(scatterrenderer.ref())
+        self.selectionoverlay.get('renderers').append(scatterrenderer.ref())
         update.append(scatterrenderer)
         update.append(self.plotmodel)
+        update.append(self.selectiontool)
+        update.append(self.selectionoverlay)
         self.client.upsert_all(update)
         self.client.show(self.plotmodel)
         
-    def line(self, x, y, data_source):
-        pass
+    def line(self, x, y, data_source, color):
+        update = []
+        existed = self.ensure_source_exists(
+            self.data_xrange.get('sources'),
+            data_source, [x])
+        if not existed : update.append(self.data_xrange)
+        existed = self.ensure_source_exists(
+            self.data_yrange.get('sources'),
+            data_source, [y])
+        if not existed : update.append(self.data_yrange)
+        linerenderer = bbmodel.ContinuumModel(
+            'LineRenderer',
+            foreground_color=color,
+            data_source=data_source.ref(),
+            xfield=x,
+            yfield=y,
+            xmapper=self.xmapper.ref(),
+            ymapper=self.ymapper.ref(),
+            parent=self.plotmodel.ref())
+        self.plotmodel.get('renderers').append(linerenderer.ref())
+        update.append(linerenderer)
+        update.append(self.plotmodel)
+        update.append(self.selectiontool)
+        update.append(self.selectionoverlay)
+        self.client.upsert_all(update)
+        self.client.show(self.plotmodel)
         
 class PlotClient(bbmodel.ContinuumModelsClient):
     def __init__(self, docid, serverloc, apikey, ph=None):
@@ -111,6 +181,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         super(PlotClient, self).__init__(docid, url, apikey, self.ph)
         interactive_context = self.fetch(typename='CDXPlotContext')
         self.ic = interactive_context[0]
+        self.clf()
         
     def updateic(self):
         self.updateobj(self.ic)
@@ -211,110 +282,21 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             selecttool, selectoverlay, parent)
         return output
     
-    def plot(self, x, y, title=None, width=300, height=300, color='red',
+    def clf(self):
+        self._plot = None
+        
+    def plot(self, x, y=None, title=None, width=300, height=300, color='red',
              is_x_date=False, is_y_date=False,
              data_source=None, container=None):
-        self._plot =self._newxyplot(
-            title=title,
-            width=width, height=height,
-            is_x_date=is_x_date, is_y_date=is_y_date,
-            container=container)
-        if data_source is None:
-            self._source = self.make_source(x=x, y=y)
-        else:
-            self._source = data_source
-        self._plot.plot(x, y, color=color, data_source=self._source)
+        if not self._plot:
+            self._plot =self._newxyplot(
+                title=title,
+                width=width, height=height,
+                is_x_date=is_x_date, is_y_date=is_y_date,
+                container=container
+                )
+        self._plot.plot(x, y, color=color, data_source=data_source)
 
-    def _addscatter(self, scatterplot, x, y, color="#000", data_source=None):
-        if data_source is None:
-            data_source = self.make_source(x=x, y=y)
-            xfield, yfield = 'x', 'y'
-        else:
-            xfield, yfield = x, y
-        self._add_source_to_range(data_source, [xfield], scatterplot.data_xrange)
-        self.update(scatterplot.data_xrange.typename, scatterplot.data_xrange.attributes)
-        self._add_source_to_range(data_source, [yfield], scatterplot.data_yrange)
-        self.update(scatterplot.data_yrange.typename, scatterplot.data_yrange.attributes)
-        scatter = bbmodel.ContinuumModel(
-            'ScatterRenderer', foreground_color=color, data_source=data_source.ref(),
-            xfield=xfield, yfield=yfield, xmapper=scatterplot.xmapper.ref(),
-            ymapper=scatterplot.ymapper.ref(), parent=scatterplot.plot.ref())
-        self.create(scatter.typename, scatter.attributes)
-
-        scatterplot.selectiontool.get('renderers').append(scatter.ref())
-        self.update(scatterplot.selectiontool.typename,
-                    scatterplot.selectiontool.attributes)
-        scatterplot.selectionoverlay.get('renderers').append(scatter.ref())
-        self.update(scatterplot.selectionoverlay.typename,
-                    scatterplot.selectionoverlay.attributes)
-        scatterplot.plot.get('renderers').append(scatter.ref())
-        self.update(scatterplot.plot.typename, scatterplot.plot.attributes)
-        return scatterplot
-
-    def _newscatter(self, x, y, width=300, height=300, color="#000",
-                    is_x_date=False, is_y_date=False,
-                    title='None', data_source=None, container=None):
-        """
-        Parameters
-        ----------
-        x : string of fieldname in data_source, or 1d vector
-        y : string of fieldname in data_source or 1d_vector
-        data_source : optional if x,y are not strings,
-            backbonemodel of a data source
-        container : bbmodel of container viewmodel
-
-        Returns
-        ----------
-        (plotmodel, data_source)
-        """
-        newobjs = self._newxyplot(x, y, width=width, height=height, title=title,
-                                  is_x_date=is_x_date, is_y_date=is_y_date,
-                                  data_source=data_source, container=container)
-        tocreate = []
-        tocreate.append(newobjs['plot'])
-        datarangex, datarangey = newobjs['datarangex'], newobjs['datarangey']
-        xmapper, ymapper = newobjs['xmapper'], newobjs['ymapper']
-        xr, yr = newobjs['xr'], newobjs['yr']
-        xaxis, yaxis = newobjs['xaxis'], newobjs['yaxis']
-        xfield, yfield = newobjs['xfield'], newobjs['yfield']
-        data_source = newobjs['data_source']
-        plot = newobjs['plot']
-        pantool = bbmodel.ContinuumModel(
-            'PanTool',
-            xmappers=[xmapper.ref()],
-            ymappers=[ymapper.ref()])
-        zoomtool = bbmodel.ContinuumModel(
-            'ZoomTool',
-            xmappers=[xmapper.ref()],
-            ymappers=[ymapper.ref()])
-        scatter = bbmodel.ContinuumModel(
-            'ScatterRenderer', foreground_color=color,
-            data_source=data_source.ref(),
-            xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
-            ymapper=ymapper.ref(), parent=plot.ref())
-        selecttool = bbmodel.ContinuumModel(
-            'SelectionTool',
-            renderers=[scatter.ref()])
-        selectoverlay = bbmodel.ContinuumModel(
-            'ScatterSelectionOverlay',
-            renderers=[scatter.ref()])
-        plot.set('renderers', [scatter.ref()])
-        plot.set('axes', [xaxis.ref(), yaxis.ref()])
-        plot.set('tools', [pantool.ref(), zoomtool.ref(), selecttool.ref()])
-        plot.set('overlays', [selectoverlay.ref()])
-        tocreate.extend([plot, xr, yr, datarangex, datarangey,
-                         xaxis, yaxis, xmapper, ymapper,
-                         pantool, zoomtool, selecttool, selectoverlay,
-                         scatter])
-        self.upsert_all(tocreate)
-        if container is None:
-            self.show(plot)
-            container = self.ic
-        return ScatterPlot(self, plot, data_source, xr, yr,
-                           datarangex, datarangey,
-                           xmapper, ymapper, scatter,
-                           pantool, zoomtool, selecttool, selectoverlay,
-                           container)
 
     def table(self, data_source, columns, title=None,
               width=300, height=300, container=None):
@@ -329,118 +311,6 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         if container is None:
             self.show(table)
             
-    def _newtable(self, x, y, width=300, height=300, color="#000",
-                    is_x_date=False, is_y_date=False,
-                    title='None', data_source=None, container=None):
-        """
-        Parameters
-        ----------
-        x : string of fieldname in data_source, or 1d vector
-        y : string of fieldname in data_source or 1d_vector
-        data_source : optional if x,y are not strings,
-            backbonemodel of a data source
-        container : bbmodel of container viewmodel
-
-        Returns
-        ----------
-        (plotmodel, data_source)
-        """
-        newobjs = self._newxytable(x, y, width=width, height=height, title=title,
-                                  is_x_date=is_x_date, is_y_date=is_y_date,
-                                  data_source=data_source, container=container)
-        tocreate = []
-        tocreate.append(newobjs['plot'])
-        datarangex, datarangey = newobjs['datarangex'], newobjs['datarangey']
-        xmapper, ymapper = newobjs['xmapper'], newobjs['ymapper']
-        xr, yr = newobjs['xr'], newobjs['yr']
-        xfield, yfield = newobjs['xfield'], newobjs['yfield']
-        data_source = newobjs['data_source']
-        plot = newobjs['plot']
-        plot.set('renderers', [table.ref()])
-        tocreate.extend([plot, xr, yr, datarangex, datarangey,
-                         xmapper, ymapper, table])
-        self.upsert_all(tocreate)
-        if container is None:
-            self.show(plot)
-            container = self.ic
-        return TablePlot(self, plot, data_source, xr, yr,
-                           datarangex, datarangey,
-                           xmapper, ymapper, table,
-                           None, None, container)
-
-
-    def _newlineplot(self, x, y, title=None, width=300, height=300, lineplot=None,
-                     is_x_date=False, is_y_date=False,
-                     data_source=None, container=None):
-        tocreate = []
-        newobjs = self._newxyplot(x, y, width=width, height=height, title=title,
-                                  is_x_date=is_x_date, is_y_date=is_y_date,
-                                  data_source=data_source, container=container)
-        tocreate = []
-        tocreate.append(newobjs['plot'])
-        datarangex, datarangey = newobjs['datarangex'], newobjs['datarangey']
-        xmapper, ymapper = newobjs['xmapper'], newobjs['ymapper']
-        xr, yr = newobjs['xr'], newobjs['yr']
-        xaxis, yaxis = newobjs['xaxis'], newobjs['yaxis']
-        xfield, yfield = newobjs['xfield'], newobjs['yfield']
-        data_source = newobjs['data_source']
-        plot = newobjs['plot']
-        pantool = bbmodel.ContinuumModel(
-            'PanTool',
-            xmappers=[xmapper.ref()],
-            ymappers=[ymapper.ref()])
-        zoomtool = bbmodel.ContinuumModel(
-            'ZoomTool',
-            xmappers=[xmapper.ref()],
-            ymappers=[ymapper.ref()])
-        line = bbmodel.ContinuumModel(
-            'LineRenderer', data_source=data_source.ref(),
-            xfield=xfield, yfield=yfield, xmapper=xmapper.ref(),
-            ymapper=ymapper.ref(), parent=plot.ref())
-        plot.set('renderers', [line.ref()])
-        plot.set('axes', [xaxis.ref(), yaxis.ref()])
-        plot.set('tools', [pantool.ref(), zoomtool.ref()])
-        tocreate.extend([xr, yr, datarangex, datarangey,
-                         xaxis, yaxis, xmapper, ymapper,
-                         pantool, zoomtool,
-                         line])
-        self.upsert_all(tocreate)
-        if container is None:
-            self.show(plot)
-            container = self.ic
-        return LinePlot(self, plot, data_source, xr, yr,
-                        datarange1, datarange2,
-                        xmapper, ymapper, line, pantool, zoomtool,
-                        container)
-
-
-    def line(self, x, y, title=None, width=300, height=300, lineplot=None,
-             is_x_date=False, is_y_date=False,
-             data_source=None, container=None):
-        """
-        Parameters
-        ----------
-        x : string of fieldname in data_source, or 1d vector
-        y : string of fieldname in data_source or 1d_vector
-        lineplot : optional, if you want to add a line to an existing plot
-        data_source : optional if x,y are not strings,
-            backbonemodel of a data source
-        container : bbmodel of container viewmodel
-        title : title of plot, only used for new plots
-        Returns
-        ----------
-        (plotmodel, data_source)
-        """
-        if lineplot is None:
-            lineplot = self._newlineplot(
-                x, y, title=title,
-                is_x_date=is_x_date, is_y_date=is_y_date,
-                width=width, height=height,
-                data_source=data_source, container=container)
-        else:
-            lineplot = self._addline(lineplot, x, y, data_source=data_source)
-        return lineplot
-
     def _add_source_to_range(self, data_source, columns, range):
         sources = range.get('sources')
         added = False
@@ -451,26 +321,6 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                 added = True
         if not added:
             sources.append({'ref' : data_source.ref(), 'columns' : columns})
-
-    def _addline(self, lineplot, x, y, data_source=None):
-        if data_source is None:
-            data_source = self.make_source(x=x, y=y)
-            xfield, yfield = 'x', 'y'
-        else:
-            xfield, yfield = x, y
-        self._add_source_to_range(data_source, [xfield], lineplot.data_xrange)
-        self.update(lineplot.data_xrange.typename, lineplot.data_xrange.attributes)
-        self._add_source_to_range(data_source, [yfield], lineplot.data_yrange)
-        self.update(lineplot.data_yrange.typename, lineplot.data_yrange.attributes)
-        line = bbmodel.ContinuumModel(
-            'LineRenderer', data_source=data_source.ref(),
-            xfield=xfield, yfield=yfield, xmapper=lineplot.xmapper.ref(),
-            ymapper=lineplot.ymapper.ref(), parent=lineplot.plot.ref())
-        self.create(line.typename, line.attributes)
-        lineplot.plot.get('renderers').append(line.ref())
-        self.update(lineplot.plot.typename, lineplot.plot.attributes)
-        return lineplot
-
 
     def grid(self, plots, title=None):
         container = bbmodel.ContinuumModel(
