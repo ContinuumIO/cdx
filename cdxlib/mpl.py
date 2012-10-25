@@ -100,7 +100,7 @@ class XYPlot(object):
         self.last_source = source
         for yfield in yfields:
             self.scatter(xfield, yfield, source, color)
-            #self.line(xfield, yfield, source, color)
+            self.line(xfield, yfield, source, color)
         
     def ensure_source_exists(self, sourcerefs, source, columns):
         sources = [x for x in sourcerefs if x['ref']['id'] == source.get('id')]

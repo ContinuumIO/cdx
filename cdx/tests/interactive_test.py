@@ -11,8 +11,8 @@ data_source2 = p.make_source(idx=range(100), x2=x, y2=y, z2=z)
 p.plot('x', 'y', data_source=data_source)
 p.plot('x', 'z', data_source=data_source)
 p.clf()
-# p.plot(x, y)
-# p.plot(x, z)
+p.plot(x, y)
+p.plot(x, z)
 
 # scatterplot1 = p.scatter(
 #     x='x', y='y', color='#F00',
