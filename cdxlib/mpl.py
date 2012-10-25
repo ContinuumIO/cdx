@@ -8,14 +8,14 @@ import protocol
 
 log = logging.getLogger(__name__)
 colors = [
-      "#1f77b4",
+      "#1f77b4", 
       "#ff7f0e", "#ffbb78",
       "#2ca02c", "#98df8a",
       "#d62728", "#ff9896",
       "#9467bd", "#c5b0d5",
       "#8c564b", "#c49c94",
       "#e377c2", "#f7b6d2",
-      "#7f7f7f", "#c7c7c7",
+      "#7f7f7f", 
       "#bcbd22", "#dbdb8d",
       "#17becf", "#9edae5"
     ]
@@ -113,7 +113,7 @@ class XYPlot(object):
         self.last_source = source
         for yfield in yfields:
             if color is None:
-                use_color = colors[self.color_index]
+                use_color = colors[self.color_index % len(colors)]
             else:
                 use_color = color
             self.color_index += 1
