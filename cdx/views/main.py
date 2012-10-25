@@ -64,7 +64,7 @@ def _write_plot_file(username, homedir, docid, apikey, url):
         f.write(clientcode)
     if ENV.USE_CHMOD:
         os.system("sudo chown %s  %s " % (username, fpath))
-                
+
 def write_plot_file(docid, apikey, url):
     try:
         session = app.Session()
@@ -74,7 +74,7 @@ def write_plot_file(docid, apikey, url):
         _write_plot_file(username, homedir, docid, apikey, url)
     finally:
         session.close()
-    
+
 @app.route('/cdx/cdxinfo/<docid>')
 def get_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
@@ -90,4 +90,17 @@ def get_cdx_info(docid):
                  'apikey' : doc.apikey}
     returnval = current_app.ph.serialize_web(returnval)
     write_plot_file(docid, doc.apikey, "https://" + request.host)
+    return returnval
+
+@app.route('/cdx/publiccdxinfo/<docid>')
+def get_public_cdx_info(docid):
+    doc = docs.Doc.load(app.model_redis, docid)
+    plot_context_ref = doc.plot_context_ref
+    all_models = current_app.collections.get_bulk(docid)
+    all_models = [x.to_broadcast_json() for x in all_models]
+    returnval = {'plot_context_ref' : plot_context_ref,
+                 'docid' : docid,
+                 'all_models' : all_models,
+                 'apikey' : doc.apikey}
+    returnval = current_app.ph.serialize_web(returnval)
     return returnval
