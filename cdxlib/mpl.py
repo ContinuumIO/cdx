@@ -328,7 +328,9 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             parent = container
         table = bbmodel.ContinuumModel(
             'DataTable', data_source=data_source.ref(),
-            columns=columns, parent=parent.ref())
+            columns=columns, parent=parent.ref(),
+            width=width,
+            height=height)
         self.update(table.typename, table.attributes)
         if container is None:
             self.show(table)
