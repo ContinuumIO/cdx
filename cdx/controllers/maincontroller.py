@@ -1,10 +1,6 @@
 import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
-import gevent_zeromq
-gevent_zeromq.monkey_patch()
-
-import zmq
 from gevent.pywsgi import WSGIServer
 import uuid
 import socket
