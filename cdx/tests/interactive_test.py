@@ -21,6 +21,12 @@ p.grid([[plot1, plot2]])
 
 p.clf()
 plot4 = p.plot(data, scatter=True)
+p.clf()
+p.plot(x='x', y='y', data_source=data_source)
+p.clf()
+p.plot(x='x', y='z', data_source=data_source)
+p.table(data_source, columns=['x', 'y', 'z'])
+
 # scatterplot1 = p.scatter(
 #     x='x', y='y', color='#F00',
 #     data_source=data_source, title='paddy_from_py')
