@@ -25,7 +25,7 @@ class DEV(BASE_ENV):
 class PROD(BASE_ENV):
     DEBUG = False
     USE_CHMOD = True
-    DB_CONNSTRING ='postgresql://wakari_pg:wakari@localhost:5432/wakari_dev_db'
+    DB_CONNSTRING ='postgresql://wakari_pg:wakari@127.0.0.1:5432/wakari_dev_db'
 
 Envies = dict(DEV=DEV, PROD=PROD)
 
