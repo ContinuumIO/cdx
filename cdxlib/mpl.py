@@ -65,6 +65,7 @@ class XYPlot(object):
             self.yaxis])
         self.last_source = None
         self.color_index = 0
+        
     def plot(self, x, y=None, color=None, data_source=None,
              scatter=False):
         def source_from_array(x, y):
@@ -216,8 +217,11 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         for idx in range(len(kwargs.values()[0])):
             point = {}
             for f in flds:
-                if isinstance(kwargs[f][idx], np.ndarray):
-                    val = kwargs[f][idx].tolist()
+                val = kwargs[f][idx]
+                if isinstance(val, float) and  np.isnan(val):
+                    val = "NaN"
+                elif isinstance(val, np.ndarray):
+                    val = val.tolist()
                 else:
                     val = kwargs[f][idx]
                 point[f] = val
