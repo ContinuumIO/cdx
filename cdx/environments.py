@@ -1,37 +1,32 @@
 import os
-from os.path import join, dirname
+opj = os.path.join
 from sqlalchemy.engine import create_engine
 
+_basedir = os.path.abspath(os.path.dirname(__file__))
 class BASE_ENV(object):
-    pass
+    def get_sqlalchemy_engine(self):
+        import wakariserver
+        engine = create_engine(self.DB_CONNSTRING)
+        return engine
 
 class DEV(BASE_ENV):
     DEBUG = True
     USE_CHMOD = False
-    @staticmethod
-    def get_sqlalchemy_engine():
-        import wakariserver
-        sqlitepath = join(dirname(dirname(wakariserver.__file__)),
-                          'usermgmt',
-                          'data.db')
-        connstring = "sqlite:///" + sqlitepath
-        engine = create_engine(connstring)
-        return engine
-    
+
+    SQLITE_PATH = opj(_basedir, "../../../usermgmt/data.db")
+
+    @property
+    def DB_CONNSTRING(self):
+        connstring = "sqlite:///" + self.SQLITE_PATH
+        print connstring
+        return connstring
+
+
 class PROD(BASE_ENV):
     DEBUG = False
     USE_CHMOD = True
-    @staticmethod    
-    def get_sqlalchemy_engine():
-        import wakariserver
-        """need to change this"""
-        sqlitepath = join(dirname(dirname(wakariserver.__file__)),
-                          'usermgmt',
-                          'data.db')
-        connstring = "sqlite:///" + sqlitepath
-        engine = create_engine(connstring)
-        return engine
-        
+    DB_CONNSTRING ='postgresql://wakari_pg:wakari@localhost:5432/wakari-dev'
+
 Envies = dict(DEV=DEV, PROD=PROD)
 
 import sys
