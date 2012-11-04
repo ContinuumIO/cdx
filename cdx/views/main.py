@@ -82,7 +82,8 @@ def get_cdx_info(docid):
     if not mconv.can_write_doc(doc, user):
         return null
     plot_context_ref = doc.plot_context_ref
-    all_models = current_app.collections.get_bulk(docid)
+    all_models = docs.prune_and_get_valid_models(current_app, docid)
+    print "num models", len(all_models)
     all_models = [x.to_broadcast_json() for x in all_models]
     returnval = {'plot_context_ref' : plot_context_ref,
                  'docid' : docid,
