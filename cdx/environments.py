@@ -9,6 +9,14 @@ class BASE_ENV(object):
         engine = create_engine(self.DB_CONNSTRING)
         return engine
 
+    LOG_DIR = _basedir
+
+    @property
+    def LOG_FILE(self):
+        return opj(self.LOG_DIR, "cdx.log")
+
+
+
 class DEV(BASE_ENV):
     DEBUG = True
     USE_CHMOD = False
@@ -26,7 +34,7 @@ class PROD(BASE_ENV):
     DEBUG = False
     USE_CHMOD = True
     DB_CONNSTRING ='postgresql://wakari_pg:wakari@127.0.0.1:5432/wakari_dev_db'
-
+    LOG_DIR = "/var/log/wakari"
 Envies = dict(DEV=DEV, PROD=PROD)
 
 import sys
