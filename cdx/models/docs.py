@@ -51,7 +51,7 @@ def find_refs_json(datajson, refs=None):
     elif isinstance(datajson, list):
         find_refs_list(datajson, refs=refs)
     else:
-        log.error("unknown item %s", datajson)
+        pass
     
 def find_refs_dict(datadict, refs=None):
     refs = [] if refs is None else refs        
