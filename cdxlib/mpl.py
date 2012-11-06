@@ -66,7 +66,7 @@ class XYPlot(object):
         self.last_source = None
         self.color_index = 0
         
-    def scatter(self *args, **kwargs):
+    def scatter(self, *args, **kwargs):
         kwargs['scatter'] = True
         return self.plot(*args, **kwargs)
     
@@ -206,7 +206,16 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         interactive_context = self.fetch(typename='CDXPlotContext')
         self.ic = interactive_context[0]
         self.clf()
+        self._hold = True
         
+    def hold(self, val):
+        if val == 'on':
+            self._hold = True
+        elif val == 'off':
+            self._hold = False
+        else:
+            self._hold = val
+    
     def updateic(self):
         self.updateobj(self.ic)
 
@@ -323,9 +332,11 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         kwargs['scatter'] = True
         return self.plot(*args, **kwargs)
             
-    def plot(self, x, y=None, title=None, width=300, height=300, color=None,
+    def plot(self, x, y=None, color=None, title=None, width=300, height=300,
              scatter=False, is_x_date=False, is_y_date=False,
              data_source=None, container=None):
+        if not self._hold:
+            self.figure()
         if not self._plot:
             self._plot =self._newxyplot(
                 title=title,
