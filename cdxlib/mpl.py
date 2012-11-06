@@ -66,6 +66,10 @@ class XYPlot(object):
         self.last_source = None
         self.color_index = 0
         
+    def scatter(self *args, **kwargs):
+        kwargs['scatter'] = True
+        return self.plot(*args, **kwargs)
+    
     def plot(self, x, y=None, color=None, data_source=None,
              scatter=False):
         def source_from_array(x, y):
@@ -307,7 +311,18 @@ class PlotClient(bbmodel.ContinuumModelsClient):
     
     def clf(self):
         self._plot = None
-        
+    def clear(self):
+        self._plot = None
+    def figure(self):
+        self._plot = None        
+    def plot_dates(self, *args, **kwargs):
+        kwargs['is_x_date'] = True
+        return self.plot(*args, **kwargs)
+    
+    def scatter(self, *args, **kwargs):
+        kwargs['scatter'] = True
+        return self.plot(*args, **kwargs)
+            
     def plot(self, x, y=None, title=None, width=300, height=300, color=None,
              scatter=False, is_x_date=False, is_y_date=False,
              data_source=None, container=None):
@@ -383,31 +398,3 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         self.ic.set('children', [])
         self.update(self.ic.typename, self.ic.attributes)
         
-if __name__ == "__main__":
-    import numpy as np
-    import requests
-    import json
-    userdata = requests.get('http://localhost:5000/userinfo/').content
-    userdata = json.loads(userdata)
-    docid = userdata['docs'][0]
-    client = PlotClient(docid, "http://localhost:5000/bb/")
-    x = np.random.random(100)
-    y = np.random.random(100)
-    data_source = client.make_source(idx=range(100), x=x, y=y)
-    scatterplot1 = client.scatter(x='idx', y='x', color='#F00', data_source=data_source, title='scatter1')
-    scatterplot2 = client.scatter(x='idx', y='y', color='#0F0', data_source=data_source, title='scatter2')
-    xdata = np.arange(0, 10, 0.01)
-    ydata = np.sin(xdata)
-    lineplot = client.line(xdata, ydata, title='line1')
-    xdata = np.arange(0, 15, 0.01)
-    ydata = 2 * np.cos(xdata)
-    lineplot1=client.line(xdata, ydata, lineplot=lineplot)
-
-    xdata = np.arange(0, 10, 0.01)
-    ydata = np.cos(xdata)
-    lineplot = client.line(xdata, ydata, title='line2')
-    xdata = np.arange(0, 15, 0.01)
-    ydata = 2 * np.sin(xdata)
-    lineplot2=client.line(xdata, ydata, lineplot=lineplot)
-    client.grid([[scatterplot1, scatterplot2],
-                 [lineplot1, lineplot2]], title='all')
