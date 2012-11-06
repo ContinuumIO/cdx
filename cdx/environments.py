@@ -28,6 +28,9 @@ class DEV(BASE_ENV):
         connstring = "sqlite:///" + self.SQLITE_PATH
         print connstring
         return connstring
+    
+    def unixusername(self, authuser):
+        return authuser.username
 
 
 class PROD(BASE_ENV):
@@ -35,6 +38,10 @@ class PROD(BASE_ENV):
     USE_CHMOD = True
     DB_CONNSTRING ='postgresql://wakari_pg:wakari@127.0.0.1:5432/wakari_dev_db'
     LOG_DIR = "/var/log/wakari"
+    def unixusername(self, authuser):
+        return "w_" + authuser.username
+
+    
 Envies = dict(DEV=DEV, PROD=PROD)
 
 import sys
