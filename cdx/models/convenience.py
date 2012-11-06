@@ -16,7 +16,7 @@ def from_wakari(app, request, session=None):
     efficient about it in the future
     """
     try:
-        dbsession = session if session else app.Session() 
+        dbsession = session if session else request.session
         auth_user, wakari_user = get_current_user(dbsession, request)
         if auth_user is None or wakari_user is None:
             return None
@@ -45,13 +45,13 @@ def can_write_doc_api(docid, apikey, app):
     return apikey == doc.apikey
 
 def can_read_doc(doc, cdxuser):
-    return cdxuser.username in doc.r_users    
+    return cdxuser.username in doc.r_users
 
 def can_write_doc(doc, cdxuser):
     return cdxuser.username in doc.rw_users
 
 def can_write_from_request(docid, request, app):
-    doc = docs.Doc.load(app.model_redis, docid)    
+    doc = docs.Doc.load(app.model_redis, docid)
     if request.cookies.get('CDX-api-key'):
         return doc.apikey == request.cookies['CDX-api-key']
     else:

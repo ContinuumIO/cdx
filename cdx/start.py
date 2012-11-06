@@ -37,6 +37,38 @@ def prepare_app(rhost='127.0.0.1', rport=6379):
     app.secret_key = str(uuid.uuid4())
     app.dbengine = settings.get_sqlalchemy_engine()
     app.Session = sessionmaker(bind=app.dbengine)
+    from flask import _request_ctx_stack
+    from werkzeug.local import LocalProxy
+
+    class RequestSession(object):
+        def __init__(self):
+            self.is_testing = False
+
+        def setup_app(self, app):
+            """
+            Configures an application. This registers a `before_request` and an
+            `after_request` call, and sets up a request lived database_session
+            :param app: The `flask.Flask` object to configure.
+            """
+            app.before_request(self._start_request)
+            app.after_request(self._after_request)
+            self.is_testing = False
+
+        def _start_request(self):
+            if not self.is_testing:
+                #in the testing context we want the process wide session
+                request.session = app.Session()
+
+        def _after_request(self, response):
+            if not self.is_testing:
+                #in the testing context, tearDown should be the only place
+                #commit is called
+                request.session.commit()
+                request.session.close()
+            return response
+
+    rs = RequestSession()
+    rs.setup_app(app)
     return app
 
 def shutdown_app():
@@ -53,7 +85,7 @@ def start_app():
     http_server.serve_forever()
 
 if __name__ == "__main__":
-    prepare_app()    
+    prepare_app()
     import werkzeug.serving
     @werkzeug.serving.run_with_reloader
     def helper ():
