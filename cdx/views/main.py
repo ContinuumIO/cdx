@@ -56,7 +56,7 @@ else:
 
 
 def _write_plot_file(username, homedir, docid, apikey, url):
-    fpath = os.path.join(homedir, 'scripts', 'wkplot.py')
+    fpath = os.path.join(homedir, 'scripts', 'webplot.py')
     with open(fpath, 'w+') as f:
         f.write("from cdxlib import mpl\n")
         clientcode = "p = mpl.PlotClient('%s', '%s', '%s')\n"
@@ -69,7 +69,7 @@ def write_plot_file(docid, apikey, url):
     try:
         session = app.Session()
         authuser, wakuser = mconv.get_current_user(session, request)
-        username = authuser.username
+        username = ENV.unixusername(authuser)
         homedir = os.path.join(FS_ROOT, username)
         _write_plot_file(username, homedir, docid, apikey, url)
     finally:
