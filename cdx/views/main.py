@@ -56,7 +56,7 @@ else:
 
 
 def _write_plot_file(username, homedir, docid, apikey, url):
-    fpath = os.path.join(homedir, 'scripts', 'wkplot.py')
+    fpath = os.path.join(homedir, 'scripts', 'webplot.py')
     with open(fpath, 'w+') as f:
         f.write("from cdxlib import mpl\n")
         clientcode = "p = mpl.PlotClient('%s', '%s', '%s')\n"
