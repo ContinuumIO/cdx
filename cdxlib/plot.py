@@ -73,7 +73,6 @@ class TablePlot(object):
 class PlotClient(bbmodel.ContinuumModelsClient):
     def __init__(self, docid, serverloc, apikey, ph=None):
         url = urlparse.urljoin(serverloc, "/cdx/bb/")
-        print url
         if not ph:
             ph = protocol.ProtocolHelper()
         self.ph = ph
