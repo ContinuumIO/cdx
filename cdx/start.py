@@ -9,7 +9,7 @@ import redis
 from sqlalchemy.orm import sessionmaker
 from geventwebsocket.handler import WebSocketHandler
 
-import cdx.settings as settings
+import settings
 from cdx.app import app
 import cdx.wsmanager as wsmanager
 from cdxlib import protocol
