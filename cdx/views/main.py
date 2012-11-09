@@ -14,7 +14,6 @@ import cdx.wsmanager as wsmanager
 import cdx.models.user as user
 import cdx.models.docs as docs
 import cdx.models.convenience as mconv
-import cdx.controllers.maincontroller as maincontroller
 from cdx.settings import ENV
 
 #main pages
