@@ -1,7 +1,6 @@
 from cdxlib import protocol
 import requests
 import urlparse
-import utils
 import uuid
 import logging
 import cPickle as pickle
