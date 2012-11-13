@@ -61,7 +61,7 @@ def write_plot_file(docid, apikey, url):
         session = app.Session()
         authuser, wakuser = mconv.get_current_user(session, request)
         homedir = ENV.homedir(authuser.username)
-        _write_plot_file(username, homedir, docid, apikey, url)
+        _write_plot_file(authuser.username, homedir, docid, apikey, url)
     finally:
         session.close()
     
