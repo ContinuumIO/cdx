@@ -14,7 +14,7 @@ import cdx.wsmanager as wsmanager
 import cdx.models.user as user
 import cdx.models.docs as docs
 import cdx.models.convenience as mconv
-from cdx.settings import ENV
+from wakariserver.environments import ENV
 
 #main pages
 
@@ -46,14 +46,6 @@ def get_user():
     user = mconv.from_wakari(current_app, request)
     return current_app.ph.serialize_web(user.to_public_json())
 
-if not ENV.DEBUG:
-    print 'not ENV.DEBUG'
-    FS_ROOT = "/user_home/"
-else:
-    print 'ENV DEBUG'
-    FS_ROOT = "/tmp/"
-
-
 def _write_plot_file(username, homedir, docid, apikey, url):
     fpath = os.path.join(homedir, 'wakaripython', 'webplot.py')
     with open(fpath, 'w+') as f:
@@ -69,7 +61,7 @@ def write_plot_file(docid, apikey, url):
         session = app.Session()
         authuser, wakuser = mconv.get_current_user(session, request)
         username = ENV.unixusername(authuser)
-        homedir = os.path.join(FS_ROOT, username)
+        homedir = ENV.homedir(username)
         _write_plot_file(username, homedir, docid, apikey, url)
     finally:
         session.close()
