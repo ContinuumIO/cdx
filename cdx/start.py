@@ -19,6 +19,7 @@ import cdx.models.docs as docs
 import logging
 import time
 from environments import ENV
+from wakariserver.flasklib import RequestSession
 port = 5006
 log = logging.getLogger(__name__)
 
@@ -42,35 +43,9 @@ def prepare_app(rhost='127.0.0.1', rport=6379):
     from flask import _request_ctx_stack
     from werkzeug.local import LocalProxy
 
-    class RequestSession(object):
-        def __init__(self):
-            self.is_testing = False
 
-        def setup_app(self, app):
-            """
-            Configures an application. This registers a `before_request` and an
-            `after_request` call, and sets up a request lived database_session
-            :param app: The `flask.Flask` object to configure.
-            """
-            app.before_request(self._start_request)
-            app.after_request(self._after_request)
-            self.is_testing = False
-
-        def _start_request(self):
-            if not self.is_testing:
-                #in the testing context we want the process wide session
-                request.session = app.Session()
-
-        def _after_request(self, response):
-            if not self.is_testing:
-                #in the testing context, tearDown should be the only place
-                #commit is called
-                request.session.commit()
-                request.session.close()
-            return response
-
-    rs = RequestSession()
-    rs.setup_app(app)
+    rs = RequestSession(app)
+    rs.setup_app()
     return app
 
 def shutdown_app():
