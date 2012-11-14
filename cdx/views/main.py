@@ -17,23 +17,11 @@ import cdx.models.convenience as mconv
 
 #main pages
 
-# @app.route('/cdx/')
-# @app.route('/cdx/<path:unused>/')
-# def index(*unused_all, **kwargs):
-#     current_user = mconv.from_wakari(current_app, request)
-#     if current_user is None:
-#         #redirect to login, we don't have login page yet..
-#         pass
-#     return render_template('cdx.html', NODE_INSTALLED=False)
+@app.route('/cdx/')
+@app.route('/cdx/<path:unused>/')
+def index(*unused_all, **kwargs):
+    return render_template('cdx.html')
 
-# @app.route('/cdx_help')
-# @app.route('/cdx_help/<path:unused>/')
-# def cdx_help(*unused_all, **kwargs):
-#     current_user = mconv.from_wakari(current_app, request)
-#     if current_user is None:
-#         #redirect to login, we don't have login page yet..
-#         pass
-#     return render_template('cdx_help.html')
 
 @app.route('/cdx/favicon.ico')
 def favicon():
@@ -51,13 +39,9 @@ def _make_plot_file(docid, apikey, url):
     return "\n".join(lines)
      
 def write_plot_file(docid, apikey, url):
-    try:
-        session = app.Session()
-        user = app.current_user(request)
-        codedata = _make_plot_file(docid, apikey, url)
-        app.write_plot_file(user.username, codedata)
-    finally:
-        session.close()
+    user = app.current_user(request)
+    codedata = _make_plot_file(docid, apikey, url)
+    app.write_plot_file(user.username, codedata)
     
 @app.route('/cdx/cdxinfo/<docid>')
 def get_cdx_info(docid):

@@ -1,301 +1,38 @@
-{% extends "base.html" %}
-{% block main %}
-<link href="{{ url_for('static', filename='vendor/ipython/codemirror/lib/codemirror.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='vendor/ipython/codemirror/theme/ipython.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='vendor/ipython/codemirror/theme/default.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='vendor/ipython/css/notebook.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='vendor/ipython/css/layout.css') }}" rel="stylesheet">
-
-
-
-{% if NODE_INSTALLED %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Continuum Analytics</title>
+	<!-- Vendor Styles -->
     <script type=text/javascript src="{{ url_for('static', filename='vendor/jquery.1.7.2.min.js') }}"></script>
-    <script type=text/javascript 
-            src="{{ url_for('static', filename='vendor/d3/d3.v2.js') }}"></script>
-
-    <script type=text/javascript
-            src="{{ url_for('static', filename='vendor/underscore/underscore.js') }}"></script>
-    <script type=text/javascript 
-            src="{{ url_for('static', filename='vendor/backbone/backbone.js') }}"></script>
-    <script type=text/javascript 
-            src="{{ url_for('static', filename='vendor/backbone.marionette.js') }}"></script>
-    <script type=text/javascript 
-            src="{{ url_for('static', filename='vendor/buckets/buckets.js') }}"></script>
-    <script type=text/javascript 
-            src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.js') }}"></script>
-
-    <!-- Continuum scripts -->
-    <script type=text/javascript
-            src="{{ url_for('static',filename='vendor/bokehjs/js/base.js') }}" > </script>
-    <script type=text/javascript 
-            src="{{ url_for('static',filename='vendor/bokehjs/js/view_base.js') }}" > </script>
-    <script type=text/javascript 
-            src="{{ url_for('static',filename='vendor/bokehjs/js/model_base.js') }}" > </script>
-    <script type=text/javascript 
-            src="{{ url_for('static',filename='vendor/bokehjs/js/ui_view.js') }}" > </script>
-    <script type=text/javascript
-            src="{{ url_for('static',filename='vendor/bokehjs/js/ui_model.js') }}" > </script>
-
-    <script type=text/javascript 
-            src="{{ url_for('static',filename='vendor/bokehjs/js/bokeh_views.js') }}" > </script>
-
-    <script type=text/javascript
-            src="{{ url_for('static',filename='vendor/bokehjs/js/ticks.js') }}" > </script>
-    <script type=text/javascript 
-            src="{{ url_for('static',filename='vendor/bokehjs/js/tools.js') }}" > </script> 
-
-    <script type=text/javascript 
-            src="{{ url_for('static',filename='vendor/bokehjs/js/bokeh_model.js') }}" > </script>
-    <script type=text/javascript 
-            src="{{ url_for('static',filename='vendor/bokehjs/js/custom.js') }}" >
-    <script type=text/javascript 
-            src="{{ url_for('static',filename='vendor/bokehjs/js/svg_to_dataurl.js') }}" > </script>
-
-    <script type=text/javascript src="{{ url_for('static',filename='js/cdx_init.js') }}"></script>
-    <script type=text/javascript src="{{url_for('static',filename='js/views.js')}}"></script>
-    <script type=text/javascript src="{{url_for('static',filename='js/data_model.js')}}"></script>
-    <script type=text/javascript src="{{ url_for('static',filename='js/tab_lib.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static',filename='js/blaze.js') }}"></script>
-    <script type=text/javascript src="{{ url_for('static',filename='js/cdx.js') }}"></script>
-{% else %}
-  <script type=text/javascript src="{{ url_for('static', filename='vendor/catted.js') }}"></script>
-{% endif %}
-
-<style>
-  .all_can_wrapper {position:relative; }
-  .can_wrapper {position:absolute; }
-  .main_ can_wrapper {border:1px dotted green;}
-  .main_can {border:1px solid blue}
-  .x_can_wrapper { border:1px solid orange; }
-  .y_can_wrapper { border:1px solid purple; }
-  .y_can {}
-  ._shader {display:none; } 
-  .shading ._shader {display:block; border:1px dashed green; position: absolute; z-index:-10;}
-  
-  .gridplot_container {position: relative;}
-  .gridplot_container .gp_plotwrapper { position:absolute; } 
-
-
-</style>
-
-<style> 
-
-  .all_can_wrapper {position:relative; }
-  .can_wrapper {position:absolute; }
-  .main_ can_wrapper {border:1px dotted green;}
-  .main_can {border:1px solid blue}
-  .x_can_wrapper { border:1px solid orange; }
-  .y_can_wrapper { border:1px solid purple; }
-  .y_can {}
-  ._shader {display:none; } 
-  .shading ._shader {display:block; border:1px dashed green; position: absolute; z-index:-10;}
-  
-  .gridplot_container {position: relative;}
-  .gridplot_container .gp_plotwrapper { position:absolute; } 
-
-  button.active { border:3px solid blue }
-  .table_wrap { border:1px solid red; }
-
-  .table_wrap table { margin:5px; border:1px solid orange;   display:block; overflow-y:scroll }
-
-  .plot_wrap { display:block ; }
-  .jsp { border: 2px solid brown; height: 200px; overflow:hidden; }
-
-/*
-  .table_outer thead { fon t-size:15px; display:block; heig ht: 100px; overflow:auto; outline:1px  solid green}
-
-  .table_outer tbody { font -size:10px; display:table; height: 200px; overflow-y:scroll; outline:1px  solid blue}
-  .table_outer table td { border-left:1px solid black; border-right:1px solid black; }
-*/
-</style>
-  
-<script type="text/template" id="plot-context">
-  <!-- no longer used, because pngs don't work well -->
-  <ul>
-    <% _.each(to_render, function(renderobj, index){ %>
-      <li class='jsp' data-plot_num="<%= index %>">
-	<p> 
-	  <%= renderobj['title'] %>
-	</p>
-        <img width='50' height='50' src="<%= renderobj['data_url'] %>"/>
-
-      </li>      
-    <% }); %>
-  </ul>
-</script>
-
-<script type="text/template" id="publish-selection">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Publish Tabs</h3>
-    </div>
-    <div class="modal-body">
-      <form class="well">
-        <label>Choose Some tabs to export</label>
-	<% if (plot_routes.length == 0){ %>
-	  <label> no plots to export </label>
-	<% }else{ %>
-	  <label> Plots </label>
-  	  <% _.each(plot_routes, function(route, idx){ %>
-            <label class="checkbox">
-              <input class="tabselect" type="checkbox" tab="<%= route %>"/> 
-	      <%= plot_titles[idx] %>
-            </label>
-	  <% }); %>
-	<% } %>
-	<% if (array_routes.length == 0){ %>
-	  <label> no arrays to export </label>
-	<% }else{ %>
-	  <label> Arrays </label>
-  	  <% _.each(array_routes, function(route, idx){ %>
-            <label class="checkbox">
-              <input class="tabselect" type="checkbox" tab="<%= route %>"/>
-	      <%= array_titles[idx] %>	      
-            </label>
-	  <% }); %>
-	<% } %>
-	<label>
-	  Publish your page, it will open in a new window.
-	<input class="publishsubmit" type="button" value="Publish"/>
-	<label q>
-      </form>
-    </div>
-  </div>
-</script>
-
-<script type="text/template" id="tree-template">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>Select A Data Set</h3>
-  </div>   
-  <div class="modal-body">
-    <div class="css-treeview">
-
-
-</script>
-
-<script type="text/template" id="variable-item-template">
-
-  <div class='variable-block accordion-group well'>
-    <h3> Variables </h2>
-    <ul class='category-list'>
-      <% _.each(reg_variables, function(variables, category) { %>
-        <li class='accordion-group' >
-          <h4> <%= category %> </h3>
-          <ul class='variable-list'>
-            <% _.each(variables, function(item) { %>
-              <li> <%= item.name %> <span class='var-value'> <%= item.value %> </span> </li>
-            <% }); %>
-          </ul>
-        </li>
-      <% }); %>
-    </ul>
-  </div> <!-- closes variable-block -->
-  <div class='variable-block well'>
-    <h3> Functions </h4>
-    <ul class='variable-list accordion-group'>
-      <% _.each(funcs, function(func) { %>
-        <li> <%= func.name %> </li>
-      <% }); %>
-    </ul>
-  </div>
-</script>
-<script type="text/template" id="variable-summary-template">
-  <div class="well">
-  <div class="pull-right">
-    <a class="btn" href="#" onClick="$CDX.add_data_tab('<%= item[0].name %>','<%= item[0].url %>')">
-      <i class="icon-list-alt"></i> Table</a>
-  </div>
-  <h3> <%= item[0].name %> </h3>
-  <table class="table table-bordered table-condensed">
-    <tr><td>BlazeUrl</td><td><%= item[0].url %> </td></tr>
-    <tr><td>Type</td><td><%= item[0].type %> </td></tr>
-    <% if (item[1]) { %>    
-      <tr><td>Total Rows</td><td><%=item[1].summary.shape %></td></tr>
-    <% } %>
-  </table>
-  <% if (item[1]) { %>    
-  <table class="table table-striped table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th> Column Name </th>
-        <th> Std Dev </th>
-        <th> Min </th>
-        <th> Max </th>
-        <th> Mean </th>
-      </tr>
-    </thead>
-    <tbody>
-      <% _.each( item[1].colsummary , function(value, key, list) {  %>
-
-      <tr>
-        <td> <%= key %> </td>
-        <td> <%= value.std %> </td>
-        <td> <%= value.min %> </td>
-        <td> <%= value.max %> </td>
-        <td> <%= value.mean %> </td>
-      </tr>
-      <% }); %>
-  </table>
-  <% } %>
-  </div>
-</script>
-
-
-<script type="text/template" id="layout-template">
-  <div id="cdxRoot" class="container-fluid cdx-root">
-    <div id="cdxTopMsg" class="row-fluid"></div>
+    <script type=text/javascript src="{{ url_for('static', filename='vendor/underscore/underscore.js') }}"></script>
+    <script type=text/javascript src="{{ url_for('static', filename='vendor/backbone/backbone.js') }}"></script>
     
-    <div class="pull-right">
-      <a class="btn js-toggle_py_pane" href="#">
-        <i class="icon-chevron-right"></i></a>
-    </div>
-    <div id="cdxMenu" class="subnav">
-      <ul class="nav nav-pills">
-        <li class="dropdown active">
-	  <a id='menuDataSelect' href="#">Select</a></li>
-        </li>
-        <li class=""><a class="js-navigate" data-route_target="/cdx/unknown/sharecurrent">Share</a></li>	
-        <li class="dropdown">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Help <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li class=""><a id="helpCDX" href="#">CDX</a></li>
-            <li class=""><a id="helpPython" href="#">Python</a></li>
-          </ul>
-      </ul>
-    </div>
+	<!-- Continuum Styles -->
+    <link href="{{ url_for('static', filename='css/cdx.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bokehjs/css/bokeh.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bokehjs/css/continuum.css') }}" rel="stylesheet">
 
-
-    <div id="cdxMidContainer" class="container span12">
-      <div id="cdxMid" class="row-fluid">
-        <div id="cdxnamespace" class="tabbable span2 cdx-panel-root">
-	    <ul class="nav nav-tabs">
-	      <li class="active"><a href="#dep-tabs1-pane1"
-	      data-toggle="tab">Namespace Viewer</a></li>
-	    </ul>
-	    <div class="tab-content">
-	      <div class="tab-pane active midPanel" id="left-panel">
-                <h3> left panel </h3>
-	      </div>
-	    </div><!-- /.tab-content -->
-      </div>
-
-      <div id="main-tab-area" class="tabbable span5 cdx-panel-root"></div>
-
-      <div id="cdxPyPane" class="span5 well hide">
-      <div class="cdx-py-pane">
-        {% include 'ipython.html' %}
-      </div>
-      </div>
-
-      </div>
-    </div>
-
-    <div id="cdxBottomMsg" class="row-fluid"></div>
-
-    <div class="modal hide fade" id="dataSelectModal"></div>
-
-  </div><!-- cdxRoot container-fluid -->
-</script>
-<div id="layout-root"></div>
-{% endblock %}
+    <script type="text/javascript" src="/cdx/static/vendor/jquery/js/jquery.mousewheel.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/buckets/buckets.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/d3/d3.v2.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/base.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/view_base.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/model_base.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/ui_view.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/ui_model.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/bokeh_views.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/ticks.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/tools.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/bokeh_model.js"></script>
+    <script type=text/javascript src="/cdx/static/vendor/bokehjs/js/custom.js"></script>
+    <script type=text/javascript src="/cdx/static/js/cdxviews.js"></script>
+    <script type=text/javascript src="/cdx/static/js/cdxmodels.js"></script>
+    <script type=text/javascript src="/cdx/static/js/cdxmain.js"></script>
+    <script type=text/javascript src="/cdx/static/js/cdxrun.js"></script>
+  </head>
+  <body>
+    <div>Your Plots Go Here</div>
+    <div id="PlotPane">Plots</div>
+  </body>
+</html>
