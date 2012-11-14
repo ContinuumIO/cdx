@@ -40,10 +40,6 @@ def prepare_app(rhost='127.0.0.1', rport=6379):
     app.secret_key = str(uuid.uuid4())
     app.dbengine = create_engine(ENV.DB_CONNSTRING)
     app.Session = sessionmaker(bind=app.dbengine)
-    from flask import _request_ctx_stack
-    from werkzeug.local import LocalProxy
-
-
     rs = RequestSession(app)
     rs.setup_app()
     return app

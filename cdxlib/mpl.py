@@ -196,7 +196,7 @@ class XYPlot(object):
         self.client.show(self.plotmodel)
         
 class PlotClient(bbmodel.ContinuumModelsClient):
-    def __init__(self, docid, serverloc, apikey, ph=None):
+    def __init__(self, docid, serverloc, apikey="nokey", ph=None):
         url = urlparse.urljoin(serverloc, "/cdx/bb/")
         if not ph:
             ph = protocol.ProtocolHelper()
