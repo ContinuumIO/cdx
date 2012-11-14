@@ -69,6 +69,8 @@ class ContinuumModelsStorage(object):
                 raise
             
     def _upsert(self, pipe, model):
+        # I don't think the document level locking I wrote here
+        # is necessary
         mkey = modelkey(model.typename, model.id)
         pipe.watch(mkey)
         for doc in model.get('docs'):

@@ -2,11 +2,9 @@ from flask import request
 import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
-from gevent.pywsgi import WSGIServer
 import uuid
 import socket
 import redis
-from geventwebsocket.handler import WebSocketHandler
 from cdx.app import app
 import cdx.wsmanager as wsmanager
 from cdxlib import protocol
@@ -39,17 +37,4 @@ def shutdown_app():
     app.proxy.kill = True
     app.proxyclient.kill = True
 
-http_server = WSGIServer(('', port), app,
-                         handler_class=WebSocketHandler,
-                         keyfile="/etc/nginx/wakari.key",
-                         certfile="/etc/nginx/wakari.crt"
-                         )
-def start_app():
-    http_server.serve_forever()
 
-if __name__ == "__main__":
-    prepare_app()
-    import werkzeug.serving
-    @werkzeug.serving.run_with_reloader
-    def helper ():
-        start_app()

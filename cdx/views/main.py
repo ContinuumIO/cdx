@@ -58,5 +58,5 @@ def get_cdx_info(docid):
                  'all_models' : all_models,
                  'apikey' : doc.apikey}
     returnval = current_app.ph.serialize_web(returnval)
-    write_plot_file(docid, doc.apikey, "https://" + request.host)
+    write_plot_file(docid, doc.apikey, request.scheme + "://" + request.host)
     return returnval

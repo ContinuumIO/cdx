@@ -1,8 +1,10 @@
 import startprod
 from cdx import start
-print 'hello'
+from geventwebsocket.handler import WebSocketHandler
+from gevent.pywsgi import WSGIServer
+
 if __name__ == "__main__":
     import werkzeug.serving
     @werkzeug.serving.run_with_reloader
     def helper ():
-        start.start_app()
+        startprod.start_app()

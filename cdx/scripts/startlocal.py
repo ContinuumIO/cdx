@@ -1,4 +1,6 @@
 from cdx import start
+from geventwebsocket.handler import WebSocketHandler
+from gevent.pywsgi import WSGIServer
 from cdx.app import app
 import cdx.models.user as user
 import cdx.models.docs as docs
@@ -33,6 +35,12 @@ app.write_plot_file = write_plot_file
 #database
 
 #logging
+
+def start_app():
+    http_server = WSGIServer(('', 5006), app,
+                             handler_class=WebSocketHandler,
+                             )
+    http_server.serve_forever()
 
 if __name__ == "__main__":
     start.start_app()

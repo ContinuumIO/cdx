@@ -1,4 +1,6 @@
 from cdx import start
+from geventwebsocket.handler import WebSocketHandler
+from gevent.pywsgi import WSGIServer
 from cdx.app import app
 from wakariserver import djangointerface, cdxlib
 from sqlalchemy.engine import create_engine
@@ -49,6 +51,14 @@ app.logger.addHandler(file_handler)
 app.logger.setLevel(logging.DEBUG)
 app.logger.info('INFO: cdx instatiation')
 
+def start_app():
+    http_server = WSGIServer(('', 5006), app,
+                             handler_class=WebSocketHandler,
+                             keyfile="/etc/nginx/wakari.key",
+                             certfile="/etc/nginx/wakari.crt"
+                             )
+    http_server.serve_forever()
+    
 if __name__ == "__main__":
-    start.start_app()
-
+    start_app()
+    
