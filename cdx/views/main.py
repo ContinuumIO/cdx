@@ -14,7 +14,6 @@ import cdx.wsmanager as wsmanager
 import cdx.models.user as user
 import cdx.models.docs as docs
 import cdx.models.convenience as mconv
-from wakariserver.environments import ENV
 
 #main pages
 
@@ -43,32 +42,27 @@ def favicon():
 
 @app.route('/cdx/userinfo/')
 def get_user():
-    user = mconv.from_wakari(current_app, request)
+    user = app.current_user(request)
     return current_app.ph.serialize_web(user.to_public_json())
 
-def _write_plot_file(username, homedir, docid, apikey, url):
-    fpath = os.path.join(homedir, 'wakaripython', 'webplot.py')
-    with open(fpath, 'w+') as f:
-        f.write("from cdxlib import mpl\n")
-        clientcode = "p = mpl.PlotClient('%s', '%s', '%s')\n"
-        clientcode = clientcode % (docid, url, apikey)
-        f.write(clientcode)
-    if ENV.USE_CHMOD:
-        os.system("sudo chown %s  %s " % (username, fpath))
-                
+def _make_plot_file(docid, apikey, url):
+    lines = ["from cdxlib import mpl",
+             "p = mpl.PlotClient('%s', '%s', '%s')" % (docid, url, apikey)]
+    return "\n".join(lines)
+     
 def write_plot_file(docid, apikey, url):
     try:
         session = app.Session()
-        authuser, wakuser = mconv.get_current_user(session, request)
-        homedir = ENV.homedir(authuser.username)
-        _write_plot_file(authuser.username, homedir, docid, apikey, url)
+        user = app.current_user(request)
+        codedata = _make_plot_file(docid, apikey, url)
+        app.write_plot_file(user.username, codedata)
     finally:
         session.close()
     
 @app.route('/cdx/cdxinfo/<docid>')
 def get_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
-    user = mconv.from_wakari(current_app, request)
+    user = app.current_user(request)
     if not mconv.can_write_doc(doc, user):
         return null
     plot_context_ref = doc.plot_context_ref
