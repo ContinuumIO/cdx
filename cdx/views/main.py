@@ -60,3 +60,6 @@ def get_cdx_info(docid):
     returnval = current_app.ph.serialize_web(returnval)
     write_plot_file(docid, doc.apikey, request.scheme + "://" + request.host)
     return returnval
+@app.route('/cdx/sampleerror')
+def sampleerror():
+    return 1 + "sdf"
