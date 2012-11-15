@@ -36,11 +36,12 @@ $CDX.utility =
         $CDX.docid,
         data.apikey)
       $CDX.apikey = data['apikey']
-      $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
       console.log("from cdx import plot")
       url = window.location.origin
       console.log("p = plot.PlotClient('#{docid}', '#{url}', '#{$CDX.apikey}')")
       $CDX.utility.render_plots()
+      $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
+
     )
   render_plots : () ->
     plotcontext = Continuum.resolve_ref(
@@ -55,4 +56,3 @@ $CDX.utility =
     $CDX.plotcontext = plotcontext
     $CDX.plotcontextview = plotcontextview
     $CDX.plotcontextview.render()
-    $('#PlotPane').empty().append($CDX.plotcontextview.el)
