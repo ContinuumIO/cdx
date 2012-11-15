@@ -43,5 +43,5 @@ def start_app():
     http_server.serve_forever()
 
 if __name__ == "__main__":
-    start.start_app()
+    start_app()
 
