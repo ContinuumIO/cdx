@@ -9,26 +9,25 @@ import cdx.redisutils as redisutils
 from cdx.app import app
 import cdxlib.bbmodel as bbmodel
 import cdx.start as start
+import cdx.models.docs as docs
+import requests
+import redis
 
-
-class TestBBModel(unittest.TestCase):
+class TestBBModel(test_utils.CDXServerTestCase):
     def setUp(self):
-        start.prepare_app(rport=6899)
-        self.servert = gevent.spawn(start.start_app)
+        super(TestBBModel, self).setUp()
+        doc2 = docs.new_doc(app, "defaultdoc2",
+                            'main', rw_users=["defaultuser"],
+                            apikey='nokey')
         self.client = bbmodel.ContinuumModelsClient(
-            "mydoc", "http://localhost:5006/bb/", app.ph)
+            "defaultdoc", "http://localhost:5006/cdx/bb/",
+            'nokey', app.ph
+            )
         self.client2 = bbmodel.ContinuumModelsClient(
-            "mydoc2", "http://localhost:5006/bb/", app.ph)
-        self.redisproc = redisutils.RedisProcess(6899, '/tmp', save=False)
-        time.sleep(0.1)
-        
-    def tearDown(self):
-        start.shutdown_app()
-        self.servert.kill()
-        self.redisproc.close()        
-        time.sleep(1.0)
+            "defaultdoc2", "http://localhost:5006/cdx/bb/", "nokey",
+            app.ph,
+            )
 
-        
     def test_create(self):
         test_utils.wait_until(lambda : start.http_server.started)
         client = self.client

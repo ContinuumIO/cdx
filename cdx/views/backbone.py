@@ -96,11 +96,9 @@ def put(docid, typename, id):
 @app.route("/cdx/bb/<docid>/<typename>/", methods=['GET'])
 @app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['GET'])
 def get(docid, typename=None, id=None):
+    #not distinguishing between read/write yet
     if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(
-            {'msgtype' : 'error',
-             'msg' : 'unauthorized'}
-            )
+        return app.ph.serialize_web(None)
     if typename is not None and id is not None:
         model = current_app.collections.get(typename, id)
         if model is not None and docid in model.get('docs'):
