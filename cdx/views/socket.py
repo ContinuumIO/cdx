@@ -19,7 +19,6 @@ log = logging.getLogger(__name__)
 def sub():
     def auth(auth, topic):
         status = mconv.can_write_doc_api(topic, auth, current_app)
-        print "AUTH", status
         return status
     if request.environ.get('wsgi.websocket'):
         ws = request.environ['wsgi.websocket']

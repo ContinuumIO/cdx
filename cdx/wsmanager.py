@@ -78,7 +78,6 @@ def run_socket(socket, manager, auth_function,
     log.debug("CLIENTID %s", clientid)     
     while True:
         msg = socket.receive()
-        print msg
         if msg is None:
             manager.remove_socket(clientid)
             manager.remove_clientid(clientid)
