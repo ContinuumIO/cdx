@@ -4,7 +4,7 @@ import cdx.bbmodel as bbmodel
 import logging
 log = logging.getLogger(__name__)
 
-def prune_and_get_valid_models(flaskapp, docid):
+def prune_and_get_valid_models(flaskapp, docid, delete=False):
     doc = Doc.load(flaskapp.model_redis, docid)
     plot_context = flaskapp.collections.get(doc.plot_context_ref['type'],
                                             doc.plot_context_ref['id'])
@@ -23,7 +23,8 @@ def prune_and_get_valid_models(flaskapp, docid):
     for v in all_models_json.values():
         if v['id'] not in marked:
             typename = all_models[v['id']].typename
-            flaskapp.collections.delete(typename, v['id'])
+            if delete:
+                flaskapp.collections.delete(typename, v['id'])
     valid_models = [x for x in all_models.values() if x.id in marked]
     return valid_models
 

@@ -73,15 +73,11 @@ class ContinuumModelsStorage(object):
         # is necessary
         mkey = modelkey(model.typename, model.id)
         pipe.watch(mkey)
-        for doc in model.get('docs'):
-            pipe.watch(dockey(doc))
         oldmodel = self.bbget(self.client, mkey)
         if oldmodel is None:
             olddocs = []
         else:
             olddocs = oldmodel.get('docs')
-        for doc in olddocs:
-            pipe.watch(dockey(doc))
         pipe.multi()
         docs_to_remove = set(olddocs).difference(model.get('docs'))        
         for doc in docs_to_remove:
