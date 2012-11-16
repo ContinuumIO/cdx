@@ -40,6 +40,11 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
   events :
     #'click .jsp' : 'newtab'
     'click .plotclose' : 'removeplot'
+    'click .closeall' : 'closeall'
+
+  closeall : (e) =>
+    @mset('children', [])
+    @model.save()
 
   removeplot : (e) =>
     plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
@@ -57,6 +62,8 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
     for own key, val of @views
       val.$el.detach()
     @$el.html('')
+    @$el.append("<div><a class='closeall'>Close All Plots</a></div>")
+    @$el.append("<br/>")
     to_render = []
     tab_names = {}
     for modelref, index in @mget('children')

@@ -29,6 +29,11 @@ $CDX.utility =
       $CDX.plot_context_ref = data['plot_context_ref']
       $CDX.docid = data['docid'] # in case the server returns a different docid
       Continuum.docid = $CDX.docid
+      #hack
+      docid = $CDX.docid
+      $('.resetlink').click(()->
+        $.get("/cdx/bb/#{docid}/reset")
+      )
       $CDX.all_models = data['all_models']
       Continuum.load_models($CDX.all_models)
 

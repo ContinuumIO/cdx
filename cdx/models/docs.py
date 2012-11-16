@@ -35,8 +35,9 @@ def mark_recursive_models(all_models, marked, model):
     for ref in refs:
         if ref['id'] in marked:
             continue
-        model = all_models[ref['id']]
-        mark_recursive_models(all_models, marked, model)
+        model = all_models.get(ref['id'])
+        if model:
+            mark_recursive_models(all_models, marked, model)
             
 def is_ref(data):
     return (isinstance(data, dict) and
