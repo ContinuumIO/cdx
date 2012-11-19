@@ -400,7 +400,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         children = self.ic.get('children')
         if children is None: children = []
         if plot.get('id') not in [x['id'] for x in children]:
-            children.append(plot.ref())
+            children.insert(0, plot.ref())
         self.ic.set('children', children)
         self.update(self.ic.typename, self.ic.attributes)
         
