@@ -60,7 +60,7 @@ class WebSocketManager(object):
     def send(self, topic, msg, exclude=None):
         if exclude is None:
             exclude = set()
-        for clientid in self.topic_clientid_map.get(topic, []):
+        for clientid in tuple(self.topic_clientid_map.get(topic, [])):
             if clientid in exclude:
                 continue
             socket = self.sockets[clientid]
