@@ -1,27 +1,3 @@
-[submodule "cloudblaze/blazeweb/lib/bokehjs"]
-	path = cloudblaze/blazeweb/lib/bokehjs
-	url = git@github.com:ContinuumIO/bokehjs.git
-[submodule "cloudblaze/blazeweb/lib/ipython"]
-	path = cloudblaze/blazeweb/lib/ipython
-	url = git@github.com:ContinuumIO/ipythonprivate.git
-[submodule "cloudblaze/blazeweb/lib/backbone.marionette"]
-	path = cloudblaze/blazeweb/lib/backbone.marionette
-	url = git://github.com/derickbailey/backbone.marionette.git
-[submodule "cloudblaze/blazeweb/lib/blaze"]
-	path = cloudblaze/blazeweb/lib/blaze
-	url = git@github.com:ContinuumIO/blaze.git
 [submodule "submodule/bokehjs"]
 	path = submodule/bokehjs
 	url = git@github.com:ContinuumIO/bokehjs.git
-[submodule "submodule/backbone.marionette"]
-	path = submodule/backbone.marionette
-	url = git://github.com/derickbailey/backbone.marionette.git
-[submodule "submodule/ipython"]
-	path = submodule/ipython
-	url = git@github.com:ContinuumIO/ipythonprivate.git
-[submodule "submodule/arrayserver"]
-	path = submodule/arrayserver
-	url = git@github.com:ContinuumIO/ArrayServer.git
-[submodule "submodule/cdx-compiledjs"]
-	path = submodule/cdx-compiledjs
-	url = git@github.com:ContinuumIO/cdx-compiledjs.git

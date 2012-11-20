@@ -65,6 +65,11 @@ class XYPlot(object):
             self.yaxis])
         self.last_source = None
         self.color_index = 0
+        
+    def scatter(self, *args, **kwargs):
+        kwargs['scatter'] = True
+        return self.plot(*args, **kwargs)
+    
     def plot(self, x, y=None, color=None, data_source=None,
              scatter=False):
         def source_from_array(x, y):
@@ -191,9 +196,8 @@ class XYPlot(object):
         self.client.show(self.plotmodel)
         
 class PlotClient(bbmodel.ContinuumModelsClient):
-    def __init__(self, docid, serverloc, apikey, ph=None):
+    def __init__(self, docid, serverloc, apikey="nokey", ph=None):
         url = urlparse.urljoin(serverloc, "/cdx/bb/")
-        print url
         if not ph:
             ph = protocol.ProtocolHelper()
         self.ph = ph
@@ -201,7 +205,16 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         interactive_context = self.fetch(typename='CDXPlotContext')
         self.ic = interactive_context[0]
         self.clf()
+        self._hold = True
         
+    def hold(self, val):
+        if val == 'on':
+            self._hold = True
+        elif val == 'off':
+            self._hold = False
+        else:
+            self._hold = val
+    
     def updateic(self):
         self.updateobj(self.ic)
 
@@ -216,8 +229,11 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         for idx in range(len(kwargs.values()[0])):
             point = {}
             for f in flds:
-                if isinstance(kwargs[f][idx], np.ndarray):
-                    val = kwargs[f][idx].tolist()
+                val = kwargs[f][idx]
+                if isinstance(val, float) and  np.isnan(val):
+                    val = "NaN"
+                elif isinstance(val, np.ndarray):
+                    val = val.tolist()
                 else:
                     val = kwargs[f][idx]
                 point[f] = val
@@ -303,10 +319,23 @@ class PlotClient(bbmodel.ContinuumModelsClient):
     
     def clf(self):
         self._plot = None
-        
-    def plot(self, x, y=None, title=None, width=300, height=300, color=None,
+    def clear(self):
+        self._plot = None
+    def figure(self):
+        self._plot = None        
+    def plot_dates(self, *args, **kwargs):
+        kwargs['is_x_date'] = True
+        return self.plot(*args, **kwargs)
+    
+    def scatter(self, *args, **kwargs):
+        kwargs['scatter'] = True
+        return self.plot(*args, **kwargs)
+            
+    def plot(self, x, y=None, color=None, title=None, width=300, height=300,
              scatter=False, is_x_date=False, is_y_date=False,
              data_source=None, container=None):
+        if not self._hold:
+            self.figure()
         if not self._plot:
             self._plot =self._newxyplot(
                 title=title,
@@ -328,7 +357,9 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             parent = container
         table = bbmodel.ContinuumModel(
             'DataTable', data_source=data_source.ref(),
-            columns=columns, parent=parent.ref())
+            columns=columns, parent=parent.ref(),
+            width=width,
+            height=height)
         self.update(table.typename, table.attributes)
         if container is None:
             self.show(table)
@@ -369,7 +400,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         children = self.ic.get('children')
         if children is None: children = []
         if plot.get('id') not in [x['id'] for x in children]:
-            children.append(plot.ref())
+            children.insert(0, plot.ref())
         self.ic.set('children', children)
         self.update(self.ic.typename, self.ic.attributes)
         
@@ -377,31 +408,3 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         self.ic.set('children', [])
         self.update(self.ic.typename, self.ic.attributes)
         
-if __name__ == "__main__":
-    import numpy as np
-    import requests
-    import json
-    userdata = requests.get('http://localhost:5000/userinfo/').content
-    userdata = json.loads(userdata)
-    docid = userdata['docs'][0]
-    client = PlotClient(docid, "http://localhost:5000/bb/")
-    x = np.random.random(100)
-    y = np.random.random(100)
-    data_source = client.make_source(idx=range(100), x=x, y=y)
-    scatterplot1 = client.scatter(x='idx', y='x', color='#F00', data_source=data_source, title='scatter1')
-    scatterplot2 = client.scatter(x='idx', y='y', color='#0F0', data_source=data_source, title='scatter2')
-    xdata = np.arange(0, 10, 0.01)
-    ydata = np.sin(xdata)
-    lineplot = client.line(xdata, ydata, title='line1')
-    xdata = np.arange(0, 15, 0.01)
-    ydata = 2 * np.cos(xdata)
-    lineplot1=client.line(xdata, ydata, lineplot=lineplot)
-
-    xdata = np.arange(0, 10, 0.01)
-    ydata = np.cos(xdata)
-    lineplot = client.line(xdata, ydata, title='line2')
-    xdata = np.arange(0, 15, 0.01)
-    ydata = 2 * np.sin(xdata)
-    lineplot2=client.line(xdata, ydata, lineplot=lineplot)
-    client.grid([[scatterplot1, scatterplot2],
-                 [lineplot1, lineplot2]], title='all')

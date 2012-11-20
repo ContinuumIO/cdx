@@ -4,34 +4,32 @@ import mock
 import websocket
 import gevent
 
-import arrayserver.server.tests.test_utils as test_utils
-import arrayserver.server.redisutils as redisutils
+import test_utils
+import cdx.redisutils as redisutils
 from cdx.app import app
-import cdx.controllers.maincontroller as maincontroller
-import cdx.bbmodel as bbmodel
+import cdxlib.bbmodel as bbmodel
+import cdx.start as start
+import cdx.models.docs as docs
+import requests
+import redis
 
-frontaddr = "tcp://127.0.0.1:6000"
-
-class TestBBModel(unittest.TestCase):
+class TestBBModel(test_utils.CDXServerTestCase):
     def setUp(self):
-        maincontroller.prepare_app(frontaddr, timeout=0.1)        
-        self.servert = gevent.spawn(maincontroller.start_app)
+        super(TestBBModel, self).setUp()
+        doc2 = docs.new_doc(app, "defaultdoc2",
+                            'main', rw_users=["defaultuser"],
+                            apikey='nokey')
         self.client = bbmodel.ContinuumModelsClient(
-            "mydoc", "http://localhost:5000/bb/", app.ph)
+            "defaultdoc", "http://localhost:5006/cdx/bb/",
+            'nokey', app.ph
+            )
         self.client2 = bbmodel.ContinuumModelsClient(
-            "mydoc2", "http://localhost:5000/bb/", app.ph)
-        self.redisproc = redisutils.RedisProcess(6379, '/tmp', save=False)
-        time.sleep(0.1)
-        
-    def tearDown(self):
-        maincontroller.shutdown_app()
-        self.servert.kill()
-        self.redisproc.close()        
-        time.sleep(1.0)
+            "defaultdoc2", "http://localhost:5006/cdx/bb/", "nokey",
+            app.ph,
+            )
 
-        
     def test_create(self):
-        test_utils.wait_until(lambda : maincontroller.http_server.started)
+        test_utils.wait_until(lambda : start.http_server.started)
         client = self.client
         client.create('Test', dict(testval=1, id='foo'))
         test_utils.wait_until(lambda : app.collections.get('Test', 'foo'))
@@ -39,7 +37,7 @@ class TestBBModel(unittest.TestCase):
         assert client.fetch('Test', 'foo').get('testval') == 1
 
     def test_update(self):
-        test_utils.wait_until(lambda : maincontroller.http_server.started)
+        test_utils.wait_until(lambda : start.http_server.started)
         client = self.client        
         client.create('Test', dict(testval=1, id='foo'))
         client.update('Test', dict(id='foo', testval=2))
@@ -50,7 +48,7 @@ class TestBBModel(unittest.TestCase):
         assert client.get('Test', 'foo').get('testval') == 2
         
     def test_fetch_type(self):
-        test_utils.wait_until(lambda : maincontroller.http_server.started)
+        test_utils.wait_until(lambda : start.http_server.started)
         client = self.client
         client.create('Test', dict(testval=1, id='foo'))
         client.create('Test2', dict(testval=1, id='foo2'))
@@ -58,7 +56,7 @@ class TestBBModel(unittest.TestCase):
         assert len(models) == 1 and models[0].get('id') == 'foo'
         
     def test_fetch_docid(self):
-        test_utils.wait_until(lambda : maincontroller.http_server.started)
+        test_utils.wait_until(lambda : start.http_server.started)
         client = self.client
         client2 = self.client2
         client.create('Test', dict(testval=1, id='foo'))
@@ -71,7 +69,7 @@ class TestBBModel(unittest.TestCase):
         assert client2.get('Test', 'foo3').get('testval') == 1
         
     def test_delete(self):
-        test_utils.wait_until(lambda : maincontroller.http_server.started)
+        test_utils.wait_until(lambda : start.http_server.started)
         client = self.client                
         client.create('Test', dict(testval=1, id='foo'))
         client.create('Test', dict(testval=1, id='foo2'))

@@ -5,10 +5,11 @@ import websocket
 import gevent
 
 import cdx.wsmanager as wsmanager
-import arrayserver.server.tests.test_utils as test_utils
+import test_utils
 from cdx.app import app
-import cdx.controllers.maincontroller as maincontroller
-
+from cdx import start
+import cdx.models.docs as docs
+import test_utils
 
 class WSmanagerTestCase(unittest.TestCase):
     def test_some_topics(self):
@@ -25,32 +26,26 @@ class WSmanagerTestCase(unittest.TestCase):
         assert s2.send.call_count == 2
         assert s1.send.call_count == 1
         
-frontaddr = "tcp://127.0.0.1:6000"
-ws_address = "ws://localhost:5000/sub"
-class TestSubscribeWebSocket(unittest.TestCase):
+ws_address = "ws://localhost:5006/cdx/sub"
+class TestSubscribeWebSocket(test_utils.CDXServerTestCase):
     def setUp(self):
-        maincontroller.prepare_app(frontaddr)        
-        self.servert = gevent.spawn(maincontroller.start_app)
-
-    def tearDown(self):
-        time.sleep(1.0)
-        maincontroller.shutdown_app()
-        self.servert.kill()
-        
+        super(TestSubscribeWebSocket, self).setUp()
+        doc2 = docs.new_doc(app, "defaultdoc2",
+                            'main', rw_users=["defaultuser"],
+                            apikey='nokey')
     def test_basic_subscribe(self):
-        ph = maincontroller.app.ph
-        test_utils.wait_until(lambda : maincontroller.http_server.started)
+        ph = start.app.ph
         sock = websocket.WebSocket()
-        connect(sock, ws_address, 'mytopic')
-        app.wsmanager.send('mytopic', 'hello!')
+        connect(sock, ws_address, 'defaultdoc', 'nokey')
+        app.wsmanager.send('defaultdoc', 'hello!')
         msg = sock.recv()
         assert msg == 'hello!'
         sock2 = websocket.WebSocket()
-        connect(sock2, ws_address, 'mytopic')
+        connect(sock2, ws_address, 'defaultdoc', 'nokey')
         sock3 = websocket.WebSocket()
-        connect(sock3, ws_address, 'anothertopic')
-        app.wsmanager.send('mytopic', 'hello2!')        
-        app.wsmanager.send('anothertopic', 'hello3!')
+        connect(sock3, ws_address, 'defaultdoc2', 'nokey')
+        app.wsmanager.send('defaultdoc', 'hello2!')        
+        app.wsmanager.send('defaultdoc2', 'hello3!')
         msg = sock.recv()
         assert msg == 'hello2!'
         msg = sock2.recv()
@@ -58,12 +53,14 @@ class TestSubscribeWebSocket(unittest.TestCase):
         msg = sock3.recv()
         assert msg == 'hello3!'
         
-def connect(sock, addr, topic):
-    ph = maincontroller.app.ph    
+def connect(sock, addr, topic, auth):
+    ph = start.app.ph
     sock.io_sock.settimeout(1.0)
     sock.connect(addr)
     msgobj = dict(msgtype='subscribe',
-                  topic=topic)
+                  topic=topic,
+                  auth=auth
+                  )
     sock.send(ph.serialize_msg(msgobj))
     msg = sock.recv()
     msgobj = ph.deserialize_msg(msg)

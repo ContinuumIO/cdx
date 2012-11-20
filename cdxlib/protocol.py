@@ -28,9 +28,8 @@ class NumpyJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        
-
-
+        elif isinstance(obj, np.integer):
+            return int(obj)
         
 def serialize_json(obj):
     return json.dumps(obj, cls=NumpyJSONEncoder)

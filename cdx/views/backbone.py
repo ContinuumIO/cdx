@@ -11,8 +11,36 @@ import cdx.bbmodel as bbmodel
 import cdx.wsmanager as wsmanager
 import cdx.models.convenience as convenience
 log = logging.getLogger(__name__)
+import cdx.models.docs as docs
 
 #backbone model apis
+@app.route("/cdx/bb/<docid>/reset", methods=['GET'])
+def reset(docid):
+    if not convenience.can_write_from_request(docid, request, app):
+        return app.ph.serialize_web(
+            {'msgtype' : 'error',
+             'msg' : 'unauthorized'}
+            )
+    models = current_app.collections.get_bulk(docid)
+    for m in models:
+        if m.typename != 'CDXPlotContext':
+            current_app.collections.delete(m.typename, m.id)
+        else:
+            m.set('children', [])
+            current_app.collections.add(m)
+    return 'success'
+
+#backbone model apis
+@app.route("/cdx/bb/<docid>/rungc", methods=['GET'])
+def rungc(docid):
+    if not convenience.can_write_from_request(docid, request, app):
+        return app.ph.serialize_web(
+            {'msgtype' : 'error',
+             'msg' : 'unauthorized'}
+            )
+    all_models = docs.prune_and_get_valid_models(current_app, docid, delete=True)
+    return 'success'
+
 @app.route("/cdx/bb/<docid>/bulkupsert", methods=['POST'])
 def bulk_upsert(docid):
     if not convenience.can_write_from_request(docid, request, app):
@@ -96,11 +124,9 @@ def put(docid, typename, id):
 @app.route("/cdx/bb/<docid>/<typename>/", methods=['GET'])
 @app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['GET'])
 def get(docid, typename=None, id=None):
+    #not distinguishing between read/write yet
     if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(
-            {'msgtype' : 'error',
-             'msg' : 'unauthorized'}
-            )
+        return app.ph.serialize_web(None)
     if typename is not None and id is not None:
         model = current_app.collections.get(typename, id)
         if model is not None and docid in model.get('docs'):
