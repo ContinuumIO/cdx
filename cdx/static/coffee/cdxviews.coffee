@@ -75,3 +75,66 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
       node.append($("<a class='plotclose'>[close]</a>"))
       node.append(view.el)
     return null
+
+class $CDX.Views.CDXSinglePlotContext extends Continuum.ContinuumView
+  initialize : (options) ->
+    @views = {}
+    @views_rendered = [false]
+    @child_models = []
+    @target_model_id = options.target_model_id
+    super(options)
+    @render()
+
+  delegateEvents: ->
+    Continuum.safebind(this, @model, 'destroy', @remove)
+    Continuum.safebind(this, @model, 'change', @render)
+    super()
+
+  generate_remove_child_callback : (view) ->
+    callback = () =>
+      return null
+    return callback
+
+  build_children : () ->
+    created_views = Continuum.build_views(
+      @model, @views, @mget('children'),
+      {'render_loop': true, 'scale' : 1.0})
+
+    window.pc_created_views = created_views
+    window.pc_views = @views
+    return null
+
+  events :
+    #'click .jsp' : 'newtab'
+    'click .plotclose' : 'removeplot'
+
+  removeplot : (e) =>
+    plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
+    s_pc = @model.resolve_ref(@mget('children')[plotnum])
+    view = @views[s_pc.get('id')]
+    view.remove();
+    newchildren = (x for x in @mget('children') when x.id != view.model.id)
+    @mset('children', newchildren)
+    @model.save()
+    return false
+
+  render : () ->
+    super()
+    @build_children()
+    for own key, val of @views
+      val.$el.detach()
+    @$el.html('')
+    to_render = []
+    tab_names = {}
+    for modelref, index in @mget('children')
+      if modelref.id != @target_model_id
+        continue
+      console.log("modelref.id ", modelref.id)
+      view = @views[modelref.id]
+      node = $("<div class='jsp' data-plot_num='#{index}'></div>"  )
+      @$el.append(node)
+      title = view.model.get('title')
+      node.append($("<p>#{title}</p>"))
+      node.append($("<a class='plotclose'>[close]</a>"))
+      node.append(view.el)
+    return null

@@ -61,3 +61,36 @@ $CDX.utility =
     $CDX.plotcontext = plotcontext
     $CDX.plotcontextview = plotcontextview
     $CDX.plotcontextview.render()
+  instantiate_doc_single_plot : (docid, view_model_id) ->
+    $.get("/cdx/publiccdxinfo/#{docid}", {}, (data) ->
+      console.log('instatiate_doc_single, docid', docid)
+      data = JSON.parse(data)
+      $CDX.plot_context_ref = data['plot_context_ref']
+      $CDX.docid = data['docid'] # in case the server returns a different docid
+      Continuum.docid = $CDX.docid
+      $CDX.all_models = data['all_models']
+      Continuum.load_models($CDX.all_models)
+      ws_conn_string = "wss://#{window.location.host}:5006/cdx/sub"
+      $CDX.socket = Continuum.submodels(ws_conn_string,
+        $CDX.docid,
+        data.apikey)
+      $CDX.apikey = data['apikey']
+      $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
+      $CDX.utility.render_single_plot(view_model_id)
+    )
+  render_single_plot : (view_model_id) ->
+    plotcontext = Continuum.resolve_ref(
+      $CDX.plot_context_ref['collections'],
+      $CDX.plot_context_ref['type'],
+      $CDX.plot_context_ref['id']
+    )
+    plotcontextview = new $CDX.Views.CDXSinglePlotContext(
+      model : plotcontext,
+      render_loop: true,
+      target_model_id:view_model_id
+    )
+    $CDX.plotcontext = plotcontext
+    $CDX.plotcontextview = plotcontextview
+    $CDX.plotcontextview.render()
+    $('#PlotPane').empty().append($CDX.plotcontextview.el)
+    
