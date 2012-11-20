@@ -8,14 +8,14 @@ import protocol
 
 log = logging.getLogger(__name__)
 colors = [
-      "#1f77b4", 
+      "#1f77b4",
       "#ff7f0e", "#ffbb78",
       "#2ca02c", "#98df8a",
       "#d62728", "#ff9896",
       "#9467bd", "#c5b0d5",
       "#8c564b", "#c49c94",
       "#e377c2", "#f7b6d2",
-      "#7f7f7f", 
+      "#7f7f7f",
       "#bcbd22", "#dbdb8d",
       "#17becf", "#9edae5"
     ]
@@ -26,8 +26,8 @@ class GridPlot(object):
         self.children = children
         self.title = title
         self.client = client
-        
-        
+
+
 class XYPlot(object):
     def __init__(self, client, plot, screen_xrange, screen_yrange,
                  data_xrange, data_yrange, xmapper, ymapper,
@@ -65,11 +65,18 @@ class XYPlot(object):
             self.yaxis])
         self.last_source = None
         self.color_index = 0
-        
+
+    def iframe_url(self):
+        f_str = "%(root_url)s/iframe#plots/%(doc_id)s/%(plot_id)s"
+        return f_str % dict(
+            root_url=self.client.root_url,
+            doc_id=self.client.docid, plot_id=self.plotmodel.id)
+
+
     def scatter(self, *args, **kwargs):
         kwargs['scatter'] = True
         return self.plot(*args, **kwargs)
-    
+
     def plot(self, x, y=None, color=None, data_source=None,
              scatter=False):
         def source_from_array(x, y):
@@ -105,7 +112,7 @@ class XYPlot(object):
                     source, xfield, yfields = source_from_array(x, y)
                 else:
                     source = self.client.make_source(x=x, y=y)
-                    xfield, yfields = ('x', ['y'])                    
+                    xfield, yfields = ('x', ['y'])
         else:
             xfield = x
             if y is None:
@@ -125,7 +132,7 @@ class XYPlot(object):
             self.scatter(xfield, yfield, source, use_color)
             if not scatter:
                 self.line(xfield, yfield, source, use_color)
-        
+
     def ensure_source_exists(self, sourcerefs, source, columns):
         sources = [x for x in sourcerefs if x['ref']['id'] == source.get('id')]
         existed = True
@@ -138,7 +145,7 @@ class XYPlot(object):
                     sources[0]['columns'].append(col)
                     existed = False
         return existed
-    
+
     def scatter(self, x, y, data_source, color):
         update = []
         existed = self.ensure_source_exists(
@@ -167,7 +174,7 @@ class XYPlot(object):
         update.append(self.selectionoverlay)
         self.client.upsert_all(update)
         self.client.show(self.plotmodel)
-        
+
     def line(self, x, y, data_source, color):
         update = []
         existed = self.ensure_source_exists(
@@ -194,9 +201,11 @@ class XYPlot(object):
         update.append(self.selectionoverlay)
         self.client.upsert_all(update)
         self.client.show(self.plotmodel)
-        
+
 class PlotClient(bbmodel.ContinuumModelsClient):
     def __init__(self, docid, serverloc, apikey="nokey", ph=None):
+        #the root url should be just protocol://domain
+        self.root_url = serverloc
         url = urlparse.urljoin(serverloc, "/cdx/bb/")
         if not ph:
             ph = protocol.ProtocolHelper()
@@ -206,7 +215,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         self.ic = interactive_context[0]
         self.clf()
         self._hold = True
-        
+
     def hold(self, val):
         if val == 'on':
             self._hold = True
@@ -214,7 +223,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             self._hold = False
         else:
             self._hold = val
-    
+
     def updateic(self):
         self.updateobj(self.ic)
 
@@ -240,7 +249,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             output.append(point)
         model = self.create('ObjectArrayDataSource', {'data' : output})
         return model
-    
+
     def _newxyplot(self, title=None, width=300, height=300,
                    is_x_date=False, is_y_date=False,
                    container=None):
@@ -271,7 +280,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             'DataRange1d',
             sources=[]
             )
-                     
+
         datarangey = bbmodel.ContinuumModel(
             'DataRange1d',
             sources=[]
@@ -316,21 +325,21 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             xaxis, yaxis, pantool, zoomtool,
             selecttool, selectoverlay, parent)
         return output
-    
+
     def clf(self):
         self._plot = None
     def clear(self):
         self._plot = None
     def figure(self):
-        self._plot = None        
+        self._plot = None
     def plot_dates(self, *args, **kwargs):
         kwargs['is_x_date'] = True
         return self.plot(*args, **kwargs)
-    
+
     def scatter(self, *args, **kwargs):
         kwargs['scatter'] = True
         return self.plot(*args, **kwargs)
-            
+
     def plot(self, x, y=None, color=None, title=None, width=300, height=300,
              scatter=False, is_x_date=False, is_y_date=False,
              data_source=None, container=None):
@@ -363,7 +372,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         self.update(table.typename, table.attributes)
         if container is None:
             self.show(table)
-            
+
     def _add_source_to_range(self, data_source, columns, range):
         sources = range.get('sources')
         added = False
@@ -403,8 +412,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             children.insert(0, plot.ref())
         self.ic.set('children', children)
         self.update(self.ic.typename, self.ic.attributes)
-        
+
     def clearic(self):
         self.ic.set('children', [])
         self.update(self.ic.typename, self.ic.attributes)
-        

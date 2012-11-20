@@ -63,6 +63,7 @@ $CDX.utility =
     $CDX.plotcontextview.render()
   instantiate_doc_single_plot : (docid, view_model_id) ->
     $.get("/cdx/publiccdxinfo/#{docid}", {}, (data) ->
+    #$.get("/cdx/cdxinfo/#{docid}", {}, (data) ->
       console.log('instatiate_doc_single, docid', docid)
       data = JSON.parse(data)
       $CDX.plot_context_ref = data['plot_context_ref']
