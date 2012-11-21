@@ -64,7 +64,6 @@ import pdb
 @app.route('/cdx/publiccdxinfo/<docid>')
 def get_public_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
-    pdb.set_trace()
     plot_context_ref = doc.plot_context_ref
     all_models = current_app.collections.get_bulk(docid)
     mod1 = all_models[1]
@@ -76,7 +75,7 @@ def get_public_cdx_info(docid):
     print all_models_json
     returnval = {'plot_context_ref' : plot_context_ref,
                  'docid' : docid,
-                 'all_models' : all_models_json,
+                 'all_models' : all_models_json2,
                  'apikey' : doc.apikey}
     returnval = current_app.ph.serialize_web(returnval)
     return returnval
