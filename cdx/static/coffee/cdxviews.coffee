@@ -135,6 +135,5 @@ class $CDX.Views.CDXSinglePlotContext extends Continuum.ContinuumView
       @$el.append(node)
       title = view.model.get('title')
       node.append($("<p>#{title}</p>"))
-      node.append($("<a class='plotclose'>[close]</a>"))
       node.append(view.el)
     return null
