@@ -60,15 +60,23 @@ def get_cdx_info(docid):
     write_plot_file(docid, doc.apikey, request.scheme + "://" + request.host)
     return returnval
 
+import pdb
 @app.route('/cdx/publiccdxinfo/<docid>')
 def get_public_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
+    pdb.set_trace()
     plot_context_ref = doc.plot_context_ref
     all_models = current_app.collections.get_bulk(docid)
-    all_models = [x.to_broadcast_json() for x in all_models]
+    mod1 = all_models[1]
+    all_models_json = [
+        x.to_broadcast_json() for x in all_models if x.get('public', False)]
+    all_models_json2 = [x.to_broadcast_json() for x in all_models]
+    if len(all_models_json2) == 0:
+        return False
+    print all_models_json
     returnval = {'plot_context_ref' : plot_context_ref,
                  'docid' : docid,
-                 'all_models' : all_models,
+                 'all_models' : all_models_json,
                  'apikey' : doc.apikey}
     returnval = current_app.ph.serialize_web(returnval)
     return returnval

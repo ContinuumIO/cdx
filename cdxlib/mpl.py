@@ -49,22 +49,27 @@ class XYPlot(object):
         self.xaxis = xaxis
         self.yaxis = yaxis
         self.parent = parent
-        self.client.upsert_all(
-            [self.plotmodel,
-            self.screen_xrange,
-            self.screen_yrange,
-            self.data_xrange,
-            self.data_yrange,
-            self.xmapper,
-            self.ymapper,
-            self.pantool,
-            self.zoomtool,
-            self.selectiontool,
-            self.selectionoverlay,
-            self.xaxis,
-            self.yaxis])
+        self.update_cdx()
+
         self.last_source = None
         self.color_index = 0
+
+    def update_cdx(self):
+        self.client.upsert_all(
+            [self.plotmodel,
+             self.screen_xrange,
+             self.screen_yrange,
+             self.data_xrange,
+             self.data_yrange,
+             self.xmapper,
+             self.ymapper,
+             self.pantool,
+             self.zoomtool,
+             self.selectiontool,
+             self.selectionoverlay,
+             self.xaxis,
+             self.yaxis])
+
 
     def iframe_url(self):
         f_str = "%(root_url)s/iframe#plots/%(doc_id)s/%(plot_id)s"
@@ -72,6 +77,9 @@ class XYPlot(object):
             root_url=self.client.root_url,
             doc_id=self.client.docid, plot_id=self.plotmodel.id)
 
+    def make_public(self):
+        self.plotmodel.attributes['public']=True
+        self.update_cdx()
 
     def scatter(self, *args, **kwargs):
         kwargs['scatter'] = True
