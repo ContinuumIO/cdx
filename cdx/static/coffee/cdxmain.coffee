@@ -62,9 +62,8 @@ $CDX.utility =
     $CDX.plotcontextview = plotcontextview
     $CDX.plotcontextview.render()
 
-  cdx_connection : (docid) ->
-    $.get("/cdx/publiccdxinfo/#{docid}", {}, (data) ->
-    #$.get("/cdx/cdxinfo/#{docid}", {}, (data) ->
+  cdx_connection : (host, docid) ->
+    $.get("https://#{host}/cdx/publiccdxinfo/#{docid}", {}, (data) ->
       console.log('instatiate_doc_single, docid', docid)
       data = JSON.parse(data)
       $CDX.plot_context_ref = data['plot_context_ref']
@@ -72,7 +71,7 @@ $CDX.utility =
       Continuum.docid = $CDX.docid
       $CDX.all_models = data['all_models']
       Continuum.load_models($CDX.all_models)
-      ws_conn_string = "wss://#{window.location.host}:5006/cdx/sub"
+      ws_conn_string = "wss://#{host}:5006/cdx/sub"
       $CDX.socket = Continuum.submodels(ws_conn_string,
         $CDX.docid,
         data.apikey)
@@ -80,9 +79,11 @@ $CDX.utility =
       $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
     )
     
+
   
-  instantiate_doc_single_plot : (docid, view_model_id, target_el) ->
-    $CDX.utility.cdx_connection(docid)
+  
+  instantiate_doc_single_plot : (docid, view_model_id, target_el="#PlotPane", host="www.wakari.io") ->
+    $CDX.utility.cdx_connection(host, docid)
     $CDX.Deferreds._doc_loaded.done(->
       $CDX.utility.render_single_plot(view_model_id, target_el)
     )

@@ -78,7 +78,11 @@ def get_public_cdx_info(docid):
                  'all_models' : all_models_json2,
                  'apikey' : doc.apikey}
     returnval = current_app.ph.serialize_web(returnval)
-    return returnval
+    #return returnval
+
+    return (returnval, "200",
+            {"Access-Control-Allow-Origin": "*"})
+
 
 @app.route('/cdx/sampleerror')
 def sampleerror():
