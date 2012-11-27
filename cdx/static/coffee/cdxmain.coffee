@@ -61,7 +61,8 @@ $CDX.utility =
     $CDX.plotcontext = plotcontext
     $CDX.plotcontextview = plotcontextview
     $CDX.plotcontextview.render()
-  instantiate_doc_single_plot : (docid, view_model_id) ->
+
+  cdx_connection : (docid) ->
     $.get("/cdx/publiccdxinfo/#{docid}", {}, (data) ->
     #$.get("/cdx/cdxinfo/#{docid}", {}, (data) ->
       console.log('instatiate_doc_single, docid', docid)
@@ -77,9 +78,16 @@ $CDX.utility =
         data.apikey)
       $CDX.apikey = data['apikey']
       $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
-      $CDX.utility.render_single_plot(view_model_id)
     )
-  render_single_plot : (view_model_id) ->
+    
+  
+  instantiate_doc_single_plot : (docid, view_model_id, target_el) ->
+    $CDX.utility.cdx_connection(docid)
+    $CDX.Deferreds._doc_loaded.done(->
+      $CDX.utility.render_single_plot(view_model_id, target_el)
+    )
+    
+  render_single_plot : (view_model_id, el) ->
     plotcontext = Continuum.resolve_ref(
       $CDX.plot_context_ref['collections'],
       $CDX.plot_context_ref['type'],
@@ -93,5 +101,5 @@ $CDX.utility =
     $CDX.plotcontext = plotcontext
     $CDX.plotcontextview = plotcontextview
     $CDX.plotcontextview.render()
-    $('#PlotPane').empty().append($CDX.plotcontextview.el)
+    $(el).empty().append($CDX.plotcontextview.el)
     
