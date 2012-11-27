@@ -12,6 +12,7 @@ $CDX = window.$CDX
 $CDX.Deferreds = {}
 $CDX.Promises = {}
 $CDX.Deferreds._doc_loaded = $.Deferred()
+$CDX.Deferreds._doc_requested = $.Deferred()
 $CDX.Promises.doc_loaded = $CDX.Deferreds._doc_loaded.promise()
 Continuum.HasProperties.prototype.sync = Backbone.sync
 
@@ -63,24 +64,24 @@ $CDX.utility =
     $CDX.plotcontextview.render()
 
   cdx_connection : (host, docid) ->
-    $.get("https://#{host}/cdx/publiccdxinfo/#{docid}", {}, (data) ->
-      console.log('instatiate_doc_single, docid', docid)
-      data = JSON.parse(data)
-      $CDX.plot_context_ref = data['plot_context_ref']
-      $CDX.docid = data['docid'] # in case the server returns a different docid
-      Continuum.docid = $CDX.docid
-      $CDX.all_models = data['all_models']
-      Continuum.load_models($CDX.all_models)
-      ws_conn_string = "wss://#{host}:5006/cdx/sub"
-      $CDX.socket = Continuum.submodels(ws_conn_string,
-        $CDX.docid,
-        data.apikey)
-      $CDX.apikey = data['apikey']
-      $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
-    )
-    
+    if not $CDX.Deferreds._doc_requested.isResolved()
+      $CDX.Deferreds._doc_requested.resolve()
+      $.get("https://#{host}/cdx/publiccdxinfo/#{docid}", {}, (data) ->
+        console.log('instatiate_doc_single, docid', docid)
+        data = JSON.parse(data)
+        $CDX.plot_context_ref = data['plot_context_ref']
+        $CDX.docid = data['docid'] # in case the server returns a different docid
+        Continuum.docid = $CDX.docid
+        $CDX.all_models = data['all_models']
+        Continuum.load_models($CDX.all_models)
+        ws_conn_string = "wss://#{host}:5006/cdx/sub"
+        $CDX.socket = Continuum.submodels(ws_conn_string,
+          $CDX.docid,
+          data.apikey)
+        $CDX.apikey = data['apikey']
+        $CDX.Deferreds._doc_loaded.resolve($CDX.docid))
 
-  
+
   
   instantiate_doc_single_plot : (docid, view_model_id, target_el="#PlotPane", host="www.wakari.io") ->
     $CDX.utility.cdx_connection(host, docid)
