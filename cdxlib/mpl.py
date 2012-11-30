@@ -29,19 +29,15 @@ class GridPlot(object):
 
 
 class XYPlot(object):
-    def __init__(self, client, plot, screen_xrange, screen_yrange,
-                 data_xrange, data_yrange, xmapper, ymapper,
+    def __init__(self, client, plot, 
+                 xdata_range, ydata_range,
                  xaxis, yaxis,
                  pantool, zoomtool, selectiontool, selectionoverlay,
                  parent):
         self.client = client
         self.plotmodel = plot
-        self.screen_xrange = screen_xrange
-        self.screen_yrange = screen_yrange
-        self.data_xrange = data_xrange
-        self.data_yrange = data_yrange
-        self.xmapper = xmapper
-        self.ymapper = ymapper
+        self.xdata_range = xdata_range
+        self.ydata_range = ydata_range
         self.pantool = pantool
         self.zoomtool = zoomtool
         self.selectiontool = selectiontool
@@ -57,12 +53,8 @@ class XYPlot(object):
     def update_cdx(self):
         self.client.upsert_all(
             [self.plotmodel,
-             self.screen_xrange,
-             self.screen_yrange,
-             self.data_xrange,
-             self.data_yrange,
-             self.xmapper,
-             self.ymapper,
+             self.xdata_range,
+             self.ydata_range,
              self.pantool,
              self.zoomtool,
              self.selectiontool,
@@ -157,21 +149,21 @@ class XYPlot(object):
     def scatter(self, x, y, data_source, color):
         update = []
         existed = self.ensure_source_exists(
-            self.data_xrange.get('sources'),
+            self.xdata_range.get('sources'),
             data_source, [x])
-        if not existed : update.append(self.data_xrange)
+        if not existed : update.append(self.xdata_range)
         existed = self.ensure_source_exists(
-            self.data_yrange.get('sources'),
+            self.ydata_range.get('sources'),
             data_source, [y])
-        if not existed : update.append(self.data_yrange)
+        if not existed : update.append(self.ydata_range)
         scatterrenderer = bbmodel.ContinuumModel(
             'ScatterRenderer',
             foreground_color=color,
             data_source=data_source.ref(),
             xfield=x,
             yfield=y,
-            xmapper=self.xmapper.ref(),
-            ymapper=self.ymapper.ref(),
+            xdata_range=self.xdata_range.ref(),
+            ydata_range=self.ydata_range.ref(),
             parent=self.plotmodel.ref())
         self.plotmodel.get('renderers').append(scatterrenderer.ref())
         self.selectiontool.get('renderers').append(scatterrenderer.ref())
@@ -186,21 +178,21 @@ class XYPlot(object):
     def line(self, x, y, data_source, color):
         update = []
         existed = self.ensure_source_exists(
-            self.data_xrange.get('sources'),
+            self.xdata_range.get('sources'),
             data_source, [x])
-        if not existed : update.append(self.data_xrange)
+        if not existed : update.append(self.xdata_range)
         existed = self.ensure_source_exists(
-            self.data_yrange.get('sources'),
+            self.ydata_range.get('sources'),
             data_source, [y])
-        if not existed : update.append(self.data_yrange)
+        if not existed : update.append(self.ydata_range)
         linerenderer = bbmodel.ContinuumModel(
             'LineRenderer',
             foreground_color=color,
             data_source=data_source.ref(),
             xfield=x,
             yfield=y,
-            xmapper=self.xmapper.ref(),
-            ymapper=self.ymapper.ref(),
+            xdata_range=self.xdata_range.ref(),
+            ydata_range=self.ydata_range.ref(),
             parent=self.plotmodel.ref())
         self.plotmodel.get('renderers').append(linerenderer.ref())
         update.append(linerenderer)
@@ -273,10 +265,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         Returns
         ----------
         """
-        xr = bbmodel.ContinuumModel('Range1d', start=0, end=width)
-        yr = bbmodel.ContinuumModel('Range1d', start=0, end=height)
-        plot = bbmodel.ContinuumModel('Plot', width=width, height=height,
-                                      xrange=xr.ref(), yrange=yr.ref())
+        plot = bbmodel.ContinuumModel('Plot', width=width, height=height)
         if container:
             parent = container
             plot.set('parent', container.ref())
@@ -284,39 +273,34 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             parent = self.ic
             plot.set('parent', self.ic.ref())
         if title is not None: plot.set('title', title)
-        datarangex = bbmodel.ContinuumModel(
+        xdata_range = bbmodel.ContinuumModel(
             'DataRange1d',
             sources=[]
             )
-
-        datarangey = bbmodel.ContinuumModel(
+        ydata_range = bbmodel.ContinuumModel(
             'DataRange1d',
             sources=[]
             )
-        xmapper = bbmodel.ContinuumModel(
-            'LinearMapper', data_range=datarangex.ref(),
-            screen_range=xr.ref())
-        ymapper = bbmodel.ContinuumModel(
-            'LinearMapper', data_range=datarangey.ref(),
-            screen_range=yr.ref())
         axisclass = 'D3LinearAxis'
         if is_x_date: axisclass = 'D3LinearDateAxis'
         xaxis = bbmodel.ContinuumModel(
             axisclass, orientation='bottom', ticks=3,
-            mapper=xmapper.ref(), parent=plot.ref())
+            data_range=xdata_range.ref(), parent=plot.ref())
         axisclass = 'D3LinearAxis'
         if is_y_date: axisclass = 'D3LinearDateAxis'
         yaxis = bbmodel.ContinuumModel(
             axisclass, orientation='left', ticks=3,
-            mapper=ymapper.ref(), parent=plot.ref())
+            data_range=ydata_range.ref(), parent=plot.ref())
         pantool = bbmodel.ContinuumModel(
             'PanTool',
-            xmappers=[xmapper.ref()],
-            ymappers=[ymapper.ref()])
+            dataranges=[xdata_range.ref(), ydata_range.ref()],
+            dimensions=['width', 'height']
+            )
         zoomtool = bbmodel.ContinuumModel(
             'ZoomTool',
-            xmappers=[xmapper.ref()],
-            ymappers=[ymapper.ref()])
+            dataranges=[xdata_range.ref(), ydata_range.ref()],
+            dimensions=['width', 'height']
+            )
         selecttool = bbmodel.ContinuumModel(
             'SelectionTool',
             renderers=[])
@@ -328,8 +312,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         plot.set('tools', [pantool.ref(), zoomtool.ref(), selecttool.ref()])
         plot.set('overlays', [selectoverlay.ref()])
         output = XYPlot(
-            self, plot, xr, yr,
-            datarangex, datarangey, xmapper, ymapper,
+            self, plot, xdata_range, ydata_range,
             xaxis, yaxis, pantool, zoomtool,
             selecttool, selectoverlay, parent)
         return output

@@ -15,22 +15,20 @@ def transform_models(models):
             to_delete.add(m.id)
         if 'Renderer' in m.typename:
             xmapper = m.get('xmapper')
-            if xmapper != 'linear':
+            if xmapper != 'linear' and xmapper is not None:
+                import pdb;pdb.set_trace()
                 xmapper = model_cache[xmapper['id']]
-                m.set('xmapper', 'linear')
                 m.set('xdata_range', xmapper.get('data_range'))
             ymapper = m.get('ymapper')
-            if ymapper != 'linear':
+            if ymapper != 'linear' and ymapper is not None:
                 ymapper = model_cache[ymapper['id']]
-                m.set('ymapper', 'linear')
                 m.set('ydata_range', ymapper.get('data_range'))
         elif 'Axis' in m.typename:
             mapper = m.get('mapper')
-            if mapper != 'linear':
+            if mapper != 'linear' and mapper is not None:
                 mapper = model_cache[mapper['id']]
-                m.set('mapper', 'linear')
                 m.set('data_range', mapper.get('data_range'))
-        elif m.typename == 'PanTool' or m.typename=='ZoomTool':
+        elif m.typename == 'PanTool' and m.typename=='ZoomTool':
             xmappers = m.get('xmappers', [])
             ymappers = m.get('ymappers', [])            
             dataranges = []
