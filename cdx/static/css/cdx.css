@@ -1,0 +1,198 @@
+
+.cdx-root {
+}
+
+.cdx-panel-root {
+overflow: auto;
+}
+
+.cdx-mid {
+}
+
+.cdx-dsp {
+}
+
+.cdx-dvp {
+}
+
+.cdx-dep {
+}
+
+.cdx-py-pane {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    margin: 10px;
+}
+
+.tmp {
+    min-height: 50px;
+    background-color: black;
+    text-color: white;
+    color: white;
+    padding: 5px;
+}
+
+.midPanel {
+    height:500px;
+    overflow: auto;
+}
+
+.cdx-tab
+
+.css-treeview
+{
+    font: normal 11px "Segoe UI", Arial, Sans-serif;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.css-treeview ul,
+.css-treeview li
+{
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.css-treeview input
+{
+    position: absolute;
+    opacity: 0;
+}
+
+.css-treeview a
+{
+    color: #00f;
+    text-decoration: none;
+}
+
+.css-treeview a:hover
+{
+    text-decoration: underline;
+}
+
+.css-treeview input + label + ul
+{
+    margin: 0 0 0 22px;
+}
+
+.css-treeview input ~ ul
+{
+    display: none;
+}
+
+.css-treeview label,
+.css-treeview label::before
+{
+    cursor: pointer;
+}
+
+.css-treeview input:disabled + label
+{
+    cursor: default;
+    opacity: .6;
+}
+
+.css-treeview input:checked:not(:disabled) ~ ul
+{
+    display: block;
+}
+
+.css-treeview label,
+.css-treeview label::before
+{
+    background: url("/static/img/icons.png") no-repeat;
+}
+
+.css-treeview label,
+.css-treeview a,
+.css-treeview label::before
+{
+    display: inline-block;
+    height: 16px;
+    line-height: 16px;,
+    vertical-align: middle;
+}
+
+.css-treeview label
+{
+    background-position: 18px 0;
+}
+
+.css-treeview label::before
+{
+    content: "";
+    width: 16px;
+    margin: 0 22px 0 0;
+    vertical-align: middle;
+    background-position: 0 -32px;
+}
+
+.css-treeview input:checked + label::before
+{
+    background-position: 0 -16px;
+}
+
+/* webkit adjacent element selector bugfix */
+@media screen and (-webkit-min-device-pixel-ratio:0)
+{
+    .css-treeview 
+    {
+        -webkit-animation: webkit-adjacent-element-selector-bugfix infinite 1s;
+    }
+    
+    @-webkit-keyframes webkit-adjacent-element-selector-bugfix 
+    {
+        from 
+        { 
+            padding: 0;
+        } 
+        to 
+        { 
+            padding: 0;
+        }
+    }
+}
+
+.pane-holder > div {display:none; }
+.pane-holder > div.active {display:block; }
+
+.pane-holder {
+}
+.pane-holder > .pane {
+
+  /*border:1px solid red; */
+  height:500px;
+  overflow: auto;
+}
+
+.plotclose {
+    display : none;
+    float : right;
+}
+
+.jsp:hover > .plotclose{
+    display : inline;
+    float : right;
+    vertical-align : top;
+    padding : 10px;
+}
+
+
+.variable-block.well {
+  padding:10px
+}
+.variable-block  ul {
+  list-style: none;
+  margin-left:5px;
+}
+
+.variable-block .accordion-group {
+  padding: 5px;
+}
+.variable-block ul.category-list > li {
+
+  margin-top:10px;
+
+}
