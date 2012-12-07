@@ -1,1 +1,0 @@
-../../../submodule/backbone.marionette/lib/backbone.marionette.js

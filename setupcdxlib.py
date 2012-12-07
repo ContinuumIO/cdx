@@ -1,7 +1,7 @@
-import os
 import sys
-
-from setuptools import Command, setup, find_packages
+if sys.argv[1] == 'develop':
+    import setuptools
+from distutils.core import setup
 __version__ = (0, 0, 1)
 
 packages = ["cdxlib"]
