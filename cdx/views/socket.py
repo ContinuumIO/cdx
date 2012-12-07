@@ -6,8 +6,7 @@ import os
 import logging
 import uuid
 import urlparse
-
-from cdx.app import app
+from cdx.blueprint import cdx_blueprint
 
 import cdx.bbmodel as bbmodel
 import cdx.wsmanager as wsmanager
@@ -15,7 +14,7 @@ import cdx.models.convenience as mconv
 log = logging.getLogger(__name__)
 
 #web socket subscriber
-@app.route('/cdx/sub')
+@cdx_blueprint.route('/cdx/sub')
 def sub():
     def auth(auth, topic):
         status = mconv.can_write_doc_api(topic, auth, current_app)

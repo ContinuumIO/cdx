@@ -1,7 +1,8 @@
 import unittest
 import gevent
 import cdx.redisutils as redisutils
-from cdx.app import app
+from cdx.blueprint import cdx_blueprint
+import flask
 import cdxlib.bbmodel as bbmodel
 import cdx.start as start
 import redis
@@ -10,6 +11,9 @@ from gevent_zeromq import zmq
 import redis
 from requests.exceptions import ConnectionError
 import requests
+
+app = flask.Flask('test')
+app.register_blueprint(cdx_blueprint)
 
 def wait_flask():
     def helper():
@@ -58,9 +62,10 @@ def recv_timeout(socket, timeout):
 	
 class CDXServerTestCase(unittest.TestCase):
     def setUp(self):
-        start.prepare_app(rport=6899)
-        start.prepare_local()
-        self.servert = gevent.spawn(start.start_app)        
+
+        start.prepare_app(app, rport=6899)
+        start.prepare_local(app)
+        self.servert = gevent.spawn(start.start_app, app)        
         self.redisproc = redisutils.RedisProcess(6899, '/tmp', save=False)
         wait_redis_start(6899)
         redis.Redis(port=6899).flushall()

@@ -7,7 +7,7 @@ import logging
 import uuid
 import urlparse
 
-from cdx.app import app
+from cdx.blueprint import cdx_blueprint
 
 import cdx.bbmodel as bbmodel
 import cdx.wsmanager as wsmanager
@@ -17,20 +17,20 @@ import cdx.models.convenience as mconv
 
 #main pages
 
-@app.route('/cdx/')
-@app.route('/cdx/<path:unused>/')
+@cdx_blueprint.route('/cdx/')
+@cdx_blueprint.route('/cdx/<path:unused>/')
 def index(*unused_all, **kwargs):
     return render_template('cdx.html')
 
 
-@app.route('/cdx/favicon.ico')
+@cdx_blueprint.route('/cdx/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
+    return send_from_directory(os.path.join(current_app.root_path, 'static'),
                                'favicon.ico', mimetype='image/x-icon')
 
-@app.route('/cdx/userinfo/')
+@cdx_blueprint.route('/cdx/userinfo/')
 def get_user():
-    user = app.current_user(request)
+    user = current_app.current_user(request)
     return current_app.ph.serialize_web(user.to_public_json())
 def _make_plot_file(docid, apikey, url):
     lines = ["from cdxlib import mpl",
@@ -38,14 +38,14 @@ def _make_plot_file(docid, apikey, url):
     return "\n".join(lines)
 
 def write_plot_file(docid, apikey, url):
-    user = app.current_user(request)
+    user = current_app.current_user(request)
     codedata = _make_plot_file(docid, apikey, url)
-    app.write_plot_file(user.username, codedata)
+    current_app.write_plot_file(user.username, codedata)
 
-@app.route('/cdx/cdxinfo/<docid>')
+@cdx_blueprint.route('/cdx/cdxinfo/<docid>')
 def get_cdx_info(docid):
-    doc = docs.Doc.load(app.model_redis, docid)
-    user = app.current_user(request)
+    doc = docs.Doc.load(current_app.model_redis, docid)
+    user = current_app.current_user(request)
     if not mconv.can_write_doc(doc, user):
         return null
     plot_context_ref = doc.plot_context_ref
@@ -61,9 +61,9 @@ def get_cdx_info(docid):
     return returnval
 
 import pdb
-@app.route('/cdx/publiccdxinfo/<docid>')
+@cdx_blueprint.route('/cdx/publiccdxinfo/<docid>')
 def get_public_cdx_info(docid):
-    doc = docs.Doc.load(app.model_redis, docid)
+    doc = docs.Doc.load(current_app.model_redis, docid)
     plot_context_ref = doc.plot_context_ref
     all_models = current_app.collections.get_bulk(docid)
     mod1 = all_models[1]
@@ -84,6 +84,6 @@ def get_public_cdx_info(docid):
             {"Access-Control-Allow-Origin": "*"})
 
 
-@app.route('/cdx/sampleerror')
+@cdx_blueprint.route('/cdx/sampleerror')
 def sampleerror():
     return 1 + "sdf"
