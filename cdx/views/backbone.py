@@ -1,4 +1,4 @@
-from cdx.app import app
+from ..blueprint import cdx_blueprint
 from flask import (
         render_template, request, current_app,
         send_from_directory, make_response)
@@ -14,10 +14,10 @@ log = logging.getLogger(__name__)
 import cdx.models.docs as docs
 
 #backbone model apis
-@app.route("/cdx/bb/<docid>/reset", methods=['GET'])
+@cdx_blueprint.route("/cdx/bb/<docid>/reset", methods=['GET'])
 def reset(docid):
-    if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(
+    if not convenience.can_write_from_request(docid, request, current_app):
+        return current_app.ph.serialize_web(
             {'msgtype' : 'error',
              'msg' : 'unauthorized'}
             )
@@ -31,20 +31,20 @@ def reset(docid):
     return 'success'
 
 #backbone model apis
-@app.route("/cdx/bb/<docid>/rungc", methods=['GET'])
+@cdx_blueprint.route("/cdx/bb/<docid>/rungc", methods=['GET'])
 def rungc(docid):
-    if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(
+    if not convenience.can_write_from_request(docid, request, current_app):
+        return current_app.ph.serialize_web(
             {'msgtype' : 'error',
              'msg' : 'unauthorized'}
             )
     all_models = docs.prune_and_get_valid_models(current_app, docid, delete=True)
     return 'success'
 
-@app.route("/cdx/bb/<docid>/bulkupsert", methods=['POST'])
+@cdx_blueprint.route("/cdx/bb/<docid>/bulkupsert", methods=['POST'])
 def bulk_upsert(docid):
-    if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(
+    if not convenience.can_write_from_request(docid, request, current_app):
+        return current_app.ph.serialize_web(
             {'msgtype' : 'error',
              'msg' : 'unauthorized'}
             )
@@ -62,19 +62,19 @@ def bulk_upsert(docid):
     clientid = request.headers.get('Continuum-Clientid', None)
     for doc in docs:
         relevant_models = [x for x in models if doc in x.get('docs')]
-        current_app.wsmanager.send(doc, app.ph.serialize_web(
+        current_app.wsmanager.send(doc, current_app.ph.serialize_web(
             {'msgtype' : 'modelpush',
              'modelspecs' : [x.to_broadcast_json() for x in relevant_models]}),
             exclude={clientid})
-    return app.ph.serialize_web(
+    return current_app.ph.serialize_web(
         {'msgtype' : 'modelpush',
          'modelspecs' : [x.to_broadcast_json() for x in relevant_models]})
 
-@app.route("/cdx/bb/<docid>/<typename>/", methods=['POST'])
-@app.route("/cdx/bb/<docid>/<typename>", methods=['POST'])
+@cdx_blueprint.route("/cdx/bb/<docid>/<typename>/", methods=['POST'])
+@cdx_blueprint.route("/cdx/bb/<docid>/<typename>", methods=['POST'])
 def create(docid, typename):
-    if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(
+    if not convenience.can_write_from_request(docid, request, current_app):
+        return current_app.ph.serialize_web(
             {'msgtype' : 'error',
              'msg' : 'unauthorized'}
             )
@@ -90,16 +90,16 @@ def create(docid, typename):
         print current_app.collections.get(model.typename, model.id).id
     clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
-        current_app.wsmanager.send(doc, app.ph.serialize_web(
+        current_app.wsmanager.send(doc, current_app.ph.serialize_web(
             {'msgtype' : 'modelpush',
              'modelspecs' : [model.to_broadcast_json()]}),
             exclude={clientid})
-    return app.ph.serialize_web(model.to_json())
+    return current_app.ph.serialize_web(model.to_json())
 
-@app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['PUT'])
+@cdx_blueprint.route("/cdx/bb/<docid>/<typename>/<id>", methods=['PUT'])
 def put(docid, typename, id):
-    if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(
+    if not convenience.can_write_from_request(docid, request, current_app):
+        return current_app.ph.serialize_web(
             {'msgtype' : 'error',
              'msg' : 'unauthorized'}
             )
@@ -114,35 +114,35 @@ def put(docid, typename, id):
     current_app.collections.add(model)
     clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
-        current_app.wsmanager.send(doc, app.ph.serialize_web(
+        current_app.wsmanager.send(doc, current_app.ph.serialize_web(
             {'msgtype' : 'modelpush',
              'modelspecs' : [model.to_broadcast_json()]}),
                                    exclude={clientid})
-    return app.ph.serialize_web(model.to_json())
+    return current_app.ph.serialize_web(model.to_json())
 
-@app.route("/cdx/bb/<docid>/", methods=['GET'])
-@app.route("/cdx/bb/<docid>/<typename>/", methods=['GET'])
-@app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['GET'])
+@cdx_blueprint.route("/cdx/bb/<docid>/", methods=['GET'])
+@cdx_blueprint.route("/cdx/bb/<docid>/<typename>/", methods=['GET'])
+@cdx_blueprint.route("/cdx/bb/<docid>/<typename>/<id>", methods=['GET'])
 def get(docid, typename=None, id=None):
     #not distinguishing between read/write yet
-    if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(None)
+    if not convenience.can_write_from_request(docid, request, current_app):
+        return current_app.ph.serialize_web(None)
     if typename is not None and id is not None:
         model = current_app.collections.get(typename, id)
         if model is not None and docid in model.get('docs'):
-            return app.ph.serialize_web(model.to_json())
-        return app.ph.serialize_web(None)
+            return current_app.ph.serialize_web(model.to_json())
+        return current_app.ph.serialize_web(None)
     else:
         models = current_app.collections.get_bulk(docid, typename=typename)
         if typename is not None:
-            return app.ph.serialize_web([x.to_json() for x in models])
+            return current_app.ph.serialize_web([x.to_json() for x in models])
         else:
-            return app.ph.serialize_web([x.to_broadcast_json() for x in models])
+            return current_app.ph.serialize_web([x.to_broadcast_json() for x in models])
 
-@app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['DELETE'])
+@cdx_blueprint.route("/cdx/bb/<docid>/<typename>/<id>", methods=['DELETE'])
 def delete(docid, typename, id):
-    if not convenience.can_write_from_request(docid, request, app):
-        return app.ph.serialize_web(
+    if not convenience.can_write_from_request(docid, request, current_app):
+        return current_app.ph.serialize_web(
             {'msgtype' : 'error',
              'msg' : 'unauthorized'}
             )
@@ -152,10 +152,10 @@ def delete(docid, typename, id):
     if docid in model.get('docs'):
         current_app.collections.delete(typename, id)
         for doc in model.get('docs'):
-            current_app.wsmanager.send(doc, app.ph.serialize_web(
+            current_app.wsmanager.send(doc, current_app.ph.serialize_web(
                 {'msgtype' : 'modeldel',
                  'modelspecs' : [model.to_broadcast_json()]}),
                                        exclude={clientid})
-        return app.ph.serialize_web(model.to_json())
+        return current_app.ph.serialize_web(model.to_json())
     else:
         return "INVALID"

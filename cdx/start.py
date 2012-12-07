@@ -7,7 +7,6 @@ gevent.monkey.patch_all()
 import uuid
 import socket
 import redis
-from cdx.app import app
 import cdx.wsmanager as wsmanager
 from cdxlib import protocol
 import cdx.bbmodel as bbmodel
@@ -21,10 +20,10 @@ log = logging.getLogger(__name__)
 
 pubsub = "inproc://apppub"
 pushpull = "inproc://apppull"
+import cdx.views.deps
 
-def prepare_app(rhost='127.0.0.1', rport=6379):
+def prepare_app(app, rhost='127.0.0.1', rport=6379):
     #must import views before running apps
-    import cdx.views.deps
     app.wsmanager = wsmanager.WebSocketManager()
     app.ph = protocol.ProtocolHelper()
     app.collections = bbmodel.ContinuumModelsStorage(
@@ -42,7 +41,7 @@ def make_default_user(app):
                             docs=[doc.docid])
     return cdxuser
     
-def prepare_local():
+def prepare_local(app):
     app.debug = True
     #monkeypatching
     def current_user(request):
@@ -59,7 +58,7 @@ def prepare_local():
 
 http_server = None
 
-def start_app():
+def start_app(app):
     global http_server
     http_server = WSGIServer(('', 5006), app,
                              handler_class=WebSocketHandler,
