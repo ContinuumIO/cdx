@@ -1,7 +1,9 @@
+import sys
+if sys.argv[1] == 'develop':
+    import setuptools
+from distutils.core import setup
 import os
 import sys
-
-from setuptools import Command, setup, find_packages
 __version__ = (0, 0, 1)
 
 package_data_dirs = []
@@ -17,9 +19,8 @@ for dirname, _, files in os.walk('cdx/templates'):
 setup(
     name = 'cdx',
     version = '.'.join([str(x) for x in __version__]),
-    packages = find_packages(),
+    packages = ['cdx', 'cdx.models', 'cdx.views', 'cdx.test'],
     package_data = {'cdx' : package_data_dirs},
-    scripts = ["cdx/scripts/runcdx"],
     author = 'Continuum Analytics',
     author_email = '',
     url = '',
