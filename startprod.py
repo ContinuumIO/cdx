@@ -1,8 +1,7 @@
-import flask
 from cdx import start
 from geventwebsocket.handler import WebSocketHandler
 from gevent.pywsgi import WSGIServer
-from cdx.blueprint import cdx_blueprint
+from cdx.app import app
 from wakariserver import djangointerface, cdxlib
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,8 +10,6 @@ import os
 import logging
 from logging import Formatter
 from wakariserver.environments import BASE_ENV, DEV, PROD, PROD_DEBUG
-app = flask.Flask('cdx')
-app.register_blueprint(cdx_blueprint)
 BASE_ENV.LOG_FILE_NAME = "cdx.log"
 #can customize env hear if you want
 Envies = dict(DEV=DEV,
@@ -20,7 +17,7 @@ Envies = dict(DEV=DEV,
               PROD_DEBUG=PROD_DEBUG)
 ENV =  Envies[os.environ.get("WAKARI_ENV", "DEV")]()
 
-start.prepare_app(app)
+start.prepare_app()
 app.debug = ENV.DEBUG
 #monkeypatching
 def current_user(request):
@@ -53,6 +50,7 @@ file_handler.setFormatter(Formatter(
 app.logger.addHandler(file_handler)
 app.logger.setLevel(logging.DEBUG)
 app.logger.info('INFO: cdx instatiation')
+
 def start_app():
     http_server = WSGIServer(('', 5006), app,
                              handler_class=WebSocketHandler,

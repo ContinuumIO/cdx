@@ -6,7 +6,7 @@ import gevent
 
 import cdx.wsmanager as wsmanager
 import test_utils
-from test_utils import app
+from cdx.app import app
 from cdx import start
 import cdx.models.docs as docs
 import test_utils
@@ -34,7 +34,7 @@ class TestSubscribeWebSocket(test_utils.CDXServerTestCase):
                             'main', rw_users=["defaultuser"],
                             apikey='nokey')
     def test_basic_subscribe(self):
-        ph = app.ph
+        ph = start.app.ph
         sock = websocket.WebSocket()
         connect(sock, ws_address, 'defaultdoc', 'nokey')
         app.wsmanager.send('defaultdoc', 'hello!')
@@ -54,7 +54,7 @@ class TestSubscribeWebSocket(test_utils.CDXServerTestCase):
         assert msg == 'hello3!'
         
 def connect(sock, addr, topic, auth):
-    ph = app.ph
+    ph = start.app.ph
     sock.io_sock.settimeout(1.0)
     sock.connect(addr)
     msgobj = dict(msgtype='subscribe',
