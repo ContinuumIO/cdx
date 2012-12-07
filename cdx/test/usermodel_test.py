@@ -1,9 +1,9 @@
+from cdx.app import app
 import time
 import unittest
 import mock
 import gevent
 import test_utils
-from test_utils import app
 import redis
 import cdx.redisutils as redisutils
 import cdx.bbmodel as bbmodel

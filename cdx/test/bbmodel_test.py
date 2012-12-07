@@ -6,7 +6,7 @@ import gevent
 
 import test_utils
 import cdx.redisutils as redisutils
-from test_utils import app
+from cdx.app import app
 import cdxlib.bbmodel as bbmodel
 import cdx.start as start
 import cdx.models.docs as docs
