@@ -16,7 +16,6 @@ def transform_models(models):
         if 'Renderer' in m.typename:
             xmapper = m.get('xmapper')
             if xmapper != 'linear' and xmapper is not None:
-                import pdb;pdb.set_trace()
                 xmapper = model_cache[xmapper['id']]
                 m.set('xdata_range', xmapper.get('data_range'))
             ymapper = m.get('ymapper')
