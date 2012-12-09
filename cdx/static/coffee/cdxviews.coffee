@@ -95,11 +95,13 @@ class $CDX.Views.CDXSinglePlotContext extends Continuum.ContinuumView
       return null
     return callback
 
+  single_plot_children : () ->
+    return (x for x in @mget('children') when x.id == @target_model_id)
   build_children : () ->
+    children = @single_plot_children()
     created_views = Continuum.build_views(
-      @model, @views, @mget('children'),
-      {'render_loop': true, 'scale' : 1.0})
-
+      @model, @views, children
+    )
     window.pc_created_views = created_views
     window.pc_views = @views
     return null
@@ -126,9 +128,7 @@ class $CDX.Views.CDXSinglePlotContext extends Continuum.ContinuumView
     @$el.html('')
     to_render = []
     tab_names = {}
-    for modelref, index in @mget('children')
-      if modelref.id != @target_model_id
-        continue
+    for modelref, index in @single_plot_children()
       console.log("modelref.id ", modelref.id)
       view = @views[modelref.id]
       node = $("<div class='jsp' data-plot_num='#{index}'></div>"  )

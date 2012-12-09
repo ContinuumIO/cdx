@@ -65,17 +65,14 @@ import pdb
 def get_public_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
     plot_context_ref = doc.plot_context_ref
-    all_models = current_app.collections.get_bulk(docid)
-    mod1 = all_models[1]
-    all_models_json = [
-        x.to_broadcast_json() for x in all_models if x.get('public', False)]
-    all_models_json2 = [x.to_broadcast_json() for x in all_models]
-    if len(all_models_json2) == 0:
+    all_models = docs.prune_and_get_valid_models(current_app, docid)
+    public_models = [x for x in all_models if x.get('public', False)]
+    if len(public_models) == 0:
         return False
-    print all_models_json
+    all_models_json = [x.to_broadcast_json() for x in all_models]
     returnval = {'plot_context_ref' : plot_context_ref,
                  'docid' : docid,
-                 'all_models' : all_models_json2,
+                 'all_models' : all_models_json,
                  'apikey' : doc.apikey}
     returnval = current_app.ph.serialize_web(returnval)
     #return returnval

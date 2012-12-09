@@ -4,6 +4,47 @@ import cdx.bbmodel as bbmodel
 import logging
 log = logging.getLogger(__name__)
 
+def transform_models(models):
+    print 'transforming!'
+    model_cache = {}
+    to_delete = set()
+    for m in models:
+        model_cache[m.id] = m
+    for m in models:
+        if 'Mapper' in m.typename:
+            to_delete.add(m.id)
+        if 'Renderer' in m.typename:
+            xmapper = m.get('xmapper')
+            if xmapper != 'linear' and xmapper is not None:
+                xmapper = model_cache[xmapper['id']]
+                m.set('xdata_range', xmapper.get('data_range'))
+            ymapper = m.get('ymapper')
+            if ymapper != 'linear' and ymapper is not None:
+                ymapper = model_cache[ymapper['id']]
+                m.set('ydata_range', ymapper.get('data_range'))
+        elif 'Axis' in m.typename:
+            mapper = m.get('mapper')
+            if mapper != 'linear' and mapper is not None:
+                mapper = model_cache[mapper['id']]
+                m.set('data_range', mapper.get('data_range'))
+        elif m.typename == 'PanTool' or m.typename=='ZoomTool':
+            xmappers = m.get('xmappers', [])
+            ymappers = m.get('ymappers', [])            
+            dataranges = []
+            dimensions = []
+            for xmapper in xmappers:
+                xmapper = model_cache[xmapper['id']]
+                dataranges.append(xmapper.get('data_range'))
+                dimensions.append('width')
+            for ymapper in ymappers:
+                ymapper = model_cache[ymapper['id']]
+                dataranges.append(ymapper.get('data_range'))
+                dimensions.append('height')
+            m.set('dataranges', dataranges)
+            m.set('dimensions', dimensions)
+    return [x for x in models if x.id not in to_delete]
+
+                
 def prune_and_get_valid_models(flaskapp, docid, delete=False):
     doc = Doc.load(flaskapp.model_redis, docid)
     plot_context = flaskapp.collections.get(doc.plot_context_ref['type'],
@@ -26,6 +67,7 @@ def prune_and_get_valid_models(flaskapp, docid, delete=False):
             if delete:
                 flaskapp.collections.delete(typename, v['id'])
     valid_models = [x for x in all_models.values() if x.id in marked]
+    valid_models = transform_models(valid_models)
     return valid_models
 
 def mark_recursive_models(all_models, marked, model):
