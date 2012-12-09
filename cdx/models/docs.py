@@ -27,7 +27,7 @@ def transform_models(models):
             if mapper != 'linear' and mapper is not None:
                 mapper = model_cache[mapper['id']]
                 m.set('data_range', mapper.get('data_range'))
-        elif m.typename == 'PanTool' and m.typename=='ZoomTool':
+        elif m.typename == 'PanTool' or m.typename=='ZoomTool':
             xmappers = m.get('xmappers', [])
             ymappers = m.get('ymappers', [])            
             dataranges = []
