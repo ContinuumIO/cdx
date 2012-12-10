@@ -32,6 +32,8 @@ def transform_models(models):
             ymappers = m.get('ymappers', [])
             if len(xmappers) == 0 and len(ymappers) == 0:
                 continue
+            dataranges = []
+            dimensions = []
             for xmapper in xmappers:
                 xmapper = model_cache[xmapper['id']]
                 dataranges.append(xmapper.get('data_range'))
