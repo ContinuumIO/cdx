@@ -62,7 +62,7 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
     for own key, val of @views
       val.$el.detach()
     @$el.html('')
-    @$el.append("<div><a class='closeall'>Close All Plots</a></div>")
+    @$el.append("<div><a class='closeall' href='#'>Close All Plots</a></div>")
     @$el.append("<br/>")
     to_render = []
     tab_names = {}
