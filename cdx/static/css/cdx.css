@@ -196,3 +196,11 @@ overflow: auto;
   margin-top:10px;
 
 }
+
+.plottitle{
+  height: 1em;
+  border : none;
+  resize : none;
+  width : 300px;
+  overflow : hidden;
+}

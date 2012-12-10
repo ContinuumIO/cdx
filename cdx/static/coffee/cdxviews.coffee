@@ -41,6 +41,21 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
     #'click .jsp' : 'newtab'
     'click .plotclose' : 'removeplot'
     'click .closeall' : 'closeall'
+    'keydown .plottitle' : 'savetitle'
+  size_textarea : (textarea) ->
+    scrollHeight = $(textarea).height(0).prop('scrollHeight')
+    $(textarea).height(scrollHeight)
+
+  savetitle : (e) =>
+    if e.keyCode == 13 #enter
+      e.preventDefault()
+      plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
+      s_pc = @model.resolve_ref(@mget('children')[plotnum])
+      s_pc.set('title', $(e.currentTarget).val())
+      s_pc.save()
+      $(e.currentTarget).blur()
+      return false
+    @size_textarea($(e.currentTarget))
 
   closeall : (e) =>
     @mset('children', [])
@@ -71,9 +86,13 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
       node = $("<div class='jsp' data-plot_num='#{index}'></div>"  )
       @$el.append(node)
       title = view.model.get('title')
-      node.append($("<p>#{title}</p>"))
+      node.append($("<textarea class='plottitle'>#{title}</textarea>"))
       node.append($("<a class='plotclose'>[close]</a>"))
       node.append(view.el)
+    _.defer(() =>
+      for textarea in @$el.find('.plottitle')
+        @size_textarea($(textarea))
+    )
     return null
 
 class $CDX.Views.CDXSinglePlotContext extends Continuum.ContinuumView
