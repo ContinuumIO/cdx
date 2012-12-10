@@ -95,6 +95,71 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
     )
     return null
 
+class $CDX.Views.CDXPlotContextViewWithMaximized extends $CDX.Views.CDXPlotContextView
+  initialize : (options) ->
+    @selected = 0
+    super(options)
+
+  events :
+    'click .maximize' : 'maximize'
+    'click .plotclose' : 'removeplot'
+    'click .closeall' : 'closeall'
+    'keydown .plottitle' : 'savetitle'
+
+  maximize : (e) ->
+    plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
+    @selected = plotnum
+    @render()
+
+  render : () ->
+    super()
+    @build_children()
+    for own key, val of @views
+      val.$el.detach()
+    @$el.html('')
+    main = $("<div class='plotsidebar'><div>")
+    @$el.append(main)
+    @$el.append("<div class='maxplot'>")
+    main.append("<div><a class='closeall' href='#'>Close All Plots</a></div>")
+    main.append("<br/>")
+    to_render = []
+    tab_names = {}
+    for modelref, index in @mget('children')
+      view = @views[modelref.id]
+      node = $("<div class='jsp' data-plot_num='#{index}'></div>"  )
+      main.append(node)
+      title = view.model.get('title')
+      node.append($("<textarea class='plottitle'>#{title}</textarea>"))
+      node.append($("<a class='maximize'>[max]</a>"))
+      node.append($("<a class='plotclose'>[close]</a>"))
+      node.append(view.el)
+    # if @mget('children').length > 0
+    #   modelref = @mget('children')[@selected]
+    #   model = @model.resolve_ref(modelref)
+    #   @maxview = new model.default_view(
+    #     model : model
+    #   )
+    # else
+    #   @maxview = null
+    # @$el.find('.maxplot').append(@maxview.$el)
+
+    _.defer(() =>
+      for textarea in main.find('.plottitle')
+        @size_textarea($(textarea))
+      # if @maxview
+      #   width = model.get('width')
+      #   height = model.get('height')
+      #   maxwidth = main.parent().width() - 600;
+      #   newwidth = maxwidth
+      #   newheight = maxwidth/width * height
+      #   @maxview.viewstate.set('height', newheight)
+      #   @maxview.viewstate.set('width', newwidth)
+
+    )
+    return null
+
+
+
 class $CDX.Views.CDXSinglePlotContext extends Continuum.ContinuumView
   initialize : (options) ->
     @views = {}

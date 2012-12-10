@@ -166,6 +166,16 @@ overflow: auto;
   height:500px;
   overflow: auto;
 }
+.maximize {
+    display : none;
+    float : right;
+}
+
+.jsp:hover > .maximize{
+    display : inline;
+    float : right;
+    vertical-align : top;
+}
 
 .plotclose {
     display : none;
@@ -176,7 +186,6 @@ overflow: auto;
     display : inline;
     float : right;
     vertical-align : top;
-    padding : 10px;
 }
 
 
@@ -201,6 +210,16 @@ overflow: auto;
   height: 1em;
   border : none;
   resize : none;
-  width : 300px;
+  width : 200;
   overflow : hidden;
+}
+
+.plotsidebar{
+    overflow-x : auto;
+    width : 1000px;
+    float : left;
+}
+
+.maxplot{
+    float:right;
 }

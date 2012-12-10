@@ -29,9 +29,9 @@ def transform_models(models):
                 m.set('data_range', mapper.get('data_range'))
         elif m.typename == 'PanTool' or m.typename=='ZoomTool':
             xmappers = m.get('xmappers', [])
-            ymappers = m.get('ymappers', [])            
-            dataranges = []
-            dimensions = []
+            ymappers = m.get('ymappers', [])
+            if len(xmappers) == 0 and len(ymappers) == 0:
+                continue
             for xmapper in xmappers:
                 xmapper = model_cache[xmapper['id']]
                 dataranges.append(xmapper.get('data_range'))

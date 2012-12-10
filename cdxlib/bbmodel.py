@@ -1,3 +1,4 @@
+
 import protocol
 import requests
 import urlparse
@@ -31,9 +32,16 @@ class ContinuumModel(object):
         ref = self.get(field)
         return client.get(ref['type'], ref['id'])
     
+    def vget_ref(self, field, client):
+        return [client.get(ref['type'], ref['id']) for ref in \
+                self.attributes.get(field)]
+    
     def set(self, key, val):
         self.attributes[key] = val
         
+    def unset(self, key):
+        del self.attributes[key]
+           
     def to_broadcast_json(self):
         #more verbose json, which includes collection/type info necessary
         #for recon on the JS side.
