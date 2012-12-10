@@ -216,10 +216,10 @@ overflow: auto;
 
 .plotsidebar{
     overflow-x : auto;
-    width : 1000px;
+    width : 350;
     float : left;
 }
 
 .maxplot{
-    float:right;
+    float : left;
 }

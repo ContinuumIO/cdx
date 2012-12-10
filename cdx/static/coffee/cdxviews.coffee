@@ -95,11 +95,26 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
     )
     return null
 
+class PlotContextViewState extends Continuum.HasProperties
+  defaults :
+    maxheight : 600
+    maxwidth : 600
+    selected : 0
+
 class $CDX.Views.CDXPlotContextViewWithMaximized extends $CDX.Views.CDXPlotContextView
   initialize : (options) ->
     @selected = 0
+    @viewstate = new PlotContextViewState(
+      maxheight : options.maxheight
+      maxwidth : options.maxwidth
+    )
     super(options)
-
+    Continuum.safebind(this, @viewstate, 'change', @render)
+    Continuum.safebind(this, @model, 'change:children', () =>
+      selected = @viewstate.get('selected')
+      if selected > @model.get('children') - 1
+        @viewstate.set('selected', 0)
+    )
   events :
     'click .maximize' : 'maximize'
     'click .plotclose' : 'removeplot'
@@ -108,8 +123,7 @@ class $CDX.Views.CDXPlotContextViewWithMaximized extends $CDX.Views.CDXPlotConte
 
   maximize : (e) ->
     plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'))
-    @selected = plotnum
-    @render()
+    @viewstate.set('selected', plotnum)
 
   render : () ->
     super()
@@ -133,27 +147,30 @@ class $CDX.Views.CDXPlotContextViewWithMaximized extends $CDX.Views.CDXPlotConte
       node.append($("<a class='maximize'>[max]</a>"))
       node.append($("<a class='plotclose'>[close]</a>"))
       node.append(view.el)
-    # if @mget('children').length > 0
-    #   modelref = @mget('children')[@selected]
-    #   model = @model.resolve_ref(modelref)
-    #   @maxview = new model.default_view(
-    #     model : model
-    #   )
-    # else
-    #   @maxview = null
-    # @$el.find('.maxplot').append(@maxview.$el)
-
+    if @mget('children').length > 0
+      modelref = @mget('children')[@viewstate.get('selected')]
+      model = @model.resolve_ref(modelref)
+      @maxview = new model.default_view(
+        model : model
+      )
+    else
+      @maxview = null
+    @$el.find('.maxplot').append(@maxview.$el)
     _.defer(() =>
       for textarea in main.find('.plottitle')
         @size_textarea($(textarea))
-      # if @maxview
-      #   width = model.get('width')
-      #   height = model.get('height')
-      #   maxwidth = main.parent().width() - 600;
-      #   newwidth = maxwidth
-      #   newheight = maxwidth/width * height
-      #   @maxview.viewstate.set('height', newheight)
-      #   @maxview.viewstate.set('width', newwidth)
+      if @maxview
+        width = model.get('width')
+        height = model.get('height')
+        maxwidth = @viewstate.get('maxwidth')
+        maxheight = @viewstate.get('maxheight')
+        widthratio = maxwidth/width
+        heightratio = maxheight/height
+        ratio = _.min([widthratio, heightratio])
+        newwidth = ratio * width
+        newheight = ratio * height
+        @maxview.viewstate.set('height', newheight)
+        @maxview.viewstate.set('width', newwidth)
 
     )
     return null

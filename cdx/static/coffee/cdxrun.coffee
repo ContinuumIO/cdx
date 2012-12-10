@@ -12,11 +12,10 @@ $CDX.utility.render_plots = () ->
     $CDX.plot_context_ref['type'],
     $CDX.plot_context_ref['id']
   )
-  # plotcontextview = new $CDX.Views.CDXPlotContextViewWithMaximized(
-  #   model : plotcontext,
-  # )
-  plotcontextview = new $CDX.Views.CDXPlotContextView(
+  plotcontextview = new $CDX.Views.CDXPlotContextViewWithMaximized(
     model : plotcontext,
+    maxheight : $(window).height() - 100;
+    maxwidth : $(window).width() - 400
   )
 
   $CDX.plotcontext = plotcontext
