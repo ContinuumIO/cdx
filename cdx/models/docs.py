@@ -50,6 +50,12 @@ def transform_models(models):
                 dimensions.append('height')
             m.set('dataranges', dataranges)
             m.set('dimensions', dimensions)
+
+        if m.typename == 'Plot':
+            axes = m.get('axes')
+            for x in axes:
+                if 'D3' in x['type']:
+                    x['type'] = x['type'][2:]
     return [x for x in models if x.id not in to_delete]
 
 
