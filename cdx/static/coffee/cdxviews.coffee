@@ -200,7 +200,7 @@ class $CDX.Views.CDXSinglePlotContext extends Continuum.ContinuumView
     return callback
 
   single_plot_children : () ->
-    return _.filter(@v_get_ref('children'), (child) -> child.id == @target_model_id)
+    return _.filter(@v_get_ref('children'), (child) => child.id == @target_model_id)
 
   build_children : () ->
     created_views = Continuum.build_views(@views, @single_plot_children(), {})
