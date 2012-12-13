@@ -155,9 +155,10 @@ class $CDX.Views.CDXPlotContextViewWithMaximized extends $CDX.Views.CDXPlotConte
       @maxview = new model.default_view(
         model : model
       )
+      @$el.find('.maxplot').append(@maxview.$el)
     else
       @maxview = null
-    @$el.find('.maxplot').append(@maxview.$el)
+
     _.defer(() =>
       for textarea in main.find('.plottitle')
         @size_textarea($(textarea))
