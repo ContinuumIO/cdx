@@ -10,12 +10,12 @@ projects = {
         'output' : 'cdx/static/js',
         },
     'bokehjs':{
-        'input' : 'submodule/bokehjs/src/coffee',
-        'output' : 'submodule/bokehjs/lib/js',
+        'input' : 'subtree/bokehjs/src/coffee',
+        'output' : 'subtree/bokehjs/lib/js',
         },
     'bokehjstest':{
-        'input' : 'submodule/bokehjs/src/test/unittest',
-        'output' : 'submodule/bokehjs/lib/test/unittest',
+        'input' : 'subtree/bokehjs/src/test/unittest',
+        'output' : 'subtree/bokehjs/lib/test/unittest',
         }
     }
 
