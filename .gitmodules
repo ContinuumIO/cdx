@@ -1,3 +1,0 @@
-[submodule "submodule/bokehjs"]
-	path = submodule/bokehjs
-	url = git@github.com:ContinuumIO/bokehjs.git
