@@ -29,7 +29,7 @@ class GridPlot(object):
 
 
 class XYPlot(object):
-    def __init__(self, client, plot, 
+    def __init__(self, client, plot,
                  xdata_range, ydata_range,
                  xaxis, yaxis,
                  pantool, zoomtool, selectiontool, selectionoverlay,
@@ -281,13 +281,13 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             'DataRange1d',
             sources=[]
             )
-        axisclass = 'D3LinearAxis'
-        if is_x_date: axisclass = 'D3LinearDateAxis'
+        axisclass = 'LinearAxis'
+        if is_x_date: axisclass = 'LinearDateAxis'
         xaxis = bbmodel.ContinuumModel(
             axisclass, orientation='bottom', ticks=3,
             data_range=xdata_range.ref(), parent=plot.ref())
-        axisclass = 'D3LinearAxis'
-        if is_y_date: axisclass = 'D3LinearDateAxis'
+        axisclass = 'LinearAxis'
+        if is_y_date: axisclass = 'LinearDateAxis'
         yaxis = bbmodel.ContinuumModel(
             axisclass, orientation='left', ticks=3,
             data_range=ydata_range.ref(), parent=plot.ref())

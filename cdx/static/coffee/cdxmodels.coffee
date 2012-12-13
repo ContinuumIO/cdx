@@ -6,6 +6,8 @@ if not $CDX.Models
 if not $CDX.Collections
   $CDX.Collections = {}
 
+#console.log("value of Continuum.HasParent", Continuum.HasParent)
+
 class $CDX.Models.CDXPlotContext extends Continuum.HasParent
   type : 'CDXPlotContext',
   default_view : $CDX.Views.CDXPlotContextView

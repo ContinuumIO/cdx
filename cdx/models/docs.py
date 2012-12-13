@@ -22,7 +22,13 @@ def transform_models(models):
             if ymapper != 'linear' and ymapper is not None:
                 ymapper = model_cache[ymapper['id']]
                 m.set('ydata_range', ymapper.get('data_range'))
-        elif 'Axis' in m.typename:
+
+        if 'D3LinearAxis' in m.typename:
+            m.typename = 'LinearAxis'
+        elif 'D3LinearDateAxis' in m.typename:
+            m.typename = 'LinearDateAxis'
+
+        if 'Axis' in m.typename:
             mapper = m.get('mapper')
             if mapper != 'linear' and mapper is not None:
                 mapper = model_cache[mapper['id']]
@@ -44,9 +50,15 @@ def transform_models(models):
                 dimensions.append('height')
             m.set('dataranges', dataranges)
             m.set('dimensions', dimensions)
+
+        if m.typename == 'Plot':
+            axes = m.get('axes')
+            for x in axes:
+                if 'D3' in x['type']:
+                    x['type'] = x['type'][2:]
     return [x for x in models if x.id not in to_delete]
 
-                
+
 def prune_and_get_valid_models(flaskapp, docid, delete=False):
     doc = Doc.load(flaskapp.model_redis, docid)
     plot_context = flaskapp.collections.get(doc.plot_context_ref['type'],
@@ -60,7 +72,7 @@ def prune_and_get_valid_models(flaskapp, docid, delete=False):
     for x in temp:
         all_models_json[x.id] = x.attributes
         all_models[x.id] = x
-        
+
     mark_recursive_models(all_models_json, marked, plot_context.attributes)
 
     for v in all_models_json.values():
@@ -82,7 +94,7 @@ def mark_recursive_models(all_models, marked, model):
         model = all_models.get(ref['id'])
         if model:
             mark_recursive_models(all_models, marked, model)
-            
+
 def is_ref(data):
     return (isinstance(data, dict) and
             'type' in data and
@@ -98,18 +110,18 @@ def find_refs_json(datajson, refs=None):
         find_refs_list(datajson, refs=refs)
     else:
         pass
-    
+
 def find_refs_dict(datadict, refs=None):
-    refs = [] if refs is None else refs        
+    refs = [] if refs is None else refs
     for k,v in datadict.iteritems():
         find_refs_json(v, refs=refs)
-        
+
 def find_refs_list(datalist, refs=None):
-    refs = [] if refs is None else refs    
+    refs = [] if refs is None else refs
     for v in datalist:
         find_refs_json(v, refs=refs)
-            
-                
+
+
 def new_doc(flaskapp, docid, title, rw_users=None, r_users=None, apikey=None):
     if not apikey: apikey = str(uuid.uuid4())
     plot_context = bbmodel.ContinuumModel(
@@ -124,7 +136,7 @@ def new_doc(flaskapp, docid, title, rw_users=None, r_users=None, apikey=None):
 class Doc(models.ServerModel):
     typename = 'doc'
     idfield = 'docid'
-    
+
     def __init__(self, docid, title, rw_users, r_users, plot_context_ref, apikey):
         self.docid = docid
         self.title = title
@@ -132,21 +144,19 @@ class Doc(models.ServerModel):
         self.r_users = r_users
         self.plot_context_ref = plot_context_ref
         self.apikey = apikey
-        
+
     def to_json(self):
         return {'docid' : self.docid,
                 'title' : self.title,
                 'rw_users' : self.rw_users,
                 'r_users' : self.r_users,
                 'plot_context_ref' : self.plot_context_ref,
-                'apikey' : self.apikey,                
+                'apikey' : self.apikey,
                 }
-    
+
     @staticmethod
     def from_json(obj):
         return Doc(obj['docid'], obj['title'],
                    obj['rw_users'], obj['r_users'],
                    obj['plot_context_ref'],
                    obj['apikey'])
-    
-
