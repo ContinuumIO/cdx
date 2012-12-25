@@ -76,9 +76,9 @@ class GridPlotContainerView extends Continuum.ContinuumView
 
   build_children : ->
     childmodels = []
-    for row in @mget('children')
-      for x in row
-        childmodels.push(@model.resolve_ref(x))
+    for row in @mget_obj('children')
+      for plot in row
+        childmodels.push(plot)
     build_views(@childviews, childmodels, {})
     @set_child_view_states()
 
@@ -153,28 +153,19 @@ class PlotView extends Continuum.ContinuumView
 
   build_renderers : ->
     console.log('before')
-    build_views(@renderers, @v_get_ref('renderers'), @view_options())
+    build_views(@renderers, @mget_obj('renderers'), @view_options())
     console.log('after')
 
   build_axes : ->
-    build_views(@axes, @v_get_ref('axes'), @view_options())
+    build_views(@axes, @mget_obj('axes'), @view_options())
 
   build_tools : ->
     #build_views(@model, @tools, @mget('tools'), @model_specs())
-    build_views(@tools, @v_get_ref('tools'), @view_options())
+    build_views(@tools, @mget_obj('tools'), @view_options())
 
   build_overlays : ->
     #add ids of renderer views into the overlay spec
-    overlays = (_.clone(x) for x in @mget('overlays'))
-    for overlayspec in overlays
-      overlay = @model.resolve_ref(overlayspec)
-      if not overlayspec['options']
-        overlayspec['options'] = {}
-      overlayspec['options']['rendererviews'] = []
-      for renderer in overlay.get('renderers')
-        overlayspec['options']['rendererviews'].push(@renderers[renderer.id])
-
-    build_views(@overlays, @v_get_ref('overlays'), @view_options())
+    build_views(@overlays, @mget_obj('overlays'), @view_options())
 
   bind_overlays : ->
     for overlayspec in @mget('overlays')
@@ -221,10 +212,14 @@ class PlotView extends Continuum.ContinuumView
     @overlays = {}
     @eventSink = _.extend({}, Backbone.Events)
     atm = new ActiveToolManager(@eventSink)
-
     @moveCallbacks = []
     @mousedownCallbacks = []
     @keydownCallbacks = []
+    @render_init()
+    @render()
+    @build_subviews()
+    return this
+  render_init : () ->
     #FIXME template
     @$el.append($("""
       <div class='button_bar'/>
@@ -249,14 +244,15 @@ class PlotView extends Continuum.ContinuumView
     @main_can_wrapper = @$el.find('.main_can_wrapper')
     @x_can_wrapper = @$el.find('.x_can_wrapper')
     @y_can_wrapper = @$el.find('.y_can_wrapper')
-    @render()
+
+  build_subviews : ()->
     @build_renderers()
     @build_axes()
     @build_tools()
     @build_overlays()
     @bind_tools()
     @bind_overlays()
-    return this
+
 
   bind_bokeh_events : () ->
     safebind(this, @viewstate, 'change', @render)
@@ -326,15 +322,15 @@ class XYRendererView extends PlotWidget
   bind_bokeh_events : () ->
     safebind(this, @model, 'change', @request_render)
     safebind(this, @plot_view.viewstate, 'change', @request_render)
-    safebind(this, @mget_ref('data_source'), 'change:data', @request_render)
+    safebind(this, @mget_obj('data_source'), 'change:data', @request_render)
     safebind(this, @model, 'change:xdata_range', @set_xmapper)
     safebind(this, @model, 'change:ydata_range', @set_ymapper)
-    safebind(this, @mget_ref('xdata_range'), 'change', @request_render)
-    safebind(this, @mget_ref('ydata_range'), 'change', @request_render)
+    safebind(this, @mget_obj('xdata_range'), 'change', @request_render)
+    safebind(this, @mget_obj('ydata_range'), 'change', @request_render)
 
   set_xmapper : () ->
     @xmapper = new Bokeh.LinearMapper({},
-      data_range : @mget_ref('xdata_range')
+      data_range : @mget_obj('xdata_range')
       viewstate : @plot_view.viewstate
       screendim : 'width'
     )
@@ -342,7 +338,7 @@ class XYRendererView extends PlotWidget
 
   set_ymapper: () ->
     @ymapper = new Bokeh.LinearMapper({},
-      data_range : @mget_ref('ydata_range')
+      data_range : @mget_obj('ydata_range')
       viewstate : @plot_view.viewstate
       screendim : 'height'
     )
@@ -367,7 +363,7 @@ class XYRendererView extends PlotWidget
           ((ydatabounds is null) or
           (yval > ydatabounds[0] and yval < ydatabounds[1]))
       return val
-    source = @mget_ref('data_source')
+    source = @mget_obj('data_source')
     return source.select([@mget('xfield'), @mget('yfield')], func)
 
   calc_buffer : (data) ->
@@ -403,11 +399,11 @@ class LinearAxisView extends PlotWidget
     safebind(this, @plot_model, 'change', @request_render)
     safebind(this, @model, 'change', @request_render)
     safebind(this, @model, 'change:data_range', @set_mapper)
-    safebind(this, @mget_ref('data_range'), 'change', @request_render)
+    safebind(this, @mget_obj('data_range'), 'change', @request_render)
 
   set_mapper : () ->
     @mapper = new Bokeh.LinearMapper({},
-      data_range : @mget_ref('data_range')
+      data_range : @mget_obj('data_range')
       viewstate : @plot_view.viewstate
       screendim : 'height'
     )
@@ -511,8 +507,8 @@ class LinearAxisView extends PlotWidget
 
 class LinearDateAxisView extends LinearAxisView
   tick_label : (tick) ->
-    start = @mget_ref('data_range').get('start')
-    end = @mget_ref('data_range').get('end')
+    start = @mget_obj('data_range').get('start')
+    end = @mget_obj('data_range').get('end')
     one_day = 3600 * 24 *1000
     tick = new Date(tick)
     if (Math.abs(end - start))  > (one_day * 2)
@@ -523,7 +519,7 @@ class LinearDateAxisView extends LinearAxisView
 class LineRendererView extends XYRendererView
   render : ->
     super()
-    data = @model.get_ref('data_source').get('data')
+    data = @model.get_obj('data_source').get('data')
     @calc_buffer(data)
 
     @plot_view.ctx.fillStyle = @mget('foreground_color')
@@ -542,17 +538,85 @@ class LineRendererView extends XYRendererView
     @render_end()
     return null
 
+class GlyphRendererView extends XYRendererView
+  # glpyph_defaults =
+  #   r : 3
+  # glpyh =
+  #   type : circle
+  #   x : 'date'
+  #   y : 'price'
+  #   color : 'red'
+  #   index : 2 # which datavalue does this correspond to
+  # glpyh =
+  #    type : line
+  #    x : 'date' # can be [field, dataoffset, screenoffset]
+  #    y : 'price'
+  #    start : 2 #which datapoint is the start
+  #    end : 3 #which datapoint is the end, defaults to start + 1
+  addSquare: (x, y, size, color) ->
+    if isNaN(x) or isNaN(y)
+      return null
+    @plot_view.ctx.fillStyle = color
+    @plot_view.ctx.strokeStyle = color
+    @plot_view.ctx.fillRect(x - size / 2, y - size / 2, size, size)
+
+  addCircle: (x, y, size, color) ->
+    if isNaN(x) or isNaN(y)
+      return null
+    @plot_view.ctx.fillStyle = color
+    @plot_view.ctx.strokeStyle = color
+    @plot_view.ctx.beginPath()
+    @plot_view.ctx.arc(x, y, size/2, 0, Math.PI*2)
+    @plot_view.ctx.closePath()
+    @plot_view.ctx.fill()
+    @plot_view.ctx.stroke()
+
+  calc_screen : (glyph, dim, datapoint, mapper) ->
+    dim = if glyph[dim] then glyph[dim] else @mget(dim)
+    if _.isArray(dim)
+      data = datapoint[dim[0]]
+      data = if dim[1] then dim[1] + data else data
+      screenoffset = if dim[2] then dim[2] else 0
+    else
+      data = datapoint[dim]
+      screenoffset = 0
+    if dim == 'x'
+      screenoffset = screenoffset * @plot_view.viewstate.get('width')
+    else
+      screenoffset = screenoffset * @plot_view.viewstate.get('height')
+    screen = mapper.map_screen(data) + screenoffset
+
+  render_scatter : (glyph, data) ->
+    datapoint = data[glyph.index]
+    screenx = @calc_screen(glyph, 'x', datapoint, @xmapper)
+    screeny = @calc_screen(glyph, 'y', datapoint, @ymapper)
+    size = if glyph.size then glyph.size else @mget('scatter_size')
+    color = if glyph.color then glyph.color else @mget('color')
+    if glyph.type == 'circle'
+      @addCircle(screenx, screeny, size, color)
+    if glyph.type == 'square'
+      @addSquare(screenx, screeny, size, color)
+
+  render : ->
+    screen_glpyhs = []
+    data = @mget_obj('data_source').get('data')
+    for glyph in @mget('glyphs')
+      if glyph.type == 'circle' or glyph.type == 'square'
+        @render_scatter(glyph, data)
+      else if glyph.type == 'line'
+        'pass'
+
 class ScatterRendererView extends XYRendererView
   #FIXME: render_canvas
   render : ->
     "use strict";
     super()
-    if @model.get_ref('data_source').get('selecting') == true
+    if @model.get_obj('data_source').get('selecting') == true
         #skip data sources which are not selecting'
         @render_end()
         return null
 
-    data = @model.get_ref('data_source').get('data')
+    data = @model.get_obj('data_source').get('data')
     @calc_buffer(data)
     @plot_view.ctx.beginPath()
     @plot_view.ctx.fillStyle = @mget('foreground_color')
@@ -560,7 +624,7 @@ class ScatterRendererView extends XYRendererView
     color_field = @mget('color_field')
     ctx = @plot_view.ctx
     if color_field
-      color_mapper = @model.get_ref('color_mapper')
+      color_mapper = @model.get_obj('color_mapper')
       color_arr = @model.get('color_field')
     mark_type = @mget('mark')
     for idx in [0..@screeny.length]
@@ -576,39 +640,29 @@ class ScatterRendererView extends XYRendererView
     @render_end()
     return null
 
-class OverlayView extends PlotWidget
-  initialize : (options) ->
-    @rendererviews = options['rendererviews']
-    super(options)
-
-  bind_events : (plot_view) ->
-    @plot_view = plot_view
-    return null
-
-class ScatterSelectionOverlayView extends OverlayView
-
+class ScatterSelectionOverlayView extends PlotWidget
+  bind_events : () ->
+    'pass'
   bind_bokeh_events  : () ->
     #add logic so that if the number of renderers change, the new renderers are bound
-    for renderer in @mget('renderers')
-      renderer = @model.resolve_ref(renderer)
+    for renderer in @mget_obj('renderers')
       safebind(@, renderer, 'change', @request_render)
-      safebind(@, renderer.get_ref('xdata_range'), 'change', @request_render)
-      safebind(@, renderer.get_ref('xdata_range'), 'change', @request_render)
-      safebind(@, renderer.get_ref('data_source'), 'change', @request_render)
+      safebind(@, renderer.get_obj('xdata_range'), 'change', @request_render)
+      safebind(@, renderer.get_obj('xdata_range'), 'change', @request_render)
+      safebind(@, renderer.get_obj('data_source'), 'change', @request_render)
 
   #FIXME integrate into ScatterRenderer
   render : () ->
     window.overlay_render += 1
     super()
-    for renderer in @mget('renderers')
+    for renderer in @mget_obj('renderers')
       rendererview = @plot_view.renderers[renderer.id]
-      renderer = @model.resolve_ref(renderer)
       selected = {}
-      if renderer.get_ref('data_source').get('selecting') == false
+      if renderer.get_obj('data_source').get('selecting') == false
         #skip data sources which are not selecting'
         continue
-      sel_idxs = renderer.get_ref('data_source').get('selected')
-      ds = renderer.get_ref('data_source')
+      sel_idxs = renderer.get_obj('data_source').get('selected')
+      ds = renderer.get_obj('data_source')
       data = ds.get('data')
       # hugo - i think we need to do this each time....
       # or else panning does not work
@@ -620,7 +674,7 @@ class ScatterSelectionOverlayView extends OverlayView
       unselected_color = @mget('unselected_color')
       color_field = rvm.get('color_field')
       if color_field
-        color_mapper = rvm.get_ref('color_mapper')
+        color_mapper = rvm.get_obj('color_mapper')
       color_arr = rvm.get('color_field')
       mark_type = @mget('mark')
       last_color_field = fcolor
@@ -654,6 +708,7 @@ Bokeh.PlotWidget = PlotWidget
 Bokeh.PlotView = PlotView
 Bokeh.ScatterRendererView = ScatterRendererView
 Bokeh.LineRendererView = LineRendererView
+Bokeh.GlyphRendererView = GlyphRendererView
 Bokeh.GridPlotContainerView = GridPlotContainerView
 Bokeh.ScatterSelectionOverlayView = ScatterSelectionOverlayView
 Bokeh.LinearAxisView = LinearAxisView

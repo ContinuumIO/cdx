@@ -222,7 +222,7 @@ class DataFactorRange extends FactorRange
   type : 'DataFactorRange'
 
   _get_values : () =>
-    columns = (@get_ref('data_source').getcolumn(x) for x in @get('columns'))
+    columns = (@get_obj('data_source').getcolumn(x) for x in @get('columns'))
     columns = _.reduce(columns, ((x, y) -> return x.concat(y)), [])
     temp = {}
     for val in columns
@@ -236,7 +236,7 @@ class DataFactorRange extends FactorRange
     @register_property
     @register_property('values', @_get_values, true)
     @add_dependencies('values', this, ['data_source', 'columns'])
-    @add_dependencies('values', @get_ref('data_source'),
+    @add_dependencies('values', @get_obj('data_source'),
       ['data_source', 'columns'])
 
 
@@ -298,7 +298,7 @@ class DiscreteColorMapper extends HasProperties
 
   _get_factor_map : () =>
     domain_map = {}
-    for val, index in @get_ref('data_range').get('values')
+    for val, index in @get_obj('data_range').get('values')
       domain_map[val] = index
     return domain_map
 
@@ -545,13 +545,27 @@ _.extend(ScatterRenderer::defaults, {
     mark : 'circle',
 })
 
-ScatterRenderer::display_defaults = _.clone(ScatterRenderer::display_defaults)
-_.extend(ScatterRenderer::display_defaults, {
+class ScatterRenderers extends Continuum.Collection
+  model : ScatterRenderer
+
+class GlyphRenderer extends HasParent
+  type : 'GlyphRenderer'
+  default_view : Bokeh.GlyphRendererView
+
+GlyphRenderer::defaults = _.clone(GlyphRenderer::defaults)
+_.extend(GlyphRenderer::defaults,
+  data_source : null
+  scatter_size : 3
+  color : 'black'
+)
+
+GlyphRenderer::display_defaults = _.clone(GlyphRenderer::display_defaults)
+_.extend(GlyphRenderer::display_defaults, {
   radius : 3
 })
 
-class ScatterRenderers extends Continuum.Collection
-  model : ScatterRenderer
+class GlyphRenderers extends Continuum.Collection
+  model : GlyphRenderer
 
 
 
@@ -623,6 +637,7 @@ class ScatterSelectionOverlays extends Continuum.Collection
 #Preparing the name space
 Bokeh.register_collection('Plot', new Plots)
 Bokeh.register_collection('ScatterRenderer', new ScatterRenderers)
+Bokeh.register_collection('GlyphRenderer', new GlyphRenderers)
 Bokeh.register_collection('LineRenderer', new LineRenderers)
 Bokeh.register_collection('BarRenderer', new BarRenderers)
 Bokeh.register_collection('ObjectArrayDataSource', new ObjectArrayDataSources)

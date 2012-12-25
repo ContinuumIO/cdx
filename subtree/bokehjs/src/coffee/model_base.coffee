@@ -241,6 +241,17 @@ class HasProperties extends Backbone.Model
     # on each other
     @inited = true
 
+  set_obj : (key, value, options) ->
+    if _.isObject(key) or key == null
+      attrs = key
+      options = value
+    else
+      attrs = {}
+      attrs[key] = value
+    for own key, val of attrs
+      attrs[key] = @convert_to_ref(val)
+    return @set(attrs, options)
+
   set : (key, value, options) ->
     # checks for setters, if setters are present, call setters first
     # then remove the computed property from the dict of attrs, and call super
@@ -265,6 +276,15 @@ class HasProperties extends Backbone.Model
       delete attrs[key]
     if not _.isEmpty(attrs)
       super(attrs, options)
+
+  convert_to_ref : (value) =>
+    # converts value into a refrence if necessary
+    # works vectorized
+    if _.isArray(value)
+      return _.map(value, @convert_to_ref)
+    else
+      if value instanceof HasProperties
+        return value.ref()
 
   add_dependencies:  (prop_name, object, fields) ->
     # prop_name - name of property
@@ -383,9 +403,12 @@ class HasProperties extends Backbone.Model
     'type' : this.type
     'id' : this.id
 
-  resolve_ref : (ref) ->
+  resolve_ref : (ref) =>
     # ### method : HasProperties::resolve_ref
     #converts a reference into an object
+    #also works vectorized now
+    if _.isArray(ref)
+      return _.map(ref, @resolve_ref)
     if not ref
       console.log('ERROR, null reference')
     #this way we can reference ourselves
@@ -395,8 +418,8 @@ class HasProperties extends Backbone.Model
     else
       return resolve_ref(@collections, ref['type'], ref['id'])
 
-  get_ref : (ref_name) ->
-    # ### method : HasProperties::get_ref
+  get_obj : (ref_name) =>
+    # ### method : HasProperties::get_obj
     #convenience function, gets the backbone attribute ref_name, which is assumed
     #to be a reference, then resolves the reference and returns the model
 
@@ -458,10 +481,10 @@ class HasProperties extends Backbone.Model
 
 class HasParent extends HasProperties
   get_fallback : (attr) ->
-    if (@get_ref('parent') and
-        _.indexOf(@get_ref('parent').parent_properties, attr) >= 0 and
-        not _.isUndefined(@get_ref('parent').get(attr)))
-      return @get_ref('parent').get(attr)
+    if (@get_obj('parent') and
+        _.indexOf(@get_obj('parent').parent_properties, attr) >= 0 and
+        not _.isUndefined(@get_obj('parent').get(attr)))
+      return @get_obj('parent').get(attr)
     else
       retval = @display_defaults[attr]
       # this is ugly, we should take this out and not support object specs
