@@ -22,9 +22,6 @@ build_views = (view_storage, view_models, options) ->
   #   the views constructor here, as an 'options' field in the dict
   # * options : any additional option to be used in the construction of views
   # * view_option : array, optional view specific options passed in to the construction of the view
-  #
-  # FIXME
-  # 
   "use strict";
   created_views = []
   #debugger
@@ -62,11 +59,11 @@ class ContinuumView extends Backbone.View
     'pass'
 
 
-            
+
   delegateEvents : (events) ->
     super(events)
     @bind_bokeh_events()
-    
+
   remove : ->
     #handles lifecycle of events bound by safebind
 
@@ -75,11 +72,6 @@ class ContinuumView extends Backbone.View
         val.off(null, null, this)
     @trigger('remove')
     super()
-
-  v_get_ref: (model_key) ->
-    keys = @mget(model_key)
-    retval = _.map(keys, (key) => @model.resolve_ref(key))
-    return retval
 
   mget : ()->
     # convenience function, calls get on the associated model
@@ -90,11 +82,10 @@ class ContinuumView extends Backbone.View
 
     return @model.set.apply(@model, arguments)
 
-  mget_ref : (fld) ->
-    # convenience function, calls get_ref on the associated model
+  mget_obj : (fld) ->
+    # convenience function, calls get_obj on the associated model
 
-    return @model.get_ref(fld)
+    return @model.get_obj(fld)
   render_end : () ->
     "pass"
 Continuum.ContinuumView = ContinuumView
-

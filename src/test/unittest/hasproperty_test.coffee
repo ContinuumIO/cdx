@@ -81,3 +81,30 @@ test('property_setters', ->
   ok(model.get('a') == 50)
   ok(model.get('b') == 50)
 )
+
+test('test_vectorized_ref', () ->
+  Continuum.register_collection('TestObject', new TestObjects())
+  model1 = Continuum.Collections['TestObject'].create(
+    a : 1
+    b : 1
+  )
+  model2 = Continuum.Collections['TestObject'].create(
+    a : 2
+    b : 2
+  )
+  model3 = Continuum.Collections['TestObject'].create(
+    a : 1
+    b : 1
+    vectordata : [model1.ref(), model2.ref()]
+  )
+  output = model3.get_obj('vectordata')
+  ok(output[0] == model1)
+  ok(output[1] == model2)
+  model3.set_obj('vectordata2', [model1, model1, model2])
+  output = model3.get('vectordata2')
+  ok(output[0].id == model1.ref().id)
+  ok(output[1].id == model1.ref().id)
+  ok(output[2].id == model2.ref().id)
+  ok (not (output[0] instanceof Continuum.HasProperties))
+  return null
+)
