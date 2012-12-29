@@ -33,7 +33,7 @@ class $CDX.Views.CDXPlotContextView extends Continuum.ContinuumView
     #   @model, @views, @mget('children'),
     #   {'render_loop': true, 'scale' : 1.0})
     created_views = Continuum.build_views(
-      @views, @v_get_ref('children'), {})
+      @views, @mget_obj('children'), {})
 
     window.pc_created_views = created_views
     window.pc_views = @views
@@ -200,7 +200,7 @@ class $CDX.Views.CDXSinglePlotContext extends Continuum.ContinuumView
     return callback
 
   single_plot_children : () ->
-    return _.filter(@v_get_ref('children'), (child) => child.id == @target_model_id)
+    return _.filter(@mget_obj('children'), (child) => child.id == @target_model_id)
 
   build_children : () ->
     created_views = Continuum.build_views(@views, @single_plot_children(), {})

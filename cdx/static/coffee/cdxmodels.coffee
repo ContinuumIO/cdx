@@ -20,4 +20,4 @@ class $CDX.Models.CDXPlotContext extends Continuum.HasParent
 class $CDX.Collections.CDXPlotContexts extends Backbone.Collection
   model : $CDX.Models.CDXPlotContext
 
-Continuum.register_collection('CDXPlotContext', new $CDX.Collections.CDXPlotContexts())
+Continuum.Collections.CDXPlotContext = new $CDX.Collections.CDXPlotContexts()
