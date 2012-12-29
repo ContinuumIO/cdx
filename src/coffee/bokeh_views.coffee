@@ -5,12 +5,17 @@ else
   this.Bokeh = Bokeh
 safebind = Continuum.safebind
 
-
+# ###class : PlotWidget
 class PlotWidget extends Continuum.ContinuumView
+  # Everything that lives inside a plot container should
+  # inherit from this class.  All plot widgets are
+  # passed in the plot model and view
+  # This class also contains some basic canvas rendering primitives
+  # we also include the request_render function, which
+  # calls a throttled version of the plot canvas rendering function
   tagName : 'div'
   marksize : 3
   initialize : (options) ->
-    @plot_id = options.plot_id
     @plot_model = options.plot_model
     @plot_view = options.plot_view
     super(options)
@@ -37,7 +42,7 @@ class PlotWidget extends Continuum.ContinuumView
     @plot_view.throttled()
 
 
-#  Plot Container
+#  ###class : GridPlotContainerView
 
 class GridPlotContainerView extends Continuum.ContinuumView
   tagName : 'div'
@@ -149,7 +154,7 @@ class PlotView extends Continuum.ContinuumView
   default_options : {scale:1.0}
 
   view_options : ->
-    _.extend({plot_id : @id, plot_model : @model, plot_view : @}, @options)
+    _.extend({plot_model : @model, plot_view : @}, @options)
 
   build_renderers : ->
     console.log('before')
@@ -313,7 +318,18 @@ class PlotView extends Continuum.ContinuumView
       v.render()
 
 build_views = Continuum.build_views
+
+# ###class : XYRendererView
 class XYRendererView extends PlotWidget
+  # This class is the base class for  all 2d renderers
+  # half of it is for setting up mappers,
+  # The other half (`@select`,  and `@calc_buffer`)
+  # only make sense for our schema based renderers
+  # (line/scatter) because the glyph renderer allows
+  # for specifying data space and
+  # screen space offsets, which aren't handled in those methods.
+  # so we probably need to split this up somehow
+
   initialize : (options) ->
     super(options)
     @set_xmapper()
@@ -343,8 +359,12 @@ class XYRendererView extends PlotWidget
       screendim : 'height'
     )
     @request_render()
-
+  # ### method : XYRendererView::select
   select : (xscreenbounds, yscreenbounds) ->
+    # given x/y screen coordinates, select
+    # points on the data source that fall within
+    # these bounds.  This does not work for glyph
+    # based renderers
     if xscreenbounds
       mapper = @xmapper
       xdatabounds = [mapper.map_data(xscreenbounds[0]),
@@ -366,7 +386,11 @@ class XYRendererView extends PlotWidget
     source = @mget_obj('data_source')
     return source.select([@mget('xfield'), @mget('yfield')], func)
 
+  # ### method : XYRendererView::calc_buffer
+
   calc_buffer : (data) ->
+    # calculates screen coordinates for data.  Only works
+    # for schema based renderers(line/scatter)
     "use strict";
     pv = @plot_view
     pvo = @plot_view.options
@@ -538,21 +562,8 @@ class LineRendererView extends XYRendererView
     @render_end()
     return null
 
+# ###class : GlyphRendererView
 class GlyphRendererView extends XYRendererView
-  # glpyph_defaults =
-  #   r : 3
-  # glpyh =
-  #   type : circle
-  #   x : 'date'
-  #   y : 'price'
-  #   color : 'red'
-  #   index : 2 # which datavalue does this correspond to
-  # glpyh =
-  #    type : line
-  #    x : 'date' # can be [field, dataoffset, screenoffset]
-  #    y : 'price'
-  #    start : 2 #which datapoint is the start
-  #    end : 3 #which datapoint is the end, defaults to start + 1
   addSquare: (x, y, size, color) ->
     if isNaN(x) or isNaN(y)
       return null
@@ -571,8 +582,24 @@ class GlyphRendererView extends XYRendererView
     @plot_view.ctx.fill()
     @plot_view.ctx.stroke()
 
-  calc_screen : (glyph, dim, datapoint, mapper) ->
-    dim = if glyph[dim] then glyph[dim] else @mget(dim)
+  # ### method : GlyphRendererView::calc_screen
+  calc_screen : (glyph, direction, datapoint, mapper) ->
+    # #### Parameters
+    # * glyph : one glyph such as  @mget('glyphs')[0]
+    # * direction : 'x' or 'y'
+    # * datapoint : one record from the data source, as a dictionary
+    # * mapper : the mapper which pertains to dim
+    # #### Returns
+    # * screen coordinate
+
+    # get dim, first from the glyph, otherwise from the glyph
+    # renderer model. dims can either be strings to specify the field name
+    # `"x"`, or `"stockprice"`, or they can be an array
+    # `["stockprice", 0.10, 0.20]`  If the dim is an array, the
+    # first element is the field name, and the 2 floats are
+    # data space offset and screen space offset for the glyph
+
+    dim = if glyph[direction] then glyph[direction] else @mget(direction)
     if _.isArray(dim)
       data = datapoint[dim[0]]
       data = if dim[1] then dim[1] + data else data
@@ -585,6 +612,7 @@ class GlyphRendererView extends XYRendererView
     else
       screenoffset = screenoffset * @plot_view.viewstate.get('height')
     screen = mapper.map_screen(data) + screenoffset
+    return screen
 
   render_scatter : (glyph, data) ->
     datapoint = data[glyph.index]
@@ -603,8 +631,56 @@ class GlyphRendererView extends XYRendererView
     for glyph in @mget('glyphs')
       if glyph.type == 'circle' or glyph.type == 'square'
         @render_scatter(glyph, data)
+      else if glyph.type == 'circles'
+        @render_circles(glyph, data)
       else if glyph.type == 'line'
         'pass'
+
+  render_circles : (glyph, data) ->
+    # ### Fields of the 'circles' glyph:
+    # * xfield, yfield: names of the data fields that contain the center
+    #     positions. Defaults to 'x' and 'y'.
+    # * radiusfield: name of the data field indicating the radius (in screen pixels). 
+    #     Defaults to 'radius'.
+    # * colorfield: name of data field indicating the color of each point. Defaults
+    #     to 'color'.
+    # * radius: a fixed radius (in screen pixels) to use for every point. Used
+    #     if a particular datapoint does not define the property named by
+    #     'radiusfield'.
+    # * color: a fixed color to use for every point. Use if a particular
+    #     datapoint does not define the property named by 'colorfield'.
+    #
+    # Only one of 'radius' and 'radiusfield' need to be specified.  If both are
+    # specified, then the value from 'radiusfield' for each datapoint overrides
+    # the constant value in 'radius'. The same applies to 'color'/'colorfield'.
+    
+    # Look up the field names from the glyph spec or the GlyphRenderer model
+    # defaults, and cache them
+    radiusfield = if glyph.radiusfield? then glyph.radiusfield else @mget('radiusfield')
+    colorfield = if glyph.colorfield? then glyph.colorfield else @mget('colorfield')
+    xfield = if glyph.xfield? then glyph.xfield else @mget('xfield')
+    yfield = if glyph.yfield? then glyph.yfield else @mget('yfield')
+
+    for datapoint in data
+      # Instead of calling @calc_screen and supporting offsets, we just bake
+      # that logic into the loop here.
+      screenx = @xmapper.map_screen(datapoint[xfield])
+      screeny = @ymapper.map_screen(datapoint[yfield])
+      if radiusfield of datapoint
+        # Look up the radius to use from this datapoint
+        size = datapoint[radiusfield]
+      else
+        # Use a default radius (either from the glyph or the glyph defaults)
+        size = if glyph.radius? then glyph.radius else @mget('radius')
+
+      if colorfield of datapoint
+        # Look up the color to use from this datapoint
+        color = datapoint[colorfield]
+      else
+        # Use a default color (either from the glyph or the glyph defaults)
+        color = if glyph.color? then glyph.color else @mget('color')
+      @addCircle(screenx, screeny, size, color)
+
 
 class ScatterRendererView extends XYRendererView
   #FIXME: render_canvas
