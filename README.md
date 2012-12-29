@@ -10,3 +10,16 @@ Plotting
 
 1.  You need to have the cdx client libraries installed.  I do this with `python setupcdxlib.py develop`.
 2.  from cdx, you should be able to execute `webplot_example.py`, as well as `glyph_example.py`
+
+Bokehjs
+-------
+bokehjs is a subtree of cdx.  To pull in new bokehjs changes, execute the following
+`git subtree pull --prefix=subtree/bokehjs --squash git@github.com:ContinuumIO/bokehjs.git master`
+
+To push changes from cdx back into bokehjs, execute the following
+
+`git subtree push --prefix=subtree/bokehjs --squash ../bokehjs cdxsubtree`
+
+I've picked ../bokehjs as my repository, becuase that's where my local bokehjs repo is.  You should specify
+the appropriate path on your machine.  After pushing to branch cdxsubtree, I would perform the merge in your
+local bokehjs repo, before pushing to github
