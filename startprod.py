@@ -1,7 +1,9 @@
 from cdx import start
 from geventwebsocket.handler import WebSocketHandler
 from gevent.pywsgi import WSGIServer
+import gevent
 from cdx.app import app
+import cdx.wsmanager as wsmanager
 from wakariserver import djangointerface, cdxlib
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -53,6 +55,9 @@ def start_app():
                              keyfile="/etc/nginx/wakari.key",
                              certfile="/etc/nginx/wakari.crt"
                              )
+    t = gevent.spawn(wsmanager.pub_from_redis,
+                     app.pubsub_redis,
+                     app.wsmanager)
     http_server.serve_forever()
     
 if __name__ == "__main__":

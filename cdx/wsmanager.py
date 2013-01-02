@@ -83,6 +83,7 @@ class WebSocketManager(object):
                 continue
             socket = self.sockets[clientid]
             try:
+                print 'sending', topic, msg
                 socket.send(msg)
             except Exception as e: #what exception is this?if a client disconnects
                 log.exception(e)
@@ -112,3 +113,10 @@ def run_socket(socket, manager, auth_function,
                 socket.send(ph.serialize_msg(ph.error_obj('unauthorized')))
                 return
 
+
+def pub_from_redis(redisconn, wsmanager):
+    ps = redisconn.pubsub()
+    ps.psubscribe("*")
+    for message in ps.listen():
+        import pdb;pdb.set_trace()
+        wsmanager.send(message['channel'], message['data'])
