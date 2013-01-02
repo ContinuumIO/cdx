@@ -1,6 +1,6 @@
 from geventwebsocket.handler import WebSocketHandler
 from gevent.pywsgi import WSGIServer
-from flask import request
+from flask import request, current_app
 import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
@@ -26,6 +26,11 @@ def prepare_app(rhost='127.0.0.1', rport=6379):
     #must import views before running apps
     import cdx.views.deps
     app.wsmanager = wsmanager.WebSocketManager()
+    def auth(auth, topic):
+        authtype, docid = topic.split(":", 1)
+        status = mconv.can_write_doc_api(docid, auth, current_app)
+        return status
+    app.wsmanager.register_auth("cdxplot", auth)
     app.ph = protocol.ProtocolHelper()
     app.collections = bbmodel.ContinuumModelsStorage(
         redis.Redis(host=rhost, port=rport, db=2)

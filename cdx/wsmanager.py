@@ -1,5 +1,9 @@
 import uuid
 import logging
+from flask import (
+    request, current_app,
+    )
+
 log = logging.getLogger(__name__)
 
 class MultiDictionary(object):
@@ -25,7 +29,8 @@ class WebSocketManager(object):
         self.sockets = {}
         self.topic_clientid_map = MultiDictionary()
         self.clientid_topic_map = MultiDictionary()
-    
+        self.auth_functions = {}
+        
     def remove_clientid(self, clientid):
         topics = self.clientid_topic_map.get(clientid)
         for topic in topics:
@@ -46,6 +51,19 @@ class WebSocketManager(object):
         #auth goes here
         return True
     
+    def register_auth(self, authtype, func):
+        self.auth_functions[authtype] = func
+        
+    def auth(self, authtoken, topic):
+        #authtoken - some string, whatever you want it to be
+        #topic - string topic, of syntax type:value.
+        #topic type maps to auth function
+        authtype, topic = topic.split(":", 1)
+        if self.auth_functions.get(authtype):
+            return self.auth_functions[authtype](authtoken, topic)
+        else:
+            return True
+             
     def subscribe(self, clientid, topic):
         if self.can_subscribe(clientid, topic):
             self.topic_clientid_map.add(topic, clientid)
@@ -93,5 +111,4 @@ def run_socket(socket, manager, auth_function,
             else:
                 socket.send(ph.serialize_msg(ph.error_obj('unauthorized')))
                 return
-            
-        
+
