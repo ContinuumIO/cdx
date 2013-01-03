@@ -17,14 +17,10 @@ log = logging.getLogger(__name__)
 #web socket subscriber
 @app.route('/cdx/sub')
 def sub():
-    def auth(auth, topic):
-        status = mconv.can_write_doc_api(topic, auth, current_app)
-        return status
     if request.environ.get('wsgi.websocket'):
         ws = request.environ['wsgi.websocket']
         wsmanager.run_socket(
             ws,
             current_app.wsmanager,
-            auth,
             current_app.ph)
     return "done"

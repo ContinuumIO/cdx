@@ -12,6 +12,7 @@ import cdx.wsmanager as wsmanager
 from cdxlib import protocol
 import cdx.bbmodel as bbmodel
 import cdx.models.user as user
+import cdx.models.convenience as mconv
 import cdx.models.docs as docs
 import wakariserver.djangointerface as djangointerface
 
@@ -28,15 +29,13 @@ def prepare_app(rhost='127.0.0.1', rport=6379):
     #must import views before running apps
     import cdx.views.deps
     app.wsmanager = wsmanager.WebSocketManager()
-    def auth(auth, topic):
-        authtype, docid = topic.split(":", 1)
+    def auth(auth, docid):
         status = mconv.can_write_doc_api(docid, auth, current_app)
         return status
     
-    def userauth(auth, topic):
+    def userauth(auth, topicusername):
         #auth token should be sessionid
         dbsession = current_app.Session()
-        authtype, topicusername = topic.split(":", 1)
         sessiondata = djangointerface.get_session_data(dbsession, auth)
         auth_user, wakari_user = djangointerface.get_user_from_session(
             dbsession, sessiondata

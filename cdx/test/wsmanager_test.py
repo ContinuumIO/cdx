@@ -36,22 +36,22 @@ class TestSubscribeWebSocket(test_utils.CDXServerTestCase):
     def test_basic_subscribe(self):
         ph = start.app.ph
         sock = websocket.WebSocket()
-        connect(sock, ws_address, 'defaultdoc', 'nokey')
-        app.wsmanager.send('defaultdoc', 'hello!')
+        connect(sock, ws_address, 'cdxplot:defaultdoc', 'nokey')
+        app.wsmanager.send('cdxplot:defaultdoc', 'hello!')
         msg = sock.recv()
-        assert msg == 'hello!'
+        assert msg == 'cdxplot:defaultdoc:hello!'
         sock2 = websocket.WebSocket()
-        connect(sock2, ws_address, 'defaultdoc', 'nokey')
+        connect(sock2, ws_address, 'cdxplot:defaultdoc', 'nokey')
         sock3 = websocket.WebSocket()
-        connect(sock3, ws_address, 'defaultdoc2', 'nokey')
-        app.wsmanager.send('defaultdoc', 'hello2!')        
-        app.wsmanager.send('defaultdoc2', 'hello3!')
+        connect(sock3, ws_address, 'cdxplot:defaultdoc2', 'nokey')
+        app.wsmanager.send('cdxplot:defaultdoc', 'hello2!')        
+        app.wsmanager.send('cdxplot:defaultdoc2', 'hello3!')
         msg = sock.recv()
-        assert msg == 'hello2!'
+        assert msg == 'cdxplot:defaultdoc:hello2!'
         msg = sock2.recv()
-        assert msg == 'hello2!'
+        assert msg == 'cdxplot:defaultdoc:hello2!'
         msg = sock3.recv()
-        assert msg == 'hello3!'
+        assert msg == 'cdxplot:defaultdoc2:hello3!'
         
 def connect(sock, addr, topic, auth):
     ph = start.app.ph

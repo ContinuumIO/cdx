@@ -83,15 +83,13 @@ class WebSocketManager(object):
                 continue
             socket = self.sockets[clientid]
             try:
-                print 'sending', topic, msg
-                socket.send(msg)
+                socket.send(topic + ":" + msg)
             except Exception as e: #what exception is this?if a client disconnects
                 log.exception(e)
                 self.remove_socket(clientid)
                 self.remove_clientid(clientid)
 
-def run_socket(socket, manager, auth_function,
-               protocol_helper, clientid=None):
+def run_socket(socket, manager, protocol_helper, clientid=None):
     ph = protocol_helper
     clientid = clientid if clientid is not None else str(uuid.uuid4())
     log.debug("CLIENTID %s", clientid)     
@@ -103,7 +101,7 @@ def run_socket(socket, manager, auth_function,
             break
         msgobj = ph.deserialize_msg(msg)
         if msgobj['msgtype'] == 'subscribe':
-            if auth_function(msgobj.get('auth'), msgobj['topic']):
+            if manager.auth(msgobj.get('auth'), msgobj['topic']):
                 manager.add_socket(socket, clientid)
                 manager.subscribe(clientid, msgobj['topic'])
                 socket.send(ph.serialize_msg(
@@ -118,5 +116,4 @@ def pub_from_redis(redisconn, wsmanager):
     ps = redisconn.pubsub()
     ps.psubscribe("*")
     for message in ps.listen():
-        import pdb;pdb.set_trace()
         wsmanager.send(message['channel'], message['data'])
