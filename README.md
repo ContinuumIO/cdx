@@ -10,6 +10,7 @@ Plotting
 
 1.  You need to have the cdx client libraries installed.  I do this with `python setupcdxlib.py develop`.
 2.  from cdx, you should be able to execute `webplot_example.py`, as well as `glyph_example.py`
+3.  Use your browser to visit http://localhost:5006 to see CDX
 
 Bokehjs
 -------
