@@ -14,7 +14,6 @@ import cdx.bbmodel as bbmodel
 import cdx.models.user as user
 import cdx.models.convenience as mconv
 import cdx.models.docs as docs
-import wakariserver.djangointerface as djangointerface
 
 #import cdx.ipython.runnotebook as runnotebook
 import logging
@@ -32,21 +31,7 @@ def prepare_app(rhost='127.0.0.1', rport=6379):
     def auth(auth, docid):
         status = mconv.can_write_doc_api(docid, auth, current_app)
         return status
-    
-    def userauth(auth, topicusername):
-        #auth token should be sessionid
-        dbsession = current_app.Session()
-        sessiondata = djangointerface.get_session_data(dbsession, auth)
-        auth_user, wakari_user = djangointerface.get_user_from_session(
-            dbsession, sessiondata
-            )
-        return auth_user.username == topicusername
-    
-    def allauth(auth, topic):
-        return True
     app.wsmanager.register_auth("cdxplot", auth)
-    app.wsmanager.register_auth("user", userauth)
-    app.wsmanager.register_auth("all", allauth)    
     app.ph = protocol.ProtocolHelper()
     app.collections = bbmodel.ContinuumModelsStorage(
         redis.Redis(host=rhost, port=rport, db=2)

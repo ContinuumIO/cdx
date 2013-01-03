@@ -104,11 +104,13 @@ def run_socket(socket, manager, protocol_helper, clientid=None):
             if manager.auth(msgobj.get('auth'), msgobj['topic']):
                 manager.add_socket(socket, clientid)
                 manager.subscribe(clientid, msgobj['topic'])
-                socket.send(ph.serialize_msg(
-                    ph.status_obj(
-                        ['subscribesuccess', msgobj['topic'], clientid])))
+                msg = ph.serialize_msg(ph.status_obj(
+                    ['subscribesuccess', msgobj['topic'], clientid]
+                    ))
+                socket.send(msgobj['topic'] + ":" + msg)
             else:
-                socket.send(ph.serialize_msg(ph.error_obj('unauthorized')))
+                msg = ph.serialize_msg(ph.error_obj('unauthorized'))
+                socket.send(msgobj['topic'] + ":" + msg)                
                 return
 
 

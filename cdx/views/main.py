@@ -73,7 +73,7 @@ def get_public_cdx_info(docid):
     returnval = {'plot_context_ref' : plot_context_ref,
                  'docid' : docid,
                  'all_models' : all_models_json,
-                 'apikey' : doc.apikey}
+                 }
     returnval = current_app.ph.serialize_web(returnval)
     #return returnval
 

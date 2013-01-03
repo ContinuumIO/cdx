@@ -30,21 +30,16 @@ $CDX.utility =
       $CDX.plot_context_ref = data['plot_context_ref']
       $CDX.docid = data['docid'] # in case the server returns a different docid
       Continuum.docid = $CDX.docid
-      #hack
+      #hack FIXME
       docid = $CDX.docid
       $('.resetlink').click(()->
         $.get("/cdx/bb/#{docid}/reset")
       )
       $CDX.all_models = data['all_models']
       Continuum.load_models($CDX.all_models)
-
-      $CDX.socket = Continuum.submodels($CDX.ws_conn_string,
-        $CDX.docid,
-        data.apikey)
       $CDX.apikey = data['apikey']
-      console.log("from cdx import plot")
-      url = window.location.origin
-      console.log("p = plot.PlotClient('#{docid}', '#{url}', '#{$CDX.apikey}')")
+      $CDX.wswrapper = new Continuum.WebSocketWrapper($CDX.ws_conn_string)
+      Continuum.submodels($CDX.wswrapper, "cdxplot:#{docid}", $CDX.apikey)
       $CDX.utility.render_plots()
       $CDX.Deferreds._doc_loaded.resolve($CDX.docid)
 
@@ -74,21 +69,14 @@ $CDX.utility =
         Continuum.docid = $CDX.docid
         $CDX.all_models = data['all_models']
         Continuum.load_models($CDX.all_models)
-        ws_conn_string = "wss://#{host}:5006/cdx/sub"
-        $CDX.socket = Continuum.submodels(ws_conn_string,
-          $CDX.docid,
-          data.apikey)
-        $CDX.apikey = data['apikey']
         $CDX.Deferreds._doc_loaded.resolve($CDX.docid))
 
-
-  
   instantiate_doc_single_plot : (docid, view_model_id, target_el="#PlotPane", host="www.wakari.io") ->
     $CDX.utility.cdx_connection(host, docid)
     $CDX.Deferreds._doc_loaded.done(->
       $CDX.utility.render_single_plot(view_model_id, target_el)
     )
-    
+
   render_single_plot : (view_model_id, el) ->
     plotcontext = Continuum.resolve_ref(
       $CDX.plot_context_ref['collections'],
@@ -104,6 +92,3 @@ $CDX.utility =
     $CDX.plotcontextview = plotcontextview
     $CDX.plotcontextview.render()
     $(el).empty().append($CDX.plotcontextview.el)
-    
-
-

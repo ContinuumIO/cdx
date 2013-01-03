@@ -16,6 +16,21 @@ import wakariserver.environments as environments
 environments.BASE_ENV.LOG_FILE_NAME = "cdx.log"
 
 start.prepare_app()
+def userauth(auth, topicusername):
+    #auth token should be sessionid
+    return True
+    # dbsession = current_app.Session()
+    # sessiondata = djangointerface.get_session_data(dbsession, auth)
+    # auth_user, wakari_user = djangointerface.get_user_from_session(
+    #     dbsession, sessiondata
+    #     )
+    #return auth_user.username == topicusername
+
+def allauth(auth, topic):
+    return True
+app.wsmanager.register_auth("user", userauth)
+app.wsmanager.register_auth("all", allauth)    
+
 app.debug = ENV.DEBUG
 #monkeypatching
 def current_user(request):

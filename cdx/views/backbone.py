@@ -62,7 +62,7 @@ def bulk_upsert(docid):
     clientid = request.headers.get('Continuum-Clientid', None)
     for doc in docs:
         relevant_models = [x for x in models if doc in x.get('docs')]
-        current_app.wsmanager.send(doc, app.ph.serialize_web(
+        current_app.wsmanager.send("cdxplot:" + doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',
              'modelspecs' : [x.to_broadcast_json() for x in relevant_models]}),
             exclude={clientid})
@@ -90,7 +90,7 @@ def create(docid, typename):
         print current_app.collections.get(model.typename, model.id).id
     clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
-        current_app.wsmanager.send(doc, app.ph.serialize_web(
+        current_app.wsmanager.send("cdxplot:" + doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',
              'modelspecs' : [model.to_broadcast_json()]}),
             exclude={clientid})
@@ -114,7 +114,7 @@ def put(docid, typename, id):
     current_app.collections.add(model)
     clientid=request.headers.get('Continuum-Clientid', None)
     for doc in model.get('docs'):
-        current_app.wsmanager.send(doc, app.ph.serialize_web(
+        current_app.wsmanager.send("cdxplot:" + doc, app.ph.serialize_web(
             {'msgtype' : 'modelpush',
              'modelspecs' : [model.to_broadcast_json()]}),
                                    exclude={clientid})
@@ -152,7 +152,7 @@ def delete(docid, typename, id):
     if docid in model.get('docs'):
         current_app.collections.delete(typename, id)
         for doc in model.get('docs'):
-            current_app.wsmanager.send(doc, app.ph.serialize_web(
+            current_app.wsmanager.send("cdxplot:" + doc, app.ph.serialize_web(
                 {'msgtype' : 'modeldel',
                  'modelspecs' : [model.to_broadcast_json()]}),
                                        exclude={clientid})
