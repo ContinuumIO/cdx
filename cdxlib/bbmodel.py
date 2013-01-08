@@ -66,11 +66,10 @@ class ContinuumModelsClient(object):
         self.baseurl = baseurl
         parsed = urlparse.urlsplit(baseurl)
         self.docid = docid
-        session = requests.session(
-            headers={'content-type':'application/json'},
-            cookies={'CDX-api-key' : self.apikey},
-            verify=False
-            )
+        session = requests.session()
+        session.headers.update({'content-type':'application/json'})
+        session.cookies.update({'CDX-api-key' : self.apikey})
+        session.verify = False
         self.s = session 
         super(ContinuumModelsClient, self).__init__()
         self.buffer = []
