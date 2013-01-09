@@ -79,32 +79,35 @@ class ContinuumModelsClient(object):
         self.s.delete(url)
         
     def buffer_sync(self):
-        data = self.ph.serialize_web([x.to_broadcast_json() for x in self.buffer])
+        data = self.ph.serialize_web([x.to_broadcast_json() \
+                                      for x in self.buffer])
         url = utils.urljoin(self.baseurl, self.docid + "/", 'bulkupsert')
         self.s.post(url, data=data)
         self.buffer = []
         
-    def create(self, typename, attributes, defer=False):
-        if 'docs' not in attributes:
-            attributes['docs'] = [self.docid]
-        model =  ContinuumModel(typename, **attributes)
+    def create(self, model, defer=False):
+        if not model.get('docs'):
+            model.set('docs', [self.docid])
         if defer:
             self.buffer.append(model)
         else:
-            url = utils.urljoin(self.baseurl, self.docid +"/", typename)
+            url = utils.urljoin(self.baseurl,
+                                self.docid + "/",
+                                model.typename)
             log.debug("create %s", url)
             self.s.post(url, data=self.ph.serialize_msg(model.to_json()))
         return model
 
-    def update(self, typename, attributes, defer=False):
-        if 'docs' not in attributes:
-            attributes['docs'] = [self.docid]
-        id = attributes['id']
-        model =  ContinuumModel(typename, **attributes)
+    def update(self, model, defer=False):
+        if not model.get('docs'):
+            model.set('docs', [self.docid])
         if defer:
             self.buffer.append(model)
         else:
-            url = utils.urljoin(self.baseurl, self.docid +"/", typename + "/", id)
+            url = utils.urljoin(self.baseurl,
+                                self.docid + "/",
+                                model.typename + "/",
+                                model.id)
             log.debug("create %s", url)
             self.s.put(url, data=self.ph.serialize_web(model.to_json()))
         return model
@@ -135,6 +138,6 @@ class ContinuumModelsClient(object):
         
     def upsert_all(self, models):
         for m in models:
-            self.update(m.typename, m.attributes, defer=True)
+            self.update(m, defer=True)
         self.buffer_sync()
         

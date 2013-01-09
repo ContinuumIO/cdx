@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Continuum Analytics</title>
+	<!-- Vendor Styles -->
+    {{ script_block }}
+    {{ css_block }}
+    <script type="text/javascript">
+      $(function(){
+      var all_models = {{ all_models }};
+      var plotcontextid = "{{ plotcontextid }}";
+      Continuum.load_models(all_models);
+      plotcontext = Continuum.resolve_ref(
+      Continuum.Collections, 'CDXPlotContext', plotcontextid
+      );
+      plotcontextview = new plotcontext.default_view(
+      {model : plotcontext}
+      )
+      plotcontextview.render()
+      $('#PlotPane').append(plotcontextview.$el)
+      });
+    </script>
+  <body>
+    <div id="PlotPane">Plots</div>
+  </body>
+</html>

@@ -5,6 +5,7 @@ import requests
 
 import bbmodel
 import protocol
+import os
 
 log = logging.getLogger(__name__)
 colors = [
@@ -21,20 +22,19 @@ colors = [
     ]
 
 class GridPlot(object):
-    def __init__(self, client, container, children, title):
+    def __init__(self, container, children, title, plotclient=None):
         self.plot = container
         self.children = children
         self.title = title
-        self.client = client
+        self.plotclient = plotclient
 
 
 class XYPlot(object):
-    def __init__(self, client, plot,
+    def __init__(self, plot,
                  xdata_range, ydata_range,
                  xaxis, yaxis,
                  pantool, zoomtool, selectiontool, selectionoverlay,
-                 parent):
-        self.client = client
+                 parent, plotclient=None):
         self.plotmodel = plot
         self.xdata_range = xdata_range
         self.ydata_range = ydata_range
@@ -45,13 +45,13 @@ class XYPlot(object):
         self.xaxis = xaxis
         self.yaxis = yaxis
         self.parent = parent
-        self.update_cdx()
-
         self.last_source = None
         self.color_index = 0
-
-    def update_cdx(self):
-        self.client.upsert_all(
+        self.plotclient = plotclient
+        if self.plotclient.bbclient:
+            self.update()
+    def update(self):
+        self.plotclient.bbclient.upsert_all(
             [self.plotmodel,
              self.xdata_range,
              self.ydata_range,
@@ -61,17 +61,19 @@ class XYPlot(object):
              self.selectionoverlay,
              self.xaxis,
              self.yaxis])
-
-
+        
     def iframe_url(self):
         f_str = "%(root_url)s/iframe#plots/%(doc_id)s/%(plot_id)s"
         return f_str % dict(
-            root_url=self.client.root_url,
-            doc_id=self.client.docid, plot_id=self.plotmodel.id)
+            root_url=self.plotclient.root_url,
+            doc_id=self.plotclient.docid,
+            plot_id=self.plotmodel.id)
 
     def make_public(self):
-        self.plotmodel.attributes['public']=True
-        self.update_cdx()
+        if not self.plotclient.bbclient:
+            raise Exception, "cannot perform operation without a bb client"
+        self.plotmodel.set('public', True)
+        self.plotclient.bbclient.update(self.plotmodel)
 
     def scatter(self, *args, **kwargs):
         kwargs['scatter'] = True
@@ -81,7 +83,7 @@ class XYPlot(object):
              scatter=False):
         def source_from_array(x, y):
             if y.ndim == 1:
-                source = self.client.make_source(x=x, y=y)
+                source = self.plotclient.make_source(x=x, y=y)
                 xfield = 'x'
                 yfields = ['y']
             elif y.ndim == 2:
@@ -92,7 +94,7 @@ class XYPlot(object):
                     colname = 'y' + str(colnum)
                     kwargs[colname] = y[:,colnum]
                     colnames.append(colname)
-                source = self.client.make_source(**kwargs)
+                source = self.plotclient.make_source(**kwargs)
                 xfield = 'x'
                 yfields = colnames
             else:
@@ -105,13 +107,13 @@ class XYPlot(object):
                 if isinstance(y, np.ndarray):
                     source, xfield, yfields = source_from_array(x, y)
                 else:
-                    source = self.client.make_source(x=x, y=y)
+                    source = self.plotclient.make_source(x=x, y=y)
                     xfield, yfields = ('x', ['y'])
             else:
                 if isinstance(y, np.ndarray):
                     source, xfield, yfields = source_from_array(x, y)
                 else:
-                    source = self.client.make_source(x=x, y=y)
+                    source = self.plotclient.make_source(x=x, y=y)
                     xfield, yfields = ('x', ['y'])
         else:
             xfield = x
@@ -156,7 +158,7 @@ class XYPlot(object):
             self.ydata_range.get('sources'),
             data_source, [y])
         if not existed : update.append(self.ydata_range)
-        scatterrenderer = bbmodel.ContinuumModel(
+        scatterrenderer = self.plotclient.model(
             'ScatterRenderer',
             foreground_color=color,
             data_source=data_source.ref(),
@@ -172,8 +174,9 @@ class XYPlot(object):
         update.append(self.plotmodel)
         update.append(self.selectiontool)
         update.append(self.selectionoverlay)
-        self.client.upsert_all(update)
-        self.client.show(self.plotmodel)
+        if self.plotclient.bbclient:
+            self.plotclient.bbclient.upsert_all(update)
+        self.plotclient.show(self.plotmodel)
 
     def line(self, x, y, data_source, color):
         update = []
@@ -185,7 +188,7 @@ class XYPlot(object):
             self.ydata_range.get('sources'),
             data_source, [y])
         if not existed : update.append(self.ydata_range)
-        linerenderer = bbmodel.ContinuumModel(
+        linerenderer = self.plotclient.model(
             'LineRenderer',
             foreground_color=color,
             data_source=data_source.ref(),
@@ -199,23 +202,38 @@ class XYPlot(object):
         update.append(self.plotmodel)
         update.append(self.selectiontool)
         update.append(self.selectionoverlay)
-        self.client.upsert_all(update)
-        self.client.show(self.plotmodel)
+        if self.plotclient.bbclient:
+            self.plotclient.bbclient.upsert_all(update)
+        self.plotclient.show(self.plotmodel)
 
-class PlotClient(bbmodel.ContinuumModelsClient):
-    def __init__(self, docid, serverloc, apikey="nokey", ph=None):
+    
+class PlotClient(object):
+    def __init__(self, docid=None, serverloc=None, apikey="nokey", ph=None):
         #the root url should be just protocol://domain
-        self.root_url = serverloc
-        url = urlparse.urljoin(serverloc, "/cdx/bb/")
+        self.models = {}
         if not ph:
             ph = protocol.ProtocolHelper()
         self.ph = ph
-        super(PlotClient, self).__init__(docid, url, apikey, self.ph)
-        interactive_context = self.fetch(typename='CDXPlotContext')
-        self.ic = interactive_context[0]
+        if docid:
+            self.root_url = serverloc
+            url = urlparse.urljoin(serverloc, "/cdx/bb/")
+            self.bbclient = bbmodel.ContinuumModelsClient(
+                docid, url, apikey, self.ph)
+            interactive_contexts = self.bbclient.fetch(
+                typename='CDXPlotContext')
+            self.ic = interactive_contexts[0]
+        else:
+            self.root_url = None
+            self.bbclient = None
+            self.ic = self.model('CDXPlotContext', children=[])
         self.clf()
         self._hold = True
-
+        
+    def model(self, typename, **kwargs):
+        model = bbmodel.ContinuumModel(typename, **kwargs)
+        self.models[model.id] = model
+        return model
+    
     def hold(self, val):
         if val == 'on':
             self._hold = True
@@ -228,7 +246,9 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         self.updateobj(self.ic)
 
     def updateobj(self, obj):
-        newobj = self.fetch(obj.typename, obj.get('id'))
+        if not self.bbclient:
+            raise Exception, "cannot perform operation without a bb client"
+        newobj = self.bbclient.fetch(obj.typename, obj.get('id'))
         obj.attributes = newobj.attributes
         return obj
 
@@ -247,9 +267,13 @@ class PlotClient(bbmodel.ContinuumModelsClient):
                     val = kwargs[f][idx]
                 point[f] = val
             output.append(point)
-        model = self.create('ObjectArrayDataSource', {'data' : output})
+        model = self.model(
+            'ObjectArrayDataSource',
+            data=output
+            )
+        if self.bbclient:
+            self.bbclient.create(model)
         return model
-
     def _newxyplot(self, title=None, width=300, height=300,
                    is_x_date=False, is_y_date=False,
                    container=None):
@@ -265,7 +289,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         Returns
         ----------
         """
-        plot = bbmodel.ContinuumModel('Plot', width=width, height=height)
+        plot = self.model('Plot', width=width, height=height)
         if container:
             parent = container
             plot.set('parent', container.ref())
@@ -273,38 +297,38 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             parent = self.ic
             plot.set('parent', self.ic.ref())
         if title is not None: plot.set('title', title)
-        xdata_range = bbmodel.ContinuumModel(
+        xdata_range = self.model(
             'DataRange1d',
             sources=[]
             )
-        ydata_range = bbmodel.ContinuumModel(
+        ydata_range = self.model(
             'DataRange1d',
             sources=[]
             )
         axisclass = 'LinearAxis'
         if is_x_date: axisclass = 'LinearDateAxis'
-        xaxis = bbmodel.ContinuumModel(
+        xaxis = self.model(
             axisclass, orientation='bottom', ticks=3,
             data_range=xdata_range.ref(), parent=plot.ref())
         axisclass = 'LinearAxis'
         if is_y_date: axisclass = 'LinearDateAxis'
-        yaxis = bbmodel.ContinuumModel(
+        yaxis = self.model(
             axisclass, orientation='left', ticks=3,
             data_range=ydata_range.ref(), parent=plot.ref())
-        pantool = bbmodel.ContinuumModel(
+        pantool = self.model(
             'PanTool',
             dataranges=[xdata_range.ref(), ydata_range.ref()],
             dimensions=['width', 'height']
             )
-        zoomtool = bbmodel.ContinuumModel(
+        zoomtool = self.model(
             'ZoomTool',
             dataranges=[xdata_range.ref(), ydata_range.ref()],
             dimensions=['width', 'height']
             )
-        selecttool = bbmodel.ContinuumModel(
+        selecttool = self.model(
             'SelectionTool',
             renderers=[])
-        selectoverlay = bbmodel.ContinuumModel(
+        selectoverlay = self.model(
             'ScatterSelectionOverlay',
             renderers=[])
         plot.set('renderers', [])
@@ -312,9 +336,10 @@ class PlotClient(bbmodel.ContinuumModelsClient):
         plot.set('tools', [pantool.ref(), zoomtool.ref(), selecttool.ref()])
         plot.set('overlays', [selectoverlay.ref()])
         output = XYPlot(
-            self, plot, xdata_range, ydata_range,
+            plot, xdata_range, ydata_range,
             xaxis, yaxis, pantool, zoomtool,
-            selecttool, selectoverlay, parent)
+            selecttool, selectoverlay, parent,
+            plotclient=self)
         return output
 
     def clf(self):
@@ -355,12 +380,13 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             parent = self.ic
         else:
             parent = container
-        table = bbmodel.ContinuumModel(
+        table = self.model(
             'DataTable', data_source=data_source.ref(),
             columns=columns, parent=parent.ref(),
             width=width,
             height=height)
-        self.update(table.typename, table.attributes)
+        if self.bbclient:
+            self.bbclient.update(table)
         if container is None:
             self.show(table)
 
@@ -376,7 +402,7 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             sources.append({'ref' : data_source.ref(), 'columns' : columns})
 
     def grid(self, plots, title=None):
-        container = bbmodel.ContinuumModel(
+        container = self.model(
             'GridPlotContainer',
             parent=self.ic.ref())
         if title is not None:
@@ -389,21 +415,66 @@ class PlotClient(bbmodel.ContinuumModelsClient):
             plot.set('parent', container.ref())
         plotrefs = [[x.plotmodel.ref() for x in row] for row in plots]
         container.set('children', plotrefs)
-        to_update = [self.ic, container]
-        to_update.extend(flatplots)
-        self.upsert_all(to_update)
+        if self.bbclient:        
+            to_update = [self.ic, container]
+            to_update.extend(flatplots)
+            self.bbclient.upsert_all(to_update)
         self.show(container)
-        return GridPlot(self, container, plots, title)
+        return GridPlot(container, plots, title, self)
 
     def show(self, plot):
-        self.updateic()
+        if self.bbclient:
+            self.updateic()
         children = self.ic.get('children')
         if children is None: children = []
         if plot.get('id') not in [x['id'] for x in children]:
             children.insert(0, plot.ref())
         self.ic.set('children', children)
-        self.update(self.ic.typename, self.ic.attributes)
+        if self.bbclient:
+            self.bbclient.update(self.ic)
 
     def clearic(self):
         self.ic.set('children', [])
-        self.update(self.ic.typename, self.ic.attributes)
+        if self.bbclient:
+            self.bbclient.update(self.ic)
+
+    def htmldump(self, path, inline=True):
+        """if inline, path is a filepath, otherwise,
+        path is a dir
+        """
+        template = os.path.join(os.path.dirname(__file__),
+                                'templates',
+                                'cdx.html'
+                                )
+        with open(template) as f:
+            template = f.read()
+            
+        import jinja2
+        import dump
+        if inline:
+            js = dump.concat_scripts(dump.script_paths)
+            css = dump.concat_css(dump.css_paths)
+            jsstr = """
+<script type=text/javascript>
+%s
+</script>
+"""
+            jsstr = jsstr % js
+            cssstr = """
+<style>
+%s
+</style>
+"""
+            cssstr = cssstr % css
+            template = jinja2.Template(template)
+            result = template.render(
+                script_block=jsstr.decode('utf8'),
+                css_block=cssstr.decode('utf8'),
+                all_models=[x.to_broadcast_json() \
+                            for x in self.models.values()],
+                plotcontextid=self.ic.id
+                )
+            print 'dumping too', path
+            with open(path, 'w') as f:
+                f.write(str(result.encode('utf8')))
+                
