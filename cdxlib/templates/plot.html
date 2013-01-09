@@ -1,0 +1,24 @@
+<div>
+  {{ script_block }}
+  {{ css_block }}
+  <script type="text/javascript">
+    
+    var all_models = {{ all_models }};
+
+    var modelid = "{{ modelid }}";
+    var modeltype = "{{ modeltype }}";
+    var elementid = "{{ elementid }}";
+    Continuum.load_models(all_models);
+    model = Continuum.resolve_ref(
+    Continuum.Collections, modeltype, modelid
+    );
+    view = new model.default_view(
+    {model : model}
+    );
+    view.render()
+    _.delay(function(){
+    $('#{{ elementid }}').append(view.$el)
+    }, 1000);
+  </script>
+  <div id="{{ elementid }}">Plots</div>
+</div>

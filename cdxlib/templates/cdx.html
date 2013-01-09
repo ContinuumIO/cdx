@@ -9,19 +9,25 @@
     <script type="text/javascript">
       $(function(){
       var all_models = {{ all_models }};
-      var plotcontextid = "{{ plotcontextid }}";
+      
+      var modelid = "{{ modelid }}";
+      
+      var modeltype = "{{ modeltype }}";
+      
+      var elementid = "{{ elementid }}";
+      
       Continuum.load_models(all_models);
-      plotcontext = Continuum.resolve_ref(
-      Continuum.Collections, 'CDXPlotContext', plotcontextid
+      model = Continuum.resolve_ref(
+      Continuum.Collections, modeltype, modelid
       );
-      plotcontextview = new plotcontext.default_view(
-      {model : plotcontext}
+      view = new model.default_view(
+      {model : model}
       )
-      plotcontextview.render()
-      $('#PlotPane').append(plotcontextview.$el)
+      view.render()
+      $('#{{ elementid }}').append(view.$el)      
       });
     </script>
   <body>
-    <div id="PlotPane">Plots</div>
+    <div id="{{ elementid }}">Plots</div>    
   </body>
 </html>

@@ -2,7 +2,7 @@ import numpy as np
 import logging
 import urlparse
 import requests
-
+import uuid
 import bbmodel
 import protocol
 import os
@@ -27,6 +27,13 @@ class GridPlot(object):
         self.children = children
         self.title = title
         self.plotclient = plotclient
+        
+    def allmodels(self):
+        models = []
+        for row in self.children:
+            for plot in row:
+                plots.extend(plot.allmodels())
+        return models
 
 
 class XYPlot(object):
@@ -48,19 +55,25 @@ class XYPlot(object):
         self.last_source = None
         self.color_index = 0
         self.plotclient = plotclient
+        self.renderers = []
+        self.data_sources = []
         if self.plotclient.bbclient:
             self.update()
+            
+    def allmodels(self):
+        return [self.plotmodel,
+                self.xdata_range,
+                self.ydata_range,
+                self.pantool,
+                self.zoomtool,
+                self.selectiontool,
+                self.selectionoverlay,
+                self.xaxis,
+                self.yaxis] + self.renderers + self.data_sources
+    
+
     def update(self):
-        self.plotclient.bbclient.upsert_all(
-            [self.plotmodel,
-             self.xdata_range,
-             self.ydata_range,
-             self.pantool,
-             self.zoomtool,
-             self.selectiontool,
-             self.selectionoverlay,
-             self.xaxis,
-             self.yaxis])
+        self.plotclient.bbclient.upsert_all(self.allmodels())
         
     def iframe_url(self):
         f_str = "%(root_url)s/iframe#plots/%(doc_id)s/%(plot_id)s"
@@ -167,6 +180,9 @@ class XYPlot(object):
             xdata_range=self.xdata_range.ref(),
             ydata_range=self.ydata_range.ref(),
             parent=self.plotmodel.ref())
+        self.renderers.append(scatterrenderer)
+        if data_source not in self.data_sources:
+            self.data_sources.append(data_source)
         self.plotmodel.get('renderers').append(scatterrenderer.ref())
         self.selectiontool.get('renderers').append(scatterrenderer.ref())
         self.selectionoverlay.get('renderers').append(scatterrenderer.ref())
@@ -197,6 +213,9 @@ class XYPlot(object):
             xdata_range=self.xdata_range.ref(),
             ydata_range=self.ydata_range.ref(),
             parent=self.plotmodel.ref())
+        self.renderers.append(linerenderer)
+        if data_source not in self.data_sources:
+            self.data_sources.append(data_source)
         self.plotmodel.get('renderers').append(linerenderer.ref())
         update.append(linerenderer)
         update.append(self.plotmodel)
@@ -206,7 +225,27 @@ class XYPlot(object):
             self.plotclient.bbclient.upsert_all(update)
         self.plotclient.show(self.plotmodel)
 
-    
+    def htmldump(self, path, inline=True):
+        html = self.plotclient.make_html(self.allmodels(),
+                                         model=self.plotmodel,
+                                         inline=True,
+                                         template="cdx.html"
+                                         )
+        with open(path, "w+") as f:
+            f.write(html.encode("utf-8"))
+        
+    def notebook(self):
+        import IPython.core.displaypub as displaypub
+        import dump
+        html = self.plotclient.make_html(
+            self.allmodels(),
+            model=self.plotmodel,
+            inline=True,
+            template="plot.html",
+            script_paths=dump.notebook_script_paths
+            )
+        displaypub.publish_display_data('cdxlib', {'text/html': html})
+        return None
 class PlotClient(object):
     def __init__(self, docid=None, serverloc=None, apikey="nokey", ph=None):
         #the root url should be just protocol://domain
@@ -437,23 +476,27 @@ class PlotClient(object):
         self.ic.set('children', [])
         if self.bbclient:
             self.bbclient.update(self.ic)
-
-    def htmldump(self, path, inline=True):
-        """if inline, path is a filepath, otherwise,
-        path is a dir
-        """
+            
+    def make_html(self, all_models, model=None, inline=True,
+                  template="cdx.html", script_paths=None,
+                  css_paths=None):
+        import jinja2
+        import dump
+        if script_paths is None:
+            script_paths = dump.script_paths
+        if css_paths is None:
+            css_paths=dump.css_paths
+        if model is None:
+            model = self.ic
         template = os.path.join(os.path.dirname(__file__),
                                 'templates',
-                                'cdx.html'
+                                template,
                                 )
         with open(template) as f:
             template = f.read()
-            
-        import jinja2
-        import dump
         if inline:
-            js = dump.concat_scripts(dump.script_paths)
-            css = dump.concat_css(dump.css_paths)
+            js = dump.concat_scripts(script_paths)
+            css = dump.concat_css(css_paths)
             jsstr = """
 <script type=text/javascript>
 %s
@@ -471,10 +514,21 @@ class PlotClient(object):
                 script_block=jsstr.decode('utf8'),
                 css_block=cssstr.decode('utf8'),
                 all_models=[x.to_broadcast_json() \
-                            for x in self.models.values()],
-                plotcontextid=self.ic.id
+                            for x in all_models],
+                modelid=model.id,
+                modeltype=model.typename,
+                elementid=str(uuid.uuid1())
                 )
-            print 'dumping too', path
-            with open(path, 'w') as f:
-                f.write(str(result.encode('utf8')))
+
+            return result
+    def htmldump(self, path, inline=True):
+        """if inline, path is a filepath, otherwise,
+        path is a dir
+        """
+        html = self.make_html(self.models.values(), inline=inline)
+        print 'dumping too', path
+        with open(path, 'w') as f:
+            f.write(str(html.encode('utf8')))
+
+
                 
