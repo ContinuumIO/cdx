@@ -7,7 +7,7 @@ __version__ = (0, 0, 1)
 
 packages = ["cdxlib"]
 package_data_dirs = []
-for dirname, _, files in os.walk('cdxlib/static'):
+for dirname, _, files in os.walk('cdxlib/static', followlinks=True):
     dirname = os.path.relpath(dirname, "cdxlib")    
     for f in files:
         package_data_dirs.append(os.path.join(dirname,f))
@@ -16,7 +16,6 @@ for dirname, _, files in os.walk('cdxlib/templates'):
     dirname = os.path.relpath(dirname, "cdxlib")
     for f in files:
         package_data_dirs.append(os.path.join(dirname, f))
-print package_data_dirs
 setup(
     name = 'cdxlib',
     version = '.'.join([str(x) for x in __version__]),

@@ -25,17 +25,40 @@ colors = [
 
 class GridPlot(object):
     def __init__(self, container, children, title, plotclient=None):
-        self.plot = container
+        self.gridmodel = container
         self.children = children
         self.title = title
         self.plotclient = plotclient
         
     def allmodels(self):
-        models = []
+        models = [self.gridmodel]
         for row in self.children:
             for plot in row:
-                plots.extend(plot.allmodels())
+                models.extend(plot.allmodels())
         return models
+    
+    def htmldump(self, path, inline=True):
+        html = self.plotclient.make_html(self.allmodels(),
+                                         model=self.gridmodel,
+                                         inline=True,
+                                         template="cdx.html"
+                                         )
+        with open(path, "w+") as f:
+            f.write(html.encode("utf-8"))
+        
+    def notebook(self):
+        import IPython.core.displaypub as displaypub
+        html = self.plotclient.make_html(
+            self.allmodels(),
+            model=self.gridmodel,
+            inline=True,
+            template="plot.html",
+            script_paths=[],
+            css_paths=[]
+            )
+        html = html.encode('utf-8')
+        displaypub.publish_display_data('cdxlib', {'text/html': html})
+        return None
 
 
 class XYPlot(object):
@@ -281,7 +304,6 @@ class PlotClient(object):
             split = urlparse.urlsplit(self.root_url)
             host = split.netloc
             protocol = split.scheme
-            print 'protocol', protocol
             html = template.render(
                 script_block=jsstr.decode('utf-8'),
                 css_block=cssstr.decode('utf-8'),
@@ -452,7 +474,7 @@ class PlotClient(object):
         else:
             parent = container
         table = self.model(
-            'DataTable', data_sourcedata_source.ref(),
+            'DataTable', data_source=data_source.ref(),
             columns=columns, parent=parent.ref(),
             width=width,
             height=height)
@@ -520,7 +542,7 @@ class PlotClient(object):
         if model is None:
             model = self.ic
         template = get_template(template)
-
+        elementid = str(uuid.uuid4())
         if inline:
             jsstr = inline_scripts(script_paths)
             cssstr = inline_css(css_paths)
@@ -531,7 +553,7 @@ class PlotClient(object):
                                        for x in all_models]),
                 modelid=model.id,
                 modeltype=model.typename,
-                elementid=str(uuid.uuid1())
+                elementid=elementid
                 )
 
             return result
