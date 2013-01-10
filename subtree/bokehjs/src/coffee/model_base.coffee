@@ -10,6 +10,7 @@ if not Continuum.Collections
   Continuum.Collections = Collections
 else
   Collections = Continuum.Collections
+
 Continuum.urlroot = ""
 safebind = Continuum.safebind
 Bokeh = window.Bokeh
