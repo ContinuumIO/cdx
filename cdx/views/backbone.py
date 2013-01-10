@@ -1,3 +1,4 @@
+from ..crossdomain import crossdomain
 from cdx.app import app
 from flask import (
         render_template, request, current_app,
@@ -15,6 +16,7 @@ import cdx.models.docs as docs
 
 #backbone model apis
 @app.route("/cdx/bb/<docid>/reset", methods=['GET'])
+@crossdomain(origin='*')
 def reset(docid):
     if not convenience.can_write_from_request(docid, request, app):
         return app.ph.serialize_web(
@@ -32,6 +34,7 @@ def reset(docid):
 
 #backbone model apis
 @app.route("/cdx/bb/<docid>/rungc", methods=['GET'])
+@crossdomain(origin='*')
 def rungc(docid):
     if not convenience.can_write_from_request(docid, request, app):
         return app.ph.serialize_web(
@@ -40,8 +43,8 @@ def rungc(docid):
             )
     all_models = docs.prune_and_get_valid_models(current_app, docid, delete=True)
     return 'success'
-
 @app.route("/cdx/bb/<docid>/bulkupsert", methods=['POST'])
+@crossdomain(origin='*')
 def bulk_upsert(docid):
     if not convenience.can_write_from_request(docid, request, app):
         return app.ph.serialize_web(
@@ -72,7 +75,9 @@ def bulk_upsert(docid):
 
 @app.route("/cdx/bb/<docid>/<typename>/", methods=['POST'])
 @app.route("/cdx/bb/<docid>/<typename>", methods=['POST'])
+@crossdomain(origin='*')
 def create(docid, typename):
+    import pdb;pdb.set_trace()
     if not convenience.can_write_from_request(docid, request, app):
         return app.ph.serialize_web(
             {'msgtype' : 'error',
@@ -95,9 +100,10 @@ def create(docid, typename):
              'modelspecs' : [model.to_broadcast_json()]}),
             exclude={clientid})
     return app.ph.serialize_web(model.to_json())
-
 @app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['PUT'])
+@crossdomain(origin='*')
 def put(docid, typename, id):
+
     if not convenience.can_write_from_request(docid, request, app):
         return app.ph.serialize_web(
             {'msgtype' : 'error',
@@ -120,10 +126,10 @@ def put(docid, typename, id):
                                    exclude={clientid})
     return (app.ph.serialize_web(model.to_json()), "200",
             {"Access-Control-Allow-Origin": "*"})
-
 @app.route("/cdx/bb/<docid>/", methods=['GET'])
 @app.route("/cdx/bb/<docid>/<typename>/", methods=['GET'])
 @app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['GET'])
+@crossdomain(origin='*')
 def get(docid, typename=None, id=None):
     #not distinguishing between read/write yet
     if not convenience.can_write_from_request(docid, request, app):
@@ -141,6 +147,7 @@ def get(docid, typename=None, id=None):
             return app.ph.serialize_web([x.to_broadcast_json() for x in models])
 
 @app.route("/cdx/bb/<docid>/<typename>/<id>", methods=['DELETE'])
+@crossdomain(origin='*')
 def delete(docid, typename, id):
     if not convenience.can_write_from_request(docid, request, app):
         return app.ph.serialize_web(

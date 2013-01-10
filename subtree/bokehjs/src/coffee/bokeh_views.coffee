@@ -194,7 +194,7 @@ class PlotView extends Continuum.ContinuumView
 
 
   initialize : (options) ->
-    @throttled = _.throttle(@render_deferred_components, 50)
+    @throttled = _.throttle(@render_deferred_components, 10)
     super(_.defaults(options, @default_options))
     height = if options.height then options.height else @mget('height')
     width = if options.width then options.width else @mget('width')
