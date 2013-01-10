@@ -1,4 +1,5 @@
 import sys
+import os
 if sys.argv[1] == 'develop':
     import setuptools
 from distutils.core import setup
