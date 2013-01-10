@@ -6,6 +6,8 @@ import uuid
 import bbmodel
 import protocol
 import os
+import dump
+import json
 
 log = logging.getLogger(__name__)
 colors = [
@@ -236,16 +238,18 @@ class XYPlot(object):
         
     def notebook(self):
         import IPython.core.displaypub as displaypub
-        import dump
         html = self.plotclient.make_html(
             self.allmodels(),
             model=self.plotmodel,
             inline=True,
             template="plot.html",
-            script_paths=dump.notebook_script_paths
+            script_paths=[],
+            css_paths=[]
             )
+        html = html.encode('utf-8')
         displaypub.publish_display_data('cdxlib', {'text/html': html})
         return None
+        
 class PlotClient(object):
     def __init__(self, docid=None, serverloc=None, apikey="nokey", ph=None):
         #the root url should be just protocol://domain
@@ -268,6 +272,34 @@ class PlotClient(object):
         self.clf()
         self._hold = True
         
+    def notebooksources(self):
+        import IPython.core.displaypub as displaypub        
+        jsstr = inline_scripts(dump.notebook_script_paths)
+        cssstr = inline_css(dump.css_paths)
+        template = get_template('source_block.html')
+        if self.bbclient:
+            split = urlparse.urlsplit(self.root_url)
+            host = split.netloc
+            protocol = split.scheme
+            print 'protocol', protocol
+            html = template.render(
+                script_block=jsstr.decode('utf-8'),
+                css_block=cssstr.decode('utf-8'),
+                connect=True,
+                host=host,
+                protocol=protocol,
+                wsprotocol="wss" if protocol == 'https' else "ws",
+                docid=self.bbclient.docid
+                )
+        else:
+            html = template.render(script_block=jsstr.decode('utf-8'),
+                                   css_block=cssstr.decode('utf-8'),
+                                   connect=False
+                                   )
+            
+        displaypub.publish_display_data('cdxlib', {'text/html': html})
+        return None
+
     def model(self, typename, **kwargs):
         model = bbmodel.ContinuumModel(typename, **kwargs)
         self.models[model.id] = model
@@ -420,7 +452,7 @@ class PlotClient(object):
         else:
             parent = container
         table = self.model(
-            'DataTable', data_source=data_source.ref(),
+            'DataTable', data_sourcedata_source.ref(),
             columns=columns, parent=parent.ref(),
             width=width,
             height=height)
@@ -476,45 +508,27 @@ class PlotClient(object):
         self.ic.set('children', [])
         if self.bbclient:
             self.bbclient.update(self.ic)
-            
+    
     def make_html(self, all_models, model=None, inline=True,
                   template="cdx.html", script_paths=None,
                   css_paths=None):
         import jinja2
-        import dump
         if script_paths is None:
             script_paths = dump.script_paths
         if css_paths is None:
             css_paths=dump.css_paths
         if model is None:
             model = self.ic
-        template = os.path.join(os.path.dirname(__file__),
-                                'templates',
-                                template,
-                                )
-        with open(template) as f:
-            template = f.read()
+        template = get_template(template)
+
         if inline:
-            js = dump.concat_scripts(script_paths)
-            css = dump.concat_css(css_paths)
-            jsstr = """
-<script type=text/javascript>
-%s
-</script>
-"""
-            jsstr = jsstr % js
-            cssstr = """
-<style>
-%s
-</style>
-"""
-            cssstr = cssstr % css
-            template = jinja2.Template(template)
+            jsstr = inline_scripts(script_paths)
+            cssstr = inline_css(css_paths)
             result = template.render(
                 script_block=jsstr.decode('utf8'),
                 css_block=cssstr.decode('utf8'),
-                all_models=[x.to_broadcast_json() \
-                            for x in all_models],
+                all_models=json.dumps([x.to_broadcast_json() \
+                                       for x in all_models]),
                 modelid=model.id,
                 modeltype=model.typename,
                 elementid=str(uuid.uuid1())
@@ -531,4 +545,31 @@ class PlotClient(object):
             f.write(str(html.encode('utf8')))
 
 
-                
+def get_template(filename):
+    import jinja2
+    template = os.path.join(os.path.dirname(__file__),
+                            'templates',
+                            filename,
+                            )
+    with open(template) as f:
+        return jinja2.Template(f.read())
+
+def inline_scripts(script_paths):
+    js = dump.concat_scripts(script_paths)
+    jsstr = """
+<script type=text/javascript>
+%s
+</script>
+"""
+    jsstr = jsstr % js
+    return jsstr
+
+def inline_css(css_paths):
+    css = dump.concat_css(css_paths)
+    cssstr = """
+<style>
+%s
+</style>
+"""
+    cssstr = cssstr % css
+    return cssstr

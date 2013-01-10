@@ -10,7 +10,7 @@ if not Continuum.Collections
   Continuum.Collections = Collections
 else
   Collections = Continuum.Collections
-
+Continuum.urlroot = ""
 safebind = Continuum.safebind
 Bokeh = window.Bokeh
 
@@ -459,7 +459,7 @@ class HasProperties extends Backbone.Model
     # ### method HasProperties::url
     #model where our API processes this model
 
-    base = "/cdx/bb/" + Continuum.docid + "/" + @type + "/"
+    base = Continuum.urlroot + "/cdx/bb/" + Continuum.docid + "/" + @type + "/"
     if (@isNew())
       return base
     return base + @get('id')

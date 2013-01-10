@@ -118,7 +118,8 @@ def put(docid, typename, id):
             {'msgtype' : 'modelpush',
              'modelspecs' : [model.to_broadcast_json()]}),
                                    exclude={clientid})
-    return app.ph.serialize_web(model.to_json())
+    return (app.ph.serialize_web(model.to_json()), "200",
+            {"Access-Control-Allow-Origin": "*"})
 
 @app.route("/cdx/bb/<docid>/", methods=['GET'])
 @app.route("/cdx/bb/<docid>/<typename>/", methods=['GET'])

@@ -40,6 +40,7 @@ notebook_script_paths = [
     "vendor/bokehjs/js/custom.js",
     "js/cdxviews.js",
     "js/cdxmodels.js",
+    "js/cdxmain.js",    
     ]
 
 css_paths = [
@@ -102,5 +103,22 @@ def dump_paths(paths, dest):
         dest = os.path.join(dest, "static", path)
         shutil.copy(source, dest)
 
-    
-        
+def inline_scripts(script_paths):
+    js = concat_scripts(script_paths)
+    jsstr = """
+<script type=text/javascript>
+%s
+</script>
+"""
+    jsstr = jsstr % js
+    return jsstr
+
+def inline_css(css_paths):
+    css = concat_css(css_paths)
+    cssstr = """
+<style>
+%s
+</style>
+"""
+    cssstr = cssstr % css
+    return cssstr

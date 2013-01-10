@@ -14,7 +14,6 @@ $CDX.Promises = {}
 $CDX.Deferreds._doc_loaded = $.Deferred()
 $CDX.Deferreds._doc_requested = $.Deferred()
 $CDX.Promises.doc_loaded = $CDX.Deferreds._doc_loaded.promise()
-Continuum.HasProperties.prototype.sync = Backbone.sync
 
 $CDX.utility =
   load_default_document : () ->
@@ -37,6 +36,7 @@ $CDX.utility =
       )
       $CDX.all_models = data['all_models']
       Continuum.load_models($CDX.all_models)
+      Continuum.HasProperties.prototype.sync = Backbone.sync
       $CDX.apikey = data['apikey']
       $CDX.wswrapper = new Continuum.WebSocketWrapper($CDX.ws_conn_string)
       Continuum.submodels($CDX.wswrapper, "cdxplot:#{docid}", $CDX.apikey)
@@ -58,10 +58,12 @@ $CDX.utility =
     $CDX.plotcontextview = plotcontextview
     $CDX.plotcontextview.render()
 
-  cdx_connection : (host, docid) ->
+  cdx_connection : (host, docid, protocol) ->
+    if _.isUndefined(protocol)
+      protocol="https"
     if not $CDX.Deferreds._doc_requested.isResolved()
       $CDX.Deferreds._doc_requested.resolve()
-      $.get("https://#{host}/cdx/publiccdxinfo/#{docid}", {}, (data) ->
+      $.get("#{protocol}://#{host}/cdx/publiccdxinfo/#{docid}", {}, (data) ->
         console.log('instatiate_doc_single, docid', docid)
         data = JSON.parse(data)
         $CDX.plot_context_ref = data['plot_context_ref']

@@ -58,9 +58,9 @@ def get_cdx_info(docid):
                  'apikey' : doc.apikey}
     returnval = current_app.ph.serialize_web(returnval)
     write_plot_file(docid, doc.apikey, request.scheme + "://" + request.host)
-    return returnval
+    return (returnval, "200",
+            {"Access-Control-Allow-Origin": "*"})
 
-import pdb
 @app.route('/cdx/publiccdxinfo/<docid>')
 def get_public_cdx_info(docid):
     doc = docs.Doc.load(app.model_redis, docid)
@@ -84,3 +84,4 @@ def get_public_cdx_info(docid):
 @app.route('/cdx/sampleerror')
 def sampleerror():
     return 1 + "sdf"
+
