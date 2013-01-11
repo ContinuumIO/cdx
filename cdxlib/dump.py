@@ -22,26 +22,7 @@ script_paths = [
     "js/cdxviews.js",
     "js/cdxmodels.js",
     ]
-notebook_script_paths = [
-    'vendor/underscore/underscore.js',
-    'vendor/backbone/backbone.js',
-    "vendor/jquery/js/jquery.mousewheel.js",
-    "vendor/buckets/buckets.js",
-    "vendor/d3/d3.v2.js",
-    "vendor/bokehjs/js/base.js",
-    "vendor/bokehjs/js/view_base.js",
-    "vendor/bokehjs/js/model_base.js",
-    "vendor/bokehjs/js/ui_view.js",
-    "vendor/bokehjs/js/ui_model.js",
-    "vendor/bokehjs/js/bokeh_views.js",
-    "vendor/bokehjs/js/ticks.js",
-    "vendor/bokehjs/js/tools.js",
-    "vendor/bokehjs/js/bokeh_model.js",
-    "vendor/bokehjs/js/custom.js",
-    "js/cdxviews.js",
-    "js/cdxmodels.js",
-    "js/cdxmain.js",    
-    ]
+notebook_script_paths = script_paths
 
 css_paths = [
     'css/cdx.css',
