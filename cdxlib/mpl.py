@@ -9,6 +9,8 @@ import os
 import dump
 import json
 
+from protocol import serialize_json
+
 log = logging.getLogger(__name__)
 colors = [
       "#1f77b4",
@@ -37,14 +39,20 @@ class GridPlot(object):
                 models.extend(plot.allmodels())
         return models
     
-    def htmldump(self, path, inline=True):
+    def htmldump(self, path=None, inline=True):
+        """ If **path** is provided, then writes output to a file,
+        else returns the output as a string.
+        """
         html = self.plotclient.make_html(self.allmodels(),
                                          model=self.gridmodel,
                                          inline=True,
                                          template="cdx.html"
                                          )
-        with open(path, "w+") as f:
-            f.write(html.encode("utf-8"))
+        if path:
+            with open(path, "w+") as f:
+                f.write(html.encode("utf-8"))
+        else:
+            return html.encode("utf-8")
         
     def notebook(self):
         import IPython.core.displaypub as displaypub
@@ -547,9 +555,9 @@ class PlotClient(object):
             jsstr = inline_scripts(script_paths)
             cssstr = inline_css(css_paths)
             result = template.render(
-                script_block=jsstr.decode('utf8'),
-                css_block=cssstr.decode('utf8'),
-                all_models=json.dumps([x.to_broadcast_json() \
+                script_block=jsstr.decode('utf-8'),
+                css_block=cssstr.decode('utf-8'),
+                all_models=serialize_json([x.to_broadcast_json() \
                                        for x in all_models]),
                 modelid=model.id,
                 modeltype=model.typename,
@@ -557,14 +565,17 @@ class PlotClient(object):
                 )
 
             return result
-    def htmldump(self, path, inline=True):
+    def htmldump(self, path=None, inline=True):
         """if inline, path is a filepath, otherwise,
         path is a dir
         """
         html = self.make_html(self.models.values(), inline=inline)
-        print 'dumping too', path
-        with open(path, 'w') as f:
-            f.write(str(html.encode('utf8')))
+        if path:
+            print 'dumping to', path
+            with open(path, 'w') as f:
+                f.write(html.encode('utf-8'))
+        else:
+            return html.encode('utf-8')
 
 
 def get_template(filename):
