@@ -1,0 +1,42 @@
+{
+    "libs": [
+        "./subtree/Bokeh/subtree/bokehjs/vendor/jquery/js/jquery.1.7.2.js",
+        "./subtree/Bokeh/subtree/bokehjs/vendor/jquery/js/jquery.mousewheel.js",
+        "./subtree/Bokeh/subtree/bokehjs/vendor/underscore/underscore.js",
+        "./subtree/Bokeh/subtree/bokehjs/vendor/backbone/backbone.js",
+        "./subtree/Bokeh/subtree/bokehjs/vendor/buckets/buckets.js",
+        "./subtree/Bokeh/subtree/bokehjs/vendor/bootsrap/js/bootstrap.js",
+        "./subtree/Bokeh/subtree/bokehjs/js/custom.js",
+        
+        
+        "./singlecell/static/codemirror/lib/codemirror.js",
+        "./singlecell/static/codemirror/lib/util/loadmode.js",
+        "./singlecell/static/codemirror/lib/util/multiplex.js",
+        "./singlecell/static/codemirror/mode/python/python.js",
+        "./singlecell/static/jquery/js/jquery-ui.min.js",
+             
+        "./singlecell/static/ipython/js/namespace.js",
+        "./singlecell/static/ipython/js/utils.js",
+        "./singlecell/static/ipython/js/events.js",
+        "./singlecell/static/ipython/js/kernel.js",
+        "./singlecell/static/ipython/js/outputarea.js",
+        "./singlecell/static/ipython/js/cell.js",
+        "./singlecell/static/ipython/js/codecell.js",
+        "./singlecell/static/ipython/js/config.js",
+        "./singlecell/static/ipython/js/completer.js",
+        "./singlecell/static/ipython/js/tooltip.js",
+        "./singlecell/static/ipython/js/celltoolbar.js",
+        "js/singlecell.js",
+    ],
+    "paths" : [
+        "./coffee",
+        "./subtree/Bokeh/bokeh/server/static/coffee",
+        "./subtree/Bokeh/subtree/bokehjs/static/coffee",
+    ],
+    "identifier" : "require",
+    "public" : "./static",
+    "jsPath" : "/js/application.js",
+    "css" : "./static/less/index.less",
+    "cssPath" : "/css/application.css",
+    "specs" : false
+}
