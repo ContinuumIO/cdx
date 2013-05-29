@@ -37,16 +37,16 @@ from IPython.frontend.html.notebook.handlers import (
 from IPython.frontend.html.notebook.notebookapp import (
     _kernel_action_regex,
 )
+import sys
 
 #-----------------------------------------------------------------------------
 # The Tornado web application
 #-----------------------------------------------------------------------------
-port = 10010
 _kernel_id_regex = r"(?P<kernel_id>\w+)"
 
 class DummyIPythonApp(object):
     """It's dumb that we need this"""
-    websocket_host = 'localhost:%d' % port
+    websocket_host = None
 
 class SingleCellHandler(web.RequestHandler):
     def get(self):
@@ -96,6 +96,7 @@ class WebApp(web.Application):
 #-----------------------------------------------------------------------------
 
 def main():
+    port = int(sys.argv[1])
     kernel_manager = MultiKernelManager()
     # give the KernelManager attributes it shouldn't need,
     # but IPython's handlers require:
@@ -109,6 +110,8 @@ def main():
     
     logging.basicConfig(level=logging.INFO)
     log = logging.getLogger()
+
+    DummyIPythonApp.websocket_host = 'localhost:%d' % port    
     app = WebApp(kernel_manager, kernel_id, log)
     server = httpserver.HTTPServer(app)
     server.listen(port, '127.0.0.1')
