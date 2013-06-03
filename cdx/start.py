@@ -7,6 +7,7 @@ gevent.monkey.patch_all()
 from app import cdx_app
 from bokeh.server.app import bokeh_app
 from bokeh.server.start import prepare_app as bokeh_prepare_app
+from bokeh.server.start import prepare_local as bokeh_prepare_local
 import logging
 
 PORT = 5006
@@ -36,3 +37,6 @@ def start_app(app, verbose=False):
                              handler_class=WebSocketHandler,
                              )
     http_server.serve_forever()
+
+def prepare_local():
+    bokeh_prepare_local()
