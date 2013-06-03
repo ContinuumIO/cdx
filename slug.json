@@ -26,17 +26,18 @@
         "./singlecell/static/ipython/js/completer.js",
         "./singlecell/static/ipython/js/tooltip.js",
         "./singlecell/static/ipython/js/celltoolbar.js",
-        "js/singlecell.js",
+        "js/singlecell.js"
     ],
     "paths" : [
         "./coffee",
         "./subtree/Bokeh/bokeh/server/static/coffee",
-        "./subtree/Bokeh/subtree/bokehjs/static/coffee",
+        "./subtree/Bokeh/subtree/bokehjs/static/coffee"
     ],
     "identifier" : "require",
     "public" : "./static",
     "jsPath" : "/js/application.js",
     "css" : "./static/less/index.less",
     "cssPath" : "/css/application.css",
-    "specs" : false
+    "specs" : false,
+    "port" : 9394
 }
