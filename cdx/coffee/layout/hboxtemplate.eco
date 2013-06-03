@@ -1,0 +1,10 @@
+<% for element, idx in @elements: %>
+<div class="hcomponent">
+  <% if idx != 0: %>
+  <div class="hseparator" idx="<%= idx %>"> </div>
+  <div class="hcontent not-first-hcontent" idx="<%= idx %>"></div>
+  <% else: %>
+  <div class="hcontent first-hcontent" idx="<%= idx %>"></div>
+  <% end %>
+</div>
+<% end %>
