@@ -25,7 +25,8 @@
         "./cdx/static/vendor/singlecell/ipython/js/config.js",
         "./cdx/static/vendor/singlecell/ipython/js/completer.js",
         "./cdx/static/vendor/singlecell/ipython/js/tooltip.js",
-        "./cdx/static/vendor/singlecell/ipython/js/celltoolbar.js"
+        "./cdx/static/vendor/singlecell/ipython/js/celltoolbar.js",
+        "./cdx/static/vendor/singlecell/js/singlecell.js"
     ],
     "paths" : [
         "./cdx/coffee",
@@ -35,7 +36,7 @@
     "identifier" : "require",
     "public" : "./static",
     "jsPath" : "/js/application.js",
-    "css" : "./cdx/static/less/index.less",
+    "css" : "./static/less/index.less",
     "cssPath" : "/css/application.css",
     "specs" : false,
     "port" : 9394

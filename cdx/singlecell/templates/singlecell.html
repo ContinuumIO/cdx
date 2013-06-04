@@ -75,5 +75,11 @@
 
 <!-- Our own js, for setting up our single-cell server -->
 <script src="{{ static_url("js/singlecell.js") }}" type="text/javascript" charset="utf-8"></script>
+<script>
+$(function(){
+var ws_url = 'ws' + document.location.origin.substring(4);
+window.setup_ipython(ws_url);
+})
+</script>
 </body>
 </html>

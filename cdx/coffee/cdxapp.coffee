@@ -1,21 +1,49 @@
 layout = require("./layout/index")
+bokehutils = require("./serverutils")
+utils = require("./serverutils")
+base = require("./base")
+Config = base.Config
+utility = utils.utility
+Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
+usercontext = require("usercontext/usercontext")
 
 class CDXApp extends Backbone.View
+  attributes :
+    class : 'cdxmain'
   initialize : () ->
+    @init_bokeh()
     @render()
 
+  init_bokeh : () ->
+    wswrapper = utility.make_websocket()
+    userdocs = new usercontext.UserDocs()
+    userdocs.subscribe(wswrapper, 'defaultuser')
+    window.userdocs = userdocs
+    load = userdocs.fetch(update : true)
+    userdocsview = new usercontext.UserDocsView(collection : userdocs)
+    @userdocsview = userdocsview
+    @userdocs = userdocs
+    @wswrapper = wswrapper
+
   render : () ->
-    first = $('<div>div1</div>')
-    second = $('<div>div2</div>')
-    third = $('<div>div3</div>')
-    for temp in _.zip([first, second, third], ['red', 'yellow', 'green'])
-      [node, color] = temp
-      node.css('background-color', color)
-      node.css('height', '100%')
-      node.css('width', '100%')
+    second = $('<div id="thecell"></div>')
+    second.css('height', '100%')
+    second.css('width', '100%')
     view = new layout.VBoxView(
-      elements : [first, second, third]
-      height : 300
-      width : 100
+      elements : [@userdocsview.el, second]
+      height : '100%'
+      width : '100%'
     )
+    view.sizes = [80,20]
+    view.set_sizes()
+    @layout = view
+    @$el.append(view.el)
+    window.setup_ipython("ws://localhost:10010")
+
+utility = utils.utility
+Promises = utils.Promises
+Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
+
+usercontext = require("usercontext/usercontext")
+
 exports.CDXApp = CDXApp

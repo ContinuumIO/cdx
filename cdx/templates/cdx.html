@@ -7,6 +7,7 @@
     <link href="{{ url_for('static', filename='vendor/bokehjs/css/bokeh.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/css/continuum.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/vendor/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
+
     {% for cssfile in cssfiles %}
     <link href="{{ cssfile }}" rel="stylesheet" type="text/css"/>
     {% endfor %}
@@ -17,11 +18,9 @@
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
     <script>
-      require("serverrun")
       require("cdxmain")      
     </script>
   </head>
   <body>
-    <div id="PlotPane">Plots</div>
   </body>
 </html>

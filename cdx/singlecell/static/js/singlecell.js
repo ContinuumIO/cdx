@@ -10,8 +10,7 @@
 //============================================================================
 
 
-$(document).ready(function () {
-
+window.setup_ipython = function (ws_url) {
     // monkey patch CM to be able to syntax highlight cell magics
     // bug reported upstream,
     // see https://github.com/marijnh/CodeMirror2/issues/670
@@ -33,7 +32,6 @@ $(document).ready(function () {
     IPython.tooltip = new IPython.Tooltip()
 
     var kernel = new IPython.Kernel('/kernels');
-    var ws_url = 'ws' + document.location.origin.substring(4);
     kernel._kernel_started({kernel_id: '1', ws_url: ws_url});
     var thecell = new IPython.CodeCell(kernel);
     $("div#thecell").append(thecell.element);
@@ -70,5 +68,5 @@ $(document).ready(function () {
     $("a#interrupt").click(function() {
         kernel.interrupt();
     })
-});
+}
 

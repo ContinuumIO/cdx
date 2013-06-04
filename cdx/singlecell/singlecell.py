@@ -19,6 +19,7 @@ Authors:
 # stdlib
 import logging
 import os
+import uuid
 
 # Install the pyzmq ioloop. This has to be done before anything else from
 # tornado is imported.
@@ -95,9 +96,25 @@ class WebApp(web.Application):
 # start the app
 #-----------------------------------------------------------------------------
 
+class SingleCellKernelManager(MultiKernelManager):
+    def start_kernel(self, **kwargs):
+        if 'kernel_id' in kwargs:
+            kernel_id = kwargs.pop('kernel_id')
+        else:
+            kernel_id = unicode(uuid.uuid4())
+        km = self.kernel_manager_factory(connection_file=os.path.join(
+            self.connection_dir, "kernel-%s.json" % kernel_id),
+                                         config=self.config,
+                                         )
+        km.start_kernel(**kwargs)
+        # start just the shell channel, needed for graceful restart
+        km.start_channels(shell=True, sub=False, stdin=False, hb=False)
+        self._kernels[kernel_id] = km
+        return kernel_id
+
 def main():
     port = int(sys.argv[1])
-    kernel_manager = MultiKernelManager()
+    kernel_manager = SingleCellKernelManager()
     # give the KernelManager attributes it shouldn't need,
     # but IPython's handlers require:
     kernel_manager.max_msg_size = 100*1024*1024
@@ -105,8 +122,7 @@ def main():
     kernel_manager.first_beat = 1000
     
     # we are only using one kernel:
-    kernel_id = '1'
-    kernel_manager.start_kernel(kernel_id=kernel_id)
+    kernel_id = kernel_manager.start_kernel(kernel_id='1')
     
     logging.basicConfig(level=logging.INFO)
     log = logging.getLogger()
