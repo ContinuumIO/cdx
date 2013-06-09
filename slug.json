@@ -36,7 +36,7 @@
     "identifier" : "require",
     "public" : "./static",
     "jsPath" : "/js/application.js",
-    "css" : "./static/less/index.less",
+    "css" : "./cdx/static/less/index.less",
     "cssPath" : "/css/application.css",
     "specs" : false,
     "port" : 9394
