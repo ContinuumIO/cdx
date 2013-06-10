@@ -10,3 +10,4 @@ class DocView extends usercontext.DocView
     )
     @$el.append(@plot_context_view.el)
     return true
+exports.DocView = DocView

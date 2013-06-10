@@ -13,9 +13,8 @@ def render(template, **kwargs):
     return render_template(template, **context)
 
 
-@cdx_app.route('/cdx/<path:docname>')
-def index(docpath=None):
-    u = User.load(bokeh_app.model_redis, 
+@cdx_app.route('/cdx')
+def index():
     return render('cdx.html')
 
     

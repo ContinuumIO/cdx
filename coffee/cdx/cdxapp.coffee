@@ -6,23 +6,21 @@ Config = base.Config
 utility = utils.utility
 Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 usercontext = require("usercontext/usercontext")
-
+DocView = require("./doc").DocView
 class CDXApp extends Backbone.View
   attributes :
     class : 'cdxmain'
-  initialize : () ->
-    @init_bokeh()
+  initialize : (options) ->
+    title = options.title
+    @init_bokeh(title)
     @render()
 
-  init_bokeh : () ->
+  init_bokeh : (title) ->
     wswrapper = utility.make_websocket()
-    userdocs = new usercontext.UserDocs()
-    userdocs.subscribe(wswrapper, 'defaultuser')
-    window.userdocs = userdocs
-    load = userdocs.fetch(update : true)
-    userdocsview = new usercontext.UserDocsView(collection : userdocs)
-    @userdocsview = userdocsview
-    @userdocs = userdocs
+    doc = new usercontext.Doc(title : title)
+    view = new DocView(model : doc)
+    load = doc.load(true)
+    @docview = view
     @wswrapper = wswrapper
 
   render : () ->
@@ -30,7 +28,7 @@ class CDXApp extends Backbone.View
     second.css('height', '100%')
     second.css('width', '100%')
     view = new layout.VBoxView(
-      elements : [@userdocsview.el, second]
+      elements : [@docview.el, second]
       height : '100%'
       width : '100%'
     )
