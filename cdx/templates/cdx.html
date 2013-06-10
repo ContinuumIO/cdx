@@ -11,10 +11,10 @@
     {% for cssfile in cssfiles %}
     <link href="{{ cssfile }}" rel="stylesheet" type="text/css"/>
     {% endfor %}
-    {% for jsfile in jsfiles %}
+    {% for jsfile in static_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
-    {% for jsfile in hemfiles %}
+    {% for jsfile in hem_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
     <script>
