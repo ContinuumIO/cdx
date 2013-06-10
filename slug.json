@@ -29,7 +29,7 @@
         "./cdx/static/vendor/singlecell/js/singlecell.js"
     ],
     "paths" : [
-        "./cdx/coffee",
+        "./coffee/cdx",
         "./subtree/Bokeh/bokeh/server/static/coffee",
         "./subtree/Bokeh/subtree/bokehjs/static/coffee"
     ],
