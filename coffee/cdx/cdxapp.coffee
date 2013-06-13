@@ -35,7 +35,6 @@ class CDXApp extends Backbone.View
   init_bokeh : (title) ->
     wswrapper = utility.make_websocket()
     doc = new usercontext.Doc(title : title)
-    view = new DocView(model : doc)
     load = doc.load(true)
     load.done((data) =>
       cdx = base.Collections('CDX').first()
@@ -53,12 +52,18 @@ class CDXApp extends Backbone.View
         ns = base.Collections('Namespace').create(doc : doc.id)
         cdx.set_obj('namespace', ns)
         cdx.save()
-      @cdx = cdx
-      @ns = new namespace.NamespaceView(ns)
-      @$namespace.append(@ns.$el)
+      plotlist = cdx.get_obj('plotlist')
+      if not plotlist
+        plotlist = base.Collections('PlotList').create(doc : doc.id)
+        cdx.set_obj('plotlist', plotlist)
+        cdx.save()
+      @cdxmodel = cdx
+      @plotlistview = new plotlist.default_view(model : plotlist)
+      @nsview = new namespace.NamespaceView(model : ns)
+      @$namespace.append(@nsview.$el)
+      @$plotholder.append(@plotlistview.$el)
     )
-    @docview = view
-    @$plotholder.append(@docview.$el)
+
     @wswrapper = wswrapper
 
   render_layouts : () ->

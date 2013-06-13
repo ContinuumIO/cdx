@@ -1,0 +1,23 @@
+<table class="table">
+  <% for varname in @varnames: %>
+  <tr class="namespace-variable-<%= @varname %>">
+    <td>
+      <%= varname %>
+    </td>
+    <td>
+      <table class="table">
+        <% for fld in @fields[varname]: %>
+        <tr>
+          <td>
+            <%= fld %>
+          </td>
+          <td>
+            <%= @metrics[varname][fld] %>
+          </td>
+        </tr>
+        <% end %>
+      </table>
+    </td>
+  </tr>
+  <% end %>
+</table>
