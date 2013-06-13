@@ -59,8 +59,8 @@ class CDXApp extends Backbone.View
         cdx.save()
       @cdxmodel = cdx
       @plotlistview = new plotlist.default_view(model : plotlist)
-      @nsview = new namespace.NamespaceView(model : ns)
-      @$namespace.append(@nsview.$el)
+      #@nsview = new namespace.NamespaceView(model : ns)
+      #@$namespace.append(@nsview.$el)
       @$plotholder.append(@plotlistview.$el)
     )
 
@@ -72,11 +72,11 @@ class CDXApp extends Backbone.View
     @$plotholder = $('<div class="plotholder hundredpct"></div>')
     ##@$plotlist = $('<div class="plotlistholder hundredpct"></div>')
     @plotbox = new layout.HBoxView(
-      elements : [@$namespace, @$table, @$plotholder]
+      elements : [@$table, @$plotholder]
       height : '100%',
       width : '100%',
     )
-    @plotbox.sizes = [10, 40, 50]
+    @plotbox.sizes = [50, 50]
     @plotbox.set_sizes()
     ipcell = $('<div id="thecell" class="hundredpct"></div>')
     @layout = new layout.VBoxView(
