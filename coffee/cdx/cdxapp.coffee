@@ -9,7 +9,8 @@ usercontext = require("usercontext/usercontext")
 DocView = require("./doc").DocView
 namespace = require("./namespace/namespace")
 
-class CDXModel extends base.HasProperties
+class CDX extends base.HasProperties
+  type : 'CDX'
   defaults :
     namespace : null
     activetable : null
