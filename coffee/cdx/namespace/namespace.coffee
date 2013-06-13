@@ -16,3 +16,4 @@ class Namespaces extends Backbone.Collection
 
 exports.namespaces = new Namespaces
 exports.Namespace = Namespace
+exports.NamespaceView = NamespaceView

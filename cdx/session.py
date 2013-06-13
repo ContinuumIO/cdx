@@ -1,5 +1,5 @@
 from bokeh.session import PlotServerSession
-from objects import CDX
+from objects import CDX, Namespace
 
 
 class CDXSession(PlotServerSession):
@@ -10,12 +10,19 @@ class CDXSession(PlotServerSession):
             cdx = cdx[0]
         else:
             cdx = CDX()
-            import pdb;pdb.set_trace()
             self.add(cdx)
             self.store_obj(cdx)
         self.cdx = cdx
+        
         if not cdx.namespace:
-            pass
-        
-        
+            ns = Namespace()
+            self.add(ns)
+            cdx.namespace = ns
+            self.store_obj(ns)
+            self.store_obj(cdx)
+            
+        if not cdx.plotcontext:
+            cdx.plotcontext = self.plotcontext
+            self.store_obj(cdx)
+            
         

@@ -10,12 +10,18 @@ DocView = require("./doc").DocView
 namespace = require("./namespace/namespace")
 
 class CDX extends base.HasProperties
+  default_view : Backbone.View
   type : 'CDX'
   defaults :
     namespace : null
     activetable : null
     activeplot : null
     plotcontext : null
+
+class CDXs extends Backbone.Collection
+  model : CDX
+
+exports.cdxs = new CDXs()
 
 class CDXApp extends Backbone.View
   attributes :
@@ -32,15 +38,23 @@ class CDXApp extends Backbone.View
     view = new DocView(model : doc)
     load = doc.load(true)
     load.done((data) =>
-      ns = base.Collections('Namespace').first()
-      if not ns
-        ns = base.Collections('Namespace').create(doc : doc.id)
+      cdx = base.Collections('CDX').first()
+      if not cdx
+        cdx = base.Collections('CDX').create(doc : doc.id)
         pc = doc.get_obj('plot_context')
         children = _.clone(pc.get('children'))
-        children.push(ns.ref())
+        children.push(cdx.ref())
         pc.set('children', children)
         pc.save()
-      @ns = ns
+        cdx.set_obj('plotcontext', pc)
+        cdx.save()
+      ns = cdx.get_obj('namespace')
+      if not ns
+        ns = base.Collections('Namespace').create(doc : doc.id)
+        cdx.set_obj('namespace', ns)
+        cdx.save()
+      @cdx = cdx
+      @ns = new namespace.NamespaceView(ns)
       @$namespace.append(@ns.$el)
     )
     @docview = view

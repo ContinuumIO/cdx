@@ -15,5 +15,7 @@ $(()->
   Backbone.history.start()
 )
 
+
 register_models = () ->
   locations['Namespace'] = ["./namespace/namespace", "namespaces"]
+  locations['CDX'] = ["./cdxapp", "cdxs"]
