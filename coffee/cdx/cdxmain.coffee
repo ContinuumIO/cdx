@@ -6,7 +6,7 @@ class CDXRouter extends Backbone.Router
     "cdx/:title" : 'main'
   main : (title) ->
     view = new CDXApp(title : title)
-    $('body').append(view.el)
+    $('#CDX').append(view.el)
     window.view = view
     window.setup_ipython("ws://localhost:10010")
 $(()->
