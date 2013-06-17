@@ -9,6 +9,12 @@ from app import cdx_app
 from bokeh.server.app import bokeh_app
 from bokeh.server.start import prepare_app as bokeh_prepare_app
 from bokeh.server.start import prepare_local as bokeh_prepare_local
+
+#import objects so that we can resolve them
+import bokeh.objects
+import bokeh.glyphs
+import cdx.objects
+
 from redisutils import RedisProcess
 import logging
 
