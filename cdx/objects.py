@@ -1,6 +1,11 @@
 from bokeh.properties import (HasProps, MetaHasProps, 
         Any, Dict, Enum, Float, Instance, Int, List, String,
         Color, Pattern, Percent, Size)
+
+#loading dependencies
+import bokeh.objects
+import bokeh.glyphs
+
 from bokeh.objects import PlotObject, Plot
 from bokeh.session import PlotContext, PlotList
 import pandas
