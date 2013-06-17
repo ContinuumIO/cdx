@@ -28,5 +28,5 @@ class CDXSession(PlotServerSession):
         if not cdx.plotlist:
             cdx.plotlist = PlotList()
             self.add(cdx.plotlist)
-            self.store_objs(cdx, cdx.plotlist)
+            self.store_objs([cdx, cdx.plotlist])
         
