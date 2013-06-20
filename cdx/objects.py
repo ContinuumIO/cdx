@@ -1,3 +1,6 @@
+import pandas
+import json
+
 from bokeh.properties import (HasProps, MetaHasProps, 
         Any, Dict, Enum, Float, Instance, Int, List, String,
         Color, Pattern, Percent, Size)
@@ -8,7 +11,8 @@ import bokeh.glyphs
 
 from bokeh.objects import PlotObject, Plot
 from bokeh.session import PlotContext, PlotList
-import pandas
+
+
 
 # plot object is a bad name
 class Table(PlotObject):
@@ -39,6 +43,3 @@ class CDX(PlotObject):
     activeplot = Instance(Plot, has_ref=True)
     plotlist = Instance(PlotList, has_ref=True)
     plotcontext = Instance(PlotContext, has_ref=True) # list of to level UI elems
-    
-    
-    

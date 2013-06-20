@@ -4,13 +4,12 @@
     <meta charset="utf-8">
     <title>Continuum Analytics</title>
 	<!-- Vendor Styles -->
-    <link href="{{ url_for('static', filename='vendor/bokehjs/css/bokeh.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='vendor/bokehjs/css/continuum.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='vendor/bokehjs/vendor/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
-
     {% for cssfile in cssfiles %}
     <link href="{{ cssfile }}" rel="stylesheet" type="text/css"/>
     {% endfor %}
+    <link href="{{ url_for('static', filename='vendor/bokehjs/css/bokeh.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bokehjs/css/continuum.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bokehjs/vendor/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
     {% for jsfile in static_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}

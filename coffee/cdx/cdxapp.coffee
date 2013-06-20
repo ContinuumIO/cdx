@@ -27,6 +27,9 @@ class CDXApp extends Backbone.View
   attributes :
     class : 'cdxmain'
 
+  delegateEvents : (events) ->
+    super(events)
+
   initialize : (options) ->
     title = options.title
     @render_layouts()
@@ -58,13 +61,24 @@ class CDXApp extends Backbone.View
         cdx.set_obj('plotlist', plotlist)
         cdx.save()
       @cdxmodel = cdx
-      @plotlistview = new plotlist.default_view(model : plotlist)
       #@nsview = new namespace.NamespaceView(model : ns)
       #@$namespace.append(@nsview.$el)
-      @$plotholder.append(@plotlistview.$el)
+      @render_plotlist()
+      @render_activetable()
     )
 
     @wswrapper = wswrapper
+
+  render_plotlist : () ->
+    plotlist = @cdxmodel.get_obj('plotlist')
+    @plotlistview = new plotlist.default_view(model : plotlist)
+    @$plotholder.append(@plotlistview.$el)
+
+  render_activetable : () ->
+    activetable = @cdxmodel.get_obj('activetable')
+    if activetable
+      @activetableview = new activetable.default_view(model : activetable)
+      @$table.append(@activetableview.$el)
 
   render_layouts : () ->
     @$namespace = $('<div class="namespaceholder hundredpct"></div>')
