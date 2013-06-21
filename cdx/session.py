@@ -13,7 +13,8 @@ class CDXSession(PlotServerSession):
             self.add(cdx)
             self.store_obj(cdx)
         self.cdx = cdx
-        
+        self.plotcontext.children.append(cdx)
+        self.plotcontext._dirty = True
         if not cdx.namespace:
             ns = Namespace()
             self.add(ns)
