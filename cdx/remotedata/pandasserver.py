@@ -24,6 +24,8 @@ def get_data(varname, transforms):
     else:
         ns = namespace
     data = ns[varname]
+    maxlength = len(data)
+    originallength = len(data)
     data['_counts'] = np.ones(len(data))
     data['_selected'] = np.zeros(len(data))
     data.ix[raw_selected, '_selected'] = 1
@@ -52,7 +54,7 @@ def get_data(varname, transforms):
         selected = stats['_selected']
         data['_counts'] = counts
         data['_selected'] = selected
-    return groupobj, data
+    return groupobj, data, maxlength, totallength
 
 def jsonify(df):
     column_names = df.columns.tolist()
@@ -68,15 +70,18 @@ def get(varname):
         transforms = json.loads(request.data)
     else:
         transforms = {}
-    groupobj, data = get_data(varname, transforms)
-    return make_json(protocol.serialize_json(jsonify(data)))
+    groupobj, data, maxlength, totallength = get_data(varname, transforms)
+    data = jsonify(data)
+    data['maxlength'] = maxlength
+    data['totallength'] = totallength
+    return make_json(protocol.serialize_json(data))
 
 def compute_selection(varname):
     if request.data:
         transforms = json.loads(request.data)
     else:
         transforms = {}
-    groupobj, data = get_data(varname, transforms)
+    groupobj, data, maxlength, totallength = get_data(varname, transforms)
     selected = transforms.get('selected', [])    
     if groupobj:
         raw_selected = []
