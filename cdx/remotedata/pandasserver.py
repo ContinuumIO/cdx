@@ -17,6 +17,7 @@ def get_data(varname, transforms):
     agg = transforms.get('agg', 'mean')
     offset = transforms.get('offset', 0)
     length = transforms.get('length', 100)
+    filterselected = transforms.get('filterselected', False)
     raw_selected = selections.get(varname, [])
     if namespace is None:
         ns = get_ipython().user_ns
@@ -39,7 +40,7 @@ def get_data(varname, transforms):
             ascending=ascending
             )
     unsliced = data
-    if np.sum(data._selected) > 1 and not groupobj:
+    if np.sum(data._selected) > 1 and not groupobj and filterselected:
         # in the non group by case, we filter on selection
         # otherwise we output the # of selected items
         data = data.ix[data._selected==1, :]
