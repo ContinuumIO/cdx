@@ -60,11 +60,6 @@ class Viewable(MetaHasProps):
         else:
             raise KeyError("View model name '%s' not found" % view_model_name)
 
-    @classmethod
-    def get_obj(cls, typename, attrs):
-        temp = cls.get_class(typename) 
-        return temp.load_json(attrs)
-
 def usesession(meth):
     """ Checks for 'session' in kwargs and in **self**, and guarantees
     that **kw always has a valid 'session' parameter.  Wrapped methods
@@ -174,7 +169,7 @@ class PlotObject(HasProps):
         self._callbacks_dirty = False
         self._callbacks = {}
         self._callback_queue = []
-        self._block_callbakcs = False
+        self._block_callbacks = False
         super(PlotObject, self).__init__(*args, **kwargs)
         
     @classmethod
@@ -269,7 +264,8 @@ class PlotObject(HasProps):
         callbacks = self._callbacks.setdefault(attrname, [])
         callback = dict(obj=obj,
                         callbackname=callbackname)
-        callbacks.append(callback)
+        if callback not in callbacks:
+            callbacks.append(callback)
         self._callbacks_dirty = True
         
     def _trigger(self, attrname, old, new):
@@ -286,7 +282,9 @@ class PlotObject(HasProps):
 
 class DataSource(PlotObject):
     """ Base class for data sources """
-
+    # List of names of the fields of each tuple in self.data
+    # ordering is incoporated here
+    column_names = List()
     def columns(self, *columns):
         """ Returns a ColumnsRef object that points to a column or set of
         columns on this data source
@@ -310,8 +308,6 @@ class ObjectArrayDataSource(DataSource):
     # List of tuples of values 
     data = List()
 
-    # List of names of the fields of each tuple in self.data
-    column_names = List()
 
     # Maps field/column name to a DataRange or FactorRange object. If the
     # field is not in the dict, then a range is created automatically.

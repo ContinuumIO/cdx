@@ -224,7 +224,7 @@ class HasProperties extends Backbone.Model
         val.off(null, null, this)
 
   isNew : () ->
-    return not this.get('created')
+    return false
 
   initialize : (attrs, options) ->
     # auto generates ids if we need to, calls deferred initialize if we have
@@ -457,6 +457,24 @@ class HasProperties extends Backbone.Model
 
   defaults : {}
 
+  rpc : (funcname, args, kwargs) =>
+    prefix = Config.prefix
+    docid = @get('doc')
+    id = @get('id')
+    type = @type
+    url = "#{prefix}/bokeh/bb/rpc/#{docid}/#{type}/#{id}/#{funcname}/"
+    data =
+      args : args
+      kwargs : kwargs
+    resp = $.ajax(
+      type : 'POST'
+      url: url,
+      data : JSON.stringify(data)
+      contentType : 'application/json'
+      xhrFields :
+        withCredentials : true
+    )
+    return resp
 
 
   # hasparent
@@ -555,9 +573,10 @@ locations =
   GlyphRenderer:      ['./renderers/glyph_renderer',      'glyphrenderers']
   GuideRenderer:      ['./renderers/guide_renderer',      'guiderenderers']
 
-  PanTool:         ['./tools/pantool',    'pantools']
-  ZoomTool:        ['./tools/zoomtool',   'zoomtools']
-  SelectionTool:   ['./tools/selecttool', 'selectiontools']
+  PanTool:         ['./tools/pan_tool',          'pantools']
+  ZoomTool:        ['./tools/zoom_tool',         'zoomtools']
+  ResizeTool:      ['./tools/resize_tool',       'resizetools']
+  SelectionTool:   ['./tools/select_tool',       'selectiontools']
   PreviewSaveTool: ['./tools/preview_save_tool', 'previewsavetools']
   EmbedTool:       ['./tools/preview_save_tool', 'embedtools']
 
@@ -577,9 +596,8 @@ locations =
 
   DataTable: ['./widgets/table', 'datatables']
 
-  PandasPivot:      ['./pandas/pandas', 'pandaspivots']
-  PandasDataSource: ['./pandas/pandas', 'pandasdatasources']
-  PandasPlotSource: ['./pandas/pandas', 'pandasplotsources']
+  IPythonRemoteData: ['./pandas/pandas', 'ipythonremotedatas']
+  PandasPivotTable: ['./pandas/pandas', 'pandaspivottables']
 
   LinearAxis: ['./renderers/guide/axis', 'linearaxes']
   Rule: ['./renderers/guide/rule', 'rules']
