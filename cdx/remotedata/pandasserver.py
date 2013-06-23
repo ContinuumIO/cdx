@@ -88,7 +88,7 @@ def compute_selection(varname):
         for rownum in selected:
             raw_selected.extend(groupobj.groups[data.index[rownum]])
     else:
-        raw_selected = np.array(selected) + transforms.get('offset')
+        raw_selected = np.array(selected) + transforms.get('offset', 0)
     return raw_selected
     
 @app.route("/array/<varname>/setselect", methods=["POST"])
