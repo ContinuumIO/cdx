@@ -35,14 +35,9 @@ window.setup_ipython = function (ws_url) {
     kernel._kernel_started({kernel_id: '1', ws_url: ws_url});
     var thecell = new IPython.CodeCell(kernel);
     $("div#thecell").append(thecell.element);
+    window.thecell = thecell
+    thecell.code_mirror.setSize("100%", 100)
     // set some example input
-    thecell.set_text(
-        "%pylab inline\n\n" + 
-
-        "x = np.linspace(0, 10)\n\n" + 
-
-        "plt.plot(x, np.sin(x), x, np.cos(x))\n\n"
-    );
     // focus the cell
     thecell.select();
     
