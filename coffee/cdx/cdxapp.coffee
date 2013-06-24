@@ -41,24 +41,28 @@ class CDXApp extends Backbone.View
     load.done((data) =>
       cdx = base.Collections('CDX').first()
       if not cdx
-        cdx = base.Collections('CDX').create(doc : doc.id)
+        coll = base.Collections('CDX')
+        cdx = new coll.model(doc : doc.id)
+        coll.add(cdx)
         pc = doc.get_obj('plot_context')
         children = _.clone(pc.get('children'))
         children.push(cdx.ref())
         pc.set('children', children)
-        pc.save()
         cdx.set_obj('plotcontext', pc)
-        cdx.save()
       ns = cdx.get_obj('namespace')
       if not ns
-        ns = base.Collections('Namespace').create(doc : doc.id)
+        coll = base.Collections('Namespace')
+        ns = new coll.model(doc : doc.id)
+        coll.add(ns)
         cdx.set_obj('namespace', ns)
-        cdx.save()
       plotlist = cdx.get_obj('plotlist')
       if not plotlist
-        plotlist = base.Collections('PlotList').create(doc : doc.id)
+        coll = base.Collections('PlotList')
+        plotlist = new coll.model(doc : doc.id)
+        coll.add(plotlist)
         cdx.set_obj('plotlist', plotlist)
-        cdx.save()
+      base.Collections.bulksave([cdx, doc.get_obj('plot_context'),
+        ns, plotlist])
       @cdxmodel = cdx
       @listenTo(@cdxmodel, 'change:activetable', @render_activetable)
       @listenTo(@cdxmodel, 'change:namespace', @render_namespace)

@@ -16,13 +16,10 @@ def get_data(varname, transforms):
     group = transforms.get('group', [])
     agg = transforms.get('agg', 'mean')
     offset = transforms.get('offset', 0)
-    length = transforms.get('length', 100)
+    length = transforms.get('length', None)
     filterselected = transforms.get('filterselected', False)
     raw_selected = selections.get(varname, [])
-    if namespace is None:
-        ns = get_ipython().user_ns
-    else:
-        ns = namespace
+    ns = namespace
     data = ns[varname]
     maxlength = len(data)
     originallength = len(data)
@@ -47,7 +44,10 @@ def get_data(varname, transforms):
         # otherwise we output the # of selected items
         data = data.ix[data._selected==1, :]
     totallength = len(data)
-    data = data[offset:offset + length]
+    if length:
+        data = data[offset:offset + length]
+    else:
+        data = data[offset:]
     if groupobj:
         stats = groupobj.sum()
         counts = stats['_counts']
@@ -64,6 +64,7 @@ def jsonify(df):
     data['_index'] = df.index.tolist()
     return dict(data=data, column_names=column_names)
 
+import logging
 @app.route("/array/<varname>")
 def get(varname):
     if request.data:
@@ -134,13 +135,15 @@ def run():
         server._BaseServer__shutdown_request = True
         # python 2.6
         server._BaseServer__serving = False
-        
-    exit_func = get_ipython().exit
-    def new_exit():
-        shutdown()
-        exit_func()
-    get_ipython().exit = new_exit
+    if hasattr(get_ipython(), 'exit'):
+        exit_func = get_ipython().exit
+        def new_exit():
+            shutdown()
+            exit_func()
+        get_ipython().exit = new_exit
     import threading
+    global namespace
+    namespace = get_ipython().user_ns
     t = threading.Thread(target=_run, args=(server,))
     t.start()
 

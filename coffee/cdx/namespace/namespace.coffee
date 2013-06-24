@@ -43,7 +43,7 @@ class Namespace extends HasProperties
   default_view : NamespaceView
   type : "Namespace"
   defaults :
-    namespace : null
+    namespace : {}
 
 class Namespaces extends Backbone.Collection
   model : Namespace
