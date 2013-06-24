@@ -1,4 +1,4 @@
-import pandas
+import pandas as pd
 import json
 
 from bokeh.properties import (HasProps, MetaHasProps, 
@@ -20,21 +20,12 @@ class Table(PlotObject):
 
 class Namespace(PlotObject):
     data = Dict()
-    def add(self, obj, name=None):
-        if not isinstance(obj, pandas.DataFrame):
-            raise Exception, "only supported for dataframes"
-        if name is None:
-            try:
-                ns = get_ipython().user_ns
-                for k,v in ns.iteritems():
-                    if obj is v:
-                        name = k
-                        break
-            except NameError as e:
-                raise Exception, "need to pass name if not in ipython"
-                
-        summary = obj.describe()
-        self.data[name] = summary.to_dict()
+    def populate(self):
+        ns = get_ipython().user_ns
+        for k,v in ns.iteritems():
+            if isinstance(v, pd.DataFrame):
+                summary = v.describe()
+                self.data[k] = summary.to_dict()
         self.session.store_obj(self)
         
 class CDX(PlotObject):

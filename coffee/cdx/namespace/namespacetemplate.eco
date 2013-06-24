@@ -1,22 +1,30 @@
 <table class="table">
-  <% for varname in @varnames: %>
+  <% for varname in @metadata._varnames: %>
   <tr class="namespace-variable-<%= @varname %>">
-    <td>
+    <% for colname, idx in @metadata[varname]._colnames: %>
+    <% if idx == 0: %>
+    <td valign="top" rowspan="<%= @metadata[varname]._colnames.length %>">
       <%= varname %>
     </td>
+    <% end %>
     <td>
-      <table class="table">
-        <% for fld in @fields[varname]: %>
-        <tr>
-          <td>
-            <%= fld %>
-          </td>
-          <td>
-            <%= @metrics[varname][fld] %>
-          </td>
-        </tr>
-        <% end %>
-      </table>
+      <a class="cdxtooltip"><%= colname %>
+        <span>
+          Summary Statistics
+          <table>
+            <% for statname in @metadata[varname][colname]._statnames: %>
+            <tr>
+              <td>
+                <%= statname %>
+              </td>
+              <td>
+                <%= @data[varname][colname][statname] %>
+              </td>
+            </tr>
+            <% end %>
+          </table>
+        </span>
+      </a>
     </td>
   </tr>
   <% end %>

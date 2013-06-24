@@ -10,19 +10,20 @@ class NamespaceView extends ContinuumView
   template : require("./namespacetemplate")
   render : () ->
     data = @mget('data')
-    varnames = _.keys(data)
-    varnames.sort()
-    fields = {}
-    metrics = {}
-    for own colname, col of data
-      for own variable, variable_metrics of col
-        fields[variable] = _.keys(variable_metrics)
-        fields[variable].sort()
-        metrics[variable] = variable_metrics
+    metadata = {}
+    metadata._varnames = _.keys(data)
+    metadata._varnames.sort()
+    for own variable, variable_data of data
+      metadata[variable] = {}
+      metadata[variable]._colnames = _.keys(variable_data)
+      metadata[variable]._colnames.sort()
+      for own colname, col_data of variable_data
+        metadata[variable][colname] = {}
+        metadata[variable][colname]._statnames = _.keys(col_data)
+        metadata[variable][colname]._statnames.sort()
     html = @template(
-      varnames : varnames
-      fields : fields
-      metrics : metrics
+      metadata: metadata
+      data: data
     )
     @$el.html(html)
 

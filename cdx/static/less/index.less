@@ -26,3 +26,32 @@ html, body{
   left : 0px;
   right : 0px;
 }
+
+.colstats{
+    display : none;
+}
+ 
+ 
+a.cdxtooltip {outline:none; }
+a.cdxtooltip strong {line-height:30px;}
+a.cdxtooltip:hover {text-decoration:none;}
+a.cdxtooltip span {
+    z-index:10;display:none; padding:14px 20px;
+    margin-top:0; margin-left:28px;
+    width:240px; line-height:16px;
+}
+a.cdxtooltip:hover span{
+    display:inline; position:absolute; color:#111;
+    border:1px solid #DCA; background:#fffAF0;}
+    
+/*CSS3 extras*/
+a.cdxtooltip span
+{
+    border-radius:4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+        
+    -moz-box-shadow: 5px 5px 8px #CCC;
+    -webkit-box-shadow: 5px 5px 8px #CCC;
+    box-shadow: 5px 5px 8px #CCC;
+}
