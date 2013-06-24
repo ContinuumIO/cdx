@@ -29,7 +29,6 @@ class CDXApp extends Backbone.View
 
   delegateEvents : (events) ->
     super(events)
-
   initialize : (options) ->
     title = options.title
     @render_layouts()
@@ -61,27 +60,55 @@ class CDXApp extends Backbone.View
         cdx.set_obj('plotlist', plotlist)
         cdx.save()
       @cdxmodel = cdx
+      @listenTo(@cdxmodel, 'change:activetable', @render_activetable)
+      @listenTo(@cdxmodel, 'change:namespace', @render_namespace)
+      @listenTo(@cdxmodel, 'change:namespace', @render_potlist)
       @render_namespace()
       @render_plotlist()
       @render_activetable()
     )
 
     @wswrapper = wswrapper
+
   render_namespace : () ->
     @nsview = new namespace.NamespaceView(
       model : @cdxmodel.get_obj('namespace')
     )
+    @$namespace.html('')
     @$namespace.append(@nsview.$el)
+    @listenTo(@nsview, 'view', @make_table)
+
+  conninfo :
+    host : 'localhost'
+    port : 10020
+
+  make_table : (varname) ->
+    coll = base.Collections("IPythonRemoteData")
+    remotedata = new coll.model (
+      host : @conninfo.host
+      port : @conninfo.port
+      varname : varname
+    )
+    coll.add(remotedata)
+    coll = base.Collections("PandasPivotTable")
+    pivot = new coll.model()
+    pivot.set_obj('source', remotedata)
+    coll.add(pivot)
+    @cdxmodel.set({'activetable' : pivot.ref()}, {'silent' : true})
+    result = base.Collections.bulksave([@cdxmodel, pivot, remotedata])
+    result.done(() =>
+      @cdxmodel.trigger('change:activetable')
+    )
   render_plotlist : () ->
     plotlist = @cdxmodel.get_obj('plotlist')
     @plotlistview = new plotlist.default_view(model : plotlist)
-    @$plotholder.append(@plotlistview.$el)
+    @$plotholder.html('').append(@plotlistview.$el)
 
   render_activetable : () ->
     activetable = @cdxmodel.get_obj('activetable')
     if activetable
       @activetableview = new activetable.default_view(model : activetable)
-      @$table.append(@activetableview.$el)
+      @$table.html('').append(@activetableview.$el)
 
   render_layouts : () ->
     @$namespace = $('<div class="namespaceholder hundredpct"></div>')

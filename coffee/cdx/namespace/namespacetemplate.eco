@@ -1,23 +1,25 @@
-<table class="table">
+<table class="table" cellpadding="0" cellspacing="0">
   <% for varname in @metadata._varnames: %>
-  <tr class="namespace-variable-<%= @varname %>">
-    <% for colname, idx in @metadata[varname]._colnames: %>
+  <% for colname, idx in @metadata[varname]._colnames: %>  
+  <tr class="namespace-row" varname="<%= varname %>">
     <% if idx == 0: %>
-    <td valign="top" rowspan="<%= @metadata[varname]._colnames.length %>">
+    <td class="namespace-element" 
+        valign="top" 
+        rowspan="<%= @metadata[varname]._colnames.length %>">
       <%= varname %>
     </td>
     <% end %>
-    <td>
+    <td class="namespace-element">
       <a class="cdxtooltip"><%= colname %>
         <span>
           Summary Statistics
-          <table>
+          <table cellpadding="0" cellspacing="0">
             <% for statname in @metadata[varname][colname]._statnames: %>
             <tr>
-              <td>
+              <td class="namespace-element">
                 <%= statname %>
               </td>
-              <td>
+              <td class="namespace-element">
                 <%= @data[varname][colname][statname] %>
               </td>
             </tr>
@@ -27,5 +29,6 @@
       </a>
     </td>
   </tr>
+  <% end %>
   <% end %>
 </table>

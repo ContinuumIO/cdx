@@ -2,11 +2,23 @@ ContinuumView = require("../common/continuum_view").ContinuumView
 base = require("../base")
 HasProperties = require("../base").HasProperties
 locations = base.locations
+pandas = require("../pandas/pandas")
 
 class NamespaceView extends ContinuumView
   initialize : (options) ->
     super(options)
     @render()
+  events :
+    "click .namespace-row" : "rowclick"
+
+  rowclick : (e) =>
+    varname = $(e.currentTarget).attr('varname')
+    @trigger("view", varname)
+
+  delegateEvents : (events) ->
+    super(events)
+    @listenTo(@model, 'change', @render)
+
   template : require("./namespacetemplate")
   render : () ->
     data = @mget('data')

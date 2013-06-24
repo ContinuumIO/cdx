@@ -22,8 +22,9 @@ class Namespace(PlotObject):
     data = Dict()
     def populate(self):
         ns = get_ipython().user_ns
+        self.data = {}
         for k,v in ns.iteritems():
-            if isinstance(v, pd.DataFrame):
+            if isinstance(v, pd.DataFrame) and not k.startswith("_"):
                 summary = v.describe()
                 self.data[k] = summary.to_dict()
         self.session.store_obj(self)
