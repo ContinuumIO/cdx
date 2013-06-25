@@ -7,9 +7,17 @@ import json
 #app = Flask('cdx.remotedata.pandasserver')
 app = Flask(__name__)
 selections = {}
+computed_columns = {}
 
 #should memoize this
 namespace = None
+
+def computed_column(data, column_spec):
+    localvars = dict(**data)
+    localvars['pd'] = pd
+    localvars['np'] = np
+    result = eval(column_spec['code'], localvars)
+    data[column_spec['name']] = result
 
 def get_data(varname, transforms):
     sort = transforms.get('sort', [])
@@ -18,6 +26,7 @@ def get_data(varname, transforms):
     offset = transforms.get('offset', 0)
     length = transforms.get('length', None)
     filterselected = transforms.get('filterselected', False)
+    cc = computed_columns.get(varname, [])
     raw_selected = selections.get(varname, [])
     ns = namespace
     data = ns[varname]
@@ -26,6 +35,8 @@ def get_data(varname, transforms):
     data['_counts'] = np.ones(len(data))
     data['_selected'] = np.zeros(len(data))
     data.ix[raw_selected, '_selected'] = 1
+    for column_spec in cc:
+        computed_column(data, column_spec)
     if group and agg:
         groupobj = data.groupby(group)
         data = getattr(groupobj, agg)()
@@ -54,6 +65,8 @@ def get_data(varname, transforms):
         selected = stats['_selected']
         data['_counts'] = counts
         data['_selected'] = selected
+    del ns[varname]['_counts']
+    del ns[varname]['_selected']
     return groupobj, data, maxlength, totallength
 
 def jsonify(df):
@@ -64,6 +77,12 @@ def jsonify(df):
     data['_index'] = df.index.tolist()
     return dict(data=data, column_names=column_names)
 
+@app.route("/array/<varname>/computed")
+def set_computed(varname):
+    cc = json.loads(request.data)
+    computed_columns[varname] = cc
+    return make_json(protocol.serialize_json(cc))
+    
 import logging
 @app.route("/array/<varname>")
 def get(varname):
