@@ -123,18 +123,21 @@ def test():
 def _run(server):
     server.serve_forever()
     
+server = None
+def shutdown():
+    print 'QUITTING'
+    server.shutdown()
+    server.socket.close()
+    
 def run():
+    global namespace
+    global server
+    if server:
+        shutdown()
     import werkzeug.serving
     server = werkzeug.serving.make_server("localhost", 10020, app=app)
     import signal
     import os
-    def shutdown():
-        print 'QUITTING'
-        server.shutdown_signal = True
-        # python 2.7
-        server._BaseServer__shutdown_request = True
-        # python 2.6
-        server._BaseServer__serving = False
     if hasattr(get_ipython(), 'exit'):
         exit_func = get_ipython().exit
         def new_exit():
@@ -142,7 +145,6 @@ def run():
             exit_func()
         get_ipython().exit = new_exit
     import threading
-    global namespace
     namespace = get_ipython().user_ns
     t = threading.Thread(target=_run, args=(server,))
     t.start()

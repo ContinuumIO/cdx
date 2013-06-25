@@ -8,8 +8,15 @@ class CDXRouter extends Backbone.Router
     view = new CDXApp(title : title)
     $('#CDX').append(view.el)
     window.view = view
-    ipython_port = Number($('body').data('ipython-port'))
-    window.setup_ipython("ws://localhost:#{ipython_port}")
+    ipython_ws_addr = $('body').data('ipython-ws-addr')
+    window.setup_ipython(ipython_ws_addr)
+    cdx_addr = $('body').data('cdx-addr')
+    code = "import cdx.remotedata.pandasserver as pds; pds.run()\n"
+    code += "from cdx.session import CDXSession; sess = CDXSession(serverloc='#{cdx_addr}')"
+    thecell.set_text(code)
+    #hacky...
+    _.delay((() => thecell.execute()), 1000)
+
 $(()->
   register_models()
   router = new CDXRouter()

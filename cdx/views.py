@@ -15,6 +15,11 @@ def render(template, **kwargs):
 
 @cdx_app.route('/cdx')
 def index():
-    return render('cdx.html', ipython_port=cdx_app.ipython_port)
+    ipython_ws_addr = "ws://localhost:%s" % cdx_app.ipython_port
+    cdx_addr = "http://localhost:%s" % cdx_app.port
+    return render('cdx.html',
+                  ipython_ws_addr=ipython_ws_addr,
+                  cdx_addr=cdx_addr,
+                  )
 
     
