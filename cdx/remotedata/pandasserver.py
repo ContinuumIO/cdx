@@ -18,7 +18,15 @@ def computed_column(data, column_spec):
     localvars['np'] = np
     result = eval(column_spec['code'], localvars)
     data[column_spec['name']] = result
-
+    
+def search(varname, code):
+    data = namespace[varname]
+    localvars = dict(**data)
+    localvars['pd'] = pd
+    localvars['np'] = np
+    result = eval(code, localvars)
+    selections[varname] = np.nonzero(result)[0].tolist()
+    
 def get_data(varname, transforms):
     sort = transforms.get('sort', [])
     group = transforms.get('group', [])
@@ -110,13 +118,19 @@ def compute_selection(varname):
     else:
         raw_selected = np.array(selected) + transforms.get('offset', 0)
     return raw_selected
+
+@app.route("/array/<varname>/search", methods=["POST"])
+def searchapi(varname):
+    code = request.data
+    search(varname, code)
+    return make_json(protocol.serialize_json(selections[varname]))
     
 @app.route("/array/<varname>/setselect", methods=["POST"])
 def set_selection(varname):
     raw_selected = compute_selection(varname)
     selections[varname] = raw_selected
     print selections[varname]
-    return make_json(json.dumps(selections[varname]))
+    return make_json(protocol.serialize_json(selections[varname]))
 
 @app.route("/array/<varname>/select", methods=["POST"])
 def select(varname):
@@ -124,7 +138,7 @@ def select(varname):
     selections[varname] = np.union1d(raw_selected,
                                      selections.get(varname, [])).tolist()
     print selections[varname]
-    return make_json(json.dumps(selections[varname]))    
+    return make_json(protocol.serialize_json(selections[varname]))    
 
 @app.route("/array/<varname>/deselect", methods=["POST"])
 def deselect(varname):
@@ -132,7 +146,7 @@ def deselect(varname):
     selections[varname] = np.setdiff1d(selections.get(varname, []),
                                        raw_selected).tolist()
     print selections[varname]
-    return make_json(json.dumps(selections[varname]))    
+    return make_json(protocol.serialize_json(selections[varname]))    
 
 
 @app.route("/test")
