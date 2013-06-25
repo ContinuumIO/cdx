@@ -66,7 +66,7 @@ class CDXApp extends Backbone.View
       @cdxmodel = cdx
       @listenTo(@cdxmodel, 'change:activetable', @render_activetable)
       @listenTo(@cdxmodel, 'change:namespace', @render_namespace)
-      @listenTo(@cdxmodel, 'change:namespace', @render_potlist)
+      @listenTo(@cdxmodel, 'change:plotlist', @render_potlist)
       @render_namespace()
       @render_plotlist()
       @render_activetable()
@@ -113,6 +113,8 @@ class CDXApp extends Backbone.View
     if activetable
       @activetableview = new activetable.default_view(model : activetable)
       @$table.html('').append(@activetableview.$el)
+    else
+      @$table.html('')
 
   render_layouts : () ->
     @$namespace = $('<div class="namespaceholder hundredpct"></div>')
