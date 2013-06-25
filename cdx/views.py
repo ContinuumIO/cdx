@@ -15,6 +15,6 @@ def render(template, **kwargs):
 
 @cdx_app.route('/cdx')
 def index():
-    return render('cdx.html')
+    return render('cdx.html', ipython_port=cdx_app.ipython_port)
 
     

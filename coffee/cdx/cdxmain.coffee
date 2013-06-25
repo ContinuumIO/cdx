@@ -8,7 +8,8 @@ class CDXRouter extends Backbone.Router
     view = new CDXApp(title : title)
     $('#CDX').append(view.el)
     window.view = view
-    window.setup_ipython("ws://localhost:10010")
+    ipython_port = Number($('body').data('ipython-port'))
+    window.setup_ipython("ws://localhost:#{ipython_port}")
 $(()->
   register_models()
   router = new CDXRouter()
