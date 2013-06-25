@@ -46,7 +46,8 @@ class ManagedProcess(object):
             
     def remove_from_pidfile(self):
         data = self.read_pidfile()
-        del data[self.name]
+        if self.name in data:
+            del data[self.name]
         with open(self.pidfilename, "w+") as f:
             json.dump(data, f)
         
