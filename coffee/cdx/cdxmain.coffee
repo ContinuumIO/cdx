@@ -12,7 +12,9 @@ class CDXRouter extends Backbone.Router
     window.setup_ipython(ipython_ws_addr)
     cdx_addr = $('body').data('cdx-addr')
     code = "import cdx.remotedata.pandasserver as pds; pds.run()\n"
-    code += "from cdx.session import CDXSession; sess = CDXSession(serverloc='#{cdx_addr}')"
+    code += "from cdx.session import CDXSession; sess = CDXSession(serverloc='#{cdx_addr}')\n"
+    code += "sess.use_doc('#{title}')\n"
+
     thecell.set_text(code)
     #hacky...
     _.delay((() => thecell.execute()), 1000)
