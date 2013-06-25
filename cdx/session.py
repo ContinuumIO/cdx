@@ -35,6 +35,13 @@ class CDXSession(PlotServerSession):
             cdx.plotlist = PlotList()
             self.add(cdx.plotlist)
             self.store_objs([cdx, cdx.plotlist])
+            
+    def reset(self):
+        self.cdx.activetable = None
+        self.cdx.plotlist.children = []
+        self.cdx.plotlist._dirty = True
+        self.cdx.namespace.data = {}
+        self.store_all()
         
     def plot(self, xname, yname, source):
         plot_source = PandasPlotSource(source=source)
