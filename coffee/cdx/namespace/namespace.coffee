@@ -23,7 +23,10 @@ class NamespaceView extends ContinuumView
   render : () ->
     data = @mget('data')
     metadata = {}
-    metadata._varnames = _.keys(data)
+    if data
+      metadata._varnames = _.keys(data)
+    else
+      metadata._varnames = []
     metadata._varnames.sort()
     for own variable, variable_data of data
       metadata[variable] = {}
