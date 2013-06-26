@@ -36,6 +36,10 @@ class CDXSession(PlotServerSession):
             self.add(cdx.plotlist)
             self.store_objs([cdx, cdx.plotlist])
             
+    @property
+    def source(self):
+        return self.cdx.activetable.source
+    
     def reset(self):
         self.cdx.activetable = None
         self.cdx.plotlist.children = []
@@ -75,7 +79,7 @@ class CDXSession(PlotServerSession):
         plot.tools = [pantool, zoomtool, selecttool]
         plot.renderers.append(overlay)
         self.add(plot, glyph_renderer, xaxis, yaxis, xgrid, ygrid, plot_source, xdr, ydr, pantool, zoomtool, selecttool, overlay)
-        self.cdx.plotlist.children.append(plot)
+        self.cdx.plotlist.children.insert(0, plot)
         self.cdx.plotlist._dirty = True
         stored = self.store_all()
         return stored
