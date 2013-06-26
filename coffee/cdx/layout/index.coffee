@@ -67,7 +67,7 @@ class HBoxView extends SlideableLayout
   content_selector : '.hcontent'
   template : hboxtemplate
   attributes :
-    class : 'hbox'
+    class : 'cdxhbox'
 
   events :
     "mousedown .hseparator" :  'handle_click'
@@ -80,7 +80,7 @@ class VBoxView extends SlideableLayout
   content_selector : '.vcontent'
   template : vboxtemplate
   attributes :
-    class : 'vbox'
+    class : 'cdxvbox'
 
   events :
     "mousedown .vseparator" :  'handle_click'
