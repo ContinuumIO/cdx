@@ -23471,7 +23471,6 @@ var IPython = (function (IPython) {
 // On document ready
 //============================================================================
 
-
 window.setup_ipython = function (ws_url) {
     // monkey patch CM to be able to syntax highlight cell magics
     // bug reported upstream,
@@ -23525,7 +23524,7 @@ window.setup_ipython = function (ws_url) {
     $("a#interrupt").click(function() {
         kernel.interrupt();
     })
-}
+};
 
 
 
@@ -24404,9 +24403,15 @@ window.setup_ipython = function (ws_url) {
       }
     };
 
-    CDXApp.prototype.render_layouts = function() {
-      var ipcell;
+    CDXApp.prototype.split_ipython = function() {
+      var temp;
 
+      temp = $('#thecell').find('.output_wrapper');
+      temp.detach();
+      return this.$ipoutput.append(temp);
+    };
+
+    CDXApp.prototype.render_layouts = function() {
       this.$namespace = $('<div class="namespaceholder hundredpct"></div>');
       this.$table = $('<div class="tableholder hundredpct"></div>');
       this.$plotholder = $('<div class="plotholder hundredpct"></div>');
@@ -24418,16 +24423,21 @@ window.setup_ipython = function (ws_url) {
       });
       this.plotbox.sizes = [10, 40, 40, 10];
       this.plotbox.set_sizes();
-      ipcell = $('<div id="thecell" class="hundredpct"></div>');
+      this.$ipcell = $('<div id="thecell" class="hundredpct"></div>');
+      this.$ipoutput = $("<div class='ipoutput'></div>");
+      this.iplayout = new layout.HBoxView({
+        elements: [this.$ipcell, this.$ipoutput],
+        height: '100%',
+        width: '100%'
+      });
       this.layout = new layout.VBoxView({
-        elements: [this.plotbox.$el, ipcell],
+        elements: [this.plotbox.$el, this.iplayout.$el],
         height: '100%',
         width: '100%'
       });
       this.layout.sizes = [80, 20];
       this.layout.set_sizes();
-      this.$el.append(this.layout.el);
-      return window.setup_ipython("ws://localhost:10010");
+      return this.$el.append(this.layout.el);
     };
 
     return CDXApp;
@@ -24446,11 +24456,13 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "cdxmain": function(exports, require, module) {(function() {
-  var CDXApp, CDXRouter, base, locations, register_models, _ref,
+  var CDXApp, CDXRouter, base, layout, locations, register_models, _ref,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   base = require("./base");
+
+  layout = require("./layout/index");
 
   locations = base.locations;
 
@@ -24465,13 +24477,36 @@ window.setup_ipython = function (ws_url) {
     }
 
     CDXRouter.prototype.routes = {
-      "cdx/:title": 'main'
+      "cdx/:title": 'main',
+      "justplots/:title": 'justplots'
+    };
+
+    CDXRouter.prototype.justplots = function(title) {
+      var cdxlink, plotlink, view;
+
+      cdxlink = window.location.href.replace("#justplots", "#cdx");
+      plotlink = window.location.href.replace("#cdx", "#justplots");
+      $('.justcdx').attr('href', cdxlink);
+      $('.justplots').attr('href', plotlink);
+      view = new CDXApp({
+        title: title
+      });
+      $('#CDX').append(view.el);
+      window.view = view;
+      view.layout.sizes = [100, 0];
+      view.layout.set_sizes();
+      view.plotbox.sizes = [0, 0, 80, 20];
+      return view.plotbox.set_sizes();
     };
 
     CDXRouter.prototype.main = function(title) {
-      var cdx_addr, code, ipython_ws_addr, view,
+      var cdx_addr, cdxlink, code, ipython_ws_addr, plotlink, view,
         _this = this;
 
+      cdxlink = window.location.href.replace("#justplots", "#cdx");
+      plotlink = window.location.href.replace("#cdx", "#justplots");
+      $('.justcdx').attr('href', cdxlink);
+      $('.justplots').attr('href', plotlink);
       view = new CDXApp({
         title: title
       });
@@ -24484,9 +24519,10 @@ window.setup_ipython = function (ws_url) {
       code += "from cdx.session import CDXSession; sess = CDXSession(serverloc='" + cdx_addr + "')\n";
       code += "sess.use_doc('" + title + "')\n";
       thecell.set_text(code);
-      return _.delay((function() {
+      _.delay((function() {
         return thecell.execute();
       }), 1000);
+      return view.split_ipython();
     };
 
     return CDXRouter;

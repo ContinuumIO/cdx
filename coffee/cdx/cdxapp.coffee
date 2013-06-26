@@ -169,7 +169,6 @@ class CDXApp extends Backbone.View
     @layout.sizes = [80,20]
     @layout.set_sizes()
     @$el.append(@layout.el)
-    window.setup_ipython("ws://localhost:10010")
 
 utility = utils.utility
 Promises = utils.Promises

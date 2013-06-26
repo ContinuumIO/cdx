@@ -65,6 +65,15 @@
   position: absolute;
   cursor: s-resize;
 }
+table.table thead tr th:nth-child(odd) {
+  background: #464e59;
+}
+table.table thead tr th:nth-child(even) {
+  background: #5f6a79;
+}
+table.table tbody tr td:nth-child(odd) {
+  background: #f4f5f5;
+}
 article,
 aside,
 details,
@@ -6129,4 +6138,11 @@ a.cdxtooltip span {
 }
 .table .namespace-row .namespace-element {
   padding: 2px;
+}
+.mynav {
+  height: 35px;
+}
+.justcdx,
+.justplots {
+  padding: 0px 10px 0px !important;
 }
