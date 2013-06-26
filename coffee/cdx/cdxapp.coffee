@@ -137,6 +137,11 @@ class CDXApp extends Backbone.View
     else
       @$table.html('')
 
+  split_ipython : () ->
+    temp = $('#thecell').find('.output_wrapper')
+    temp.detach()
+    @$ipoutput.append(temp)
+
   render_layouts : () ->
     @$namespace = $('<div class="namespaceholder hundredpct"></div>')
     @$table = $('<div class="tableholder hundredpct"></div>')
@@ -149,16 +154,21 @@ class CDXApp extends Backbone.View
     )
     @plotbox.sizes = [10, 40, 40, 10]
     @plotbox.set_sizes()
-    ipcell = $('<div id="thecell" class="hundredpct"></div>')
+    @$ipcell = $('<div id="thecell" class="hundredpct"></div>')
+    @$ipoutput = $("<div class='ipoutput'></div>")
+    @iplayout = new layout.HBoxView(
+      elements : [@$ipcell, @$ipoutput]
+      height : '100%'
+      width : '100%'
+    )
     @layout = new layout.VBoxView(
-      elements : [@plotbox.$el, ipcell]
+      elements : [@plotbox.$el, @iplayout.$el]
       height : '100%'
       width : '100%'
     )
     @layout.sizes = [80,20]
     @layout.set_sizes()
     @$el.append(@layout.el)
-    window.setup_ipython("ws://localhost:10010")
 
 utility = utils.utility
 Promises = utils.Promises

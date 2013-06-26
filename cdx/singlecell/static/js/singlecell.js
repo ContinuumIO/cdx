@@ -9,7 +9,6 @@
 // On document ready
 //============================================================================
 
-
 window.setup_ipython = function (ws_url) {
     // monkey patch CM to be able to syntax highlight cell magics
     // bug reported upstream,
@@ -63,5 +62,5 @@ window.setup_ipython = function (ws_url) {
     $("a#interrupt").click(function() {
         kernel.interrupt();
     })
-}
+};
 

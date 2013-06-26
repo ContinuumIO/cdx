@@ -69,3 +69,26 @@
     position : absolute;
     cursor : s-resize;
 }
+
+
+@background_gray1 : orange;
+@background_gray_light_light: #f4f5f5;
+@background_gray_light: #5f6a79;
+@background_gray_dark: #464e59;
+@regular_text_color: white;
+@header_text_color: 464e59;
+
+
+table.table thead tr th:nth-child(odd) {
+    background: @background_gray_dark;
+}
+table.table thead tr th:nth-child(even) {
+    background: @background_gray_light;
+}
+
+
+table.table tbody tr td:nth-child(odd) {
+    background: @background_gray_light_light;
+}
+
+
