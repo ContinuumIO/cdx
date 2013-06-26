@@ -124,7 +124,24 @@ class CDXApp extends Backbone.View
   render_activeplot : () ->
     activeplot = @cdxmodel.get_obj('activeplot')
     if activeplot
-      view = new activeplot.default_view(model : activeplot)
+      width = @$plotholder.width()
+      height = @$plotholder.height()
+      ratio1 = width / activeplot.get('outer_width')
+      ratio2 = height / activeplot.get('outer_height')
+      ratio = _.min([ratio1, ratio2])
+      newwidth = activeplot.get('outer_width') * ratio
+      newheight = activeplot.get('outer_height') * ratio
+      canvas_height = newheight - \
+        (activeplot.get('border_top') + activeplot.get('border_bottom'))
+      canvas_width = newwidth - \
+        (activeplot.get('border_top') + activeplot.get('border_bottom'))
+      view = new activeplot.default_view(
+        model : activeplot
+        canvas_height : canvas_height
+        canvas_width : canvas_width
+        outer_width : newwidth
+        outer_height : newheight
+      )
       @$plotholder.html('').append(view.$el)
     else
       @$plotholder.html('')
