@@ -40,7 +40,8 @@ for dirname, _, files in os.walk('cdx/singlecell/templates',
 setup(
     name = 'cdx',
     version = '.'.join([str(x) for x in __version__]),
-    packages = ['cdx', 'cdx.models', 'cdx.remotedata', 'cdx.singlecell']
+    packages = ['cdx', 'cdx.remotedata', 'cdx.singlecell'],
+    scripts=['cdxlocal.py', 'cdxlocaldebug.py'],
     package_data = {'bokeh' : package_data_dirs},
     author = 'Continuum Analytics',
     author_email = 'info@continuum.io',

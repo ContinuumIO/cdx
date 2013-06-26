@@ -1,3 +1,4 @@
+#!python
 import os
 import argparse
 parser = argparse.ArgumentParser()
@@ -31,10 +32,22 @@ parser.add_argument("--redis-port",
                     type=int,
                     default=7000
                     )
-parser.add_argument("--start-redis",
-                    help="port for redis",
-                    type=bool,
+parser.add_argument("-r", "--start-redis",
+                    help="start redis",
+                    action="store_true",
                     default=True
+                    )
+
+parser.add_argument("-d", "--debug",
+                    help="debug python",
+                    action="store_true",
+                    default=False
+                    )
+
+parser.add_argument("-j", "--debugjs",
+                    help="debug js",
+                    action="store_true",
+                    default=False
                     )
 
 args = parser.parse_args()
@@ -46,12 +59,21 @@ app = start.prepare_app(
     userapikey=args.userapikey,
     ipython_port=args.ipython_port,
     redis_port=args.redis_port,
-    arrayserver_port=args.arrayserver_port
-                        )
+    arrayserver_port=args.arrayserver_port,
+    debug=args.debug, debugjs=args.debugjs
+    )
 start.prepare_local()
-hemlib.slug_path = os.path.dirname(__file__)
+if args.debugjs:
+    print "if you are debugging javascript, you must execute cdx from the same directory as slug.json"
+    hemlib.slug_path = os.path.dirname(__file__)
 
 if __name__ == "__main__":
     from cdx import start
-    start.start_app(app, verbose=True)
+    if args.debug:
+        import werkzeug.serving
+        @werkzeug.serving.run_with_reloader
+        def helper ():
+            start.start_app(app, verbose=True)
+    else:
+        start.start_app(app, verbose=True)
 
