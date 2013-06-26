@@ -34,7 +34,7 @@
         "./subtree/Bokeh/subtree/bokehjs/static/coffee"
     ],
     "identifier" : "require",
-    "public" : "./static",
+    "public" : "./cdx/static",
     "jsPath" : "/js/application.js",
     "css" : "./cdx/static/less/index.less",
     "cssPath" : "/css/application.css",
