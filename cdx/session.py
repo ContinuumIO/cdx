@@ -80,6 +80,7 @@ class CDXSession(PlotServerSession):
         plot.renderers.append(overlay)
         self.add(plot, glyph_renderer, xaxis, yaxis, xgrid, ygrid, plot_source, xdr, ydr, pantool, zoomtool, selecttool, overlay)
         self.cdx.plotlist.children.insert(0, plot)
+        self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
         stored = self.store_all()
         return stored

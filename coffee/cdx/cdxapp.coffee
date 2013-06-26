@@ -1,3 +1,4 @@
+plot_context = require("./common/plot_context")
 layout = require("./layout/index")
 bokehutils = require("./serverutils")
 utils = require("./serverutils")
@@ -66,10 +67,12 @@ class CDXApp extends Backbone.View
       @cdxmodel = cdx
       @listenTo(@cdxmodel, 'change:activetable', @render_activetable)
       @listenTo(@cdxmodel, 'change:namespace', @render_namespace)
-      @listenTo(@cdxmodel, 'change:plotlist', @render_potlist)
+      @listenTo(@cdxmodel, 'change:plotlist', @render_plotlist)
+      @listenTo(@cdxmodel, 'change:activeplot', @render_activeplot)
       @render_namespace()
       @render_plotlist()
       @render_activetable()
+      @render_activeplot()
     )
 
     @wswrapper = wswrapper
@@ -103,10 +106,28 @@ class CDXApp extends Backbone.View
     result.done(() =>
       @cdxmodel.trigger('change:activetable')
     )
+
   render_plotlist : () ->
     plotlist = @cdxmodel.get_obj('plotlist')
-    @plotlistview = new plotlist.default_view(model : plotlist)
-    @$plotholder.html('').append(@plotlistview.$el)
+    @plotlistview = new plot_context.PNGContextView(
+      model : plotlist
+      thumb_x : 150
+      thumb_y : 150
+    )
+    @$plotlist.html('').append(@plotlistview.$el)
+    @listenTo(@plotlistview, 'showplot', @showplot)
+
+  showplot : (ref) ->
+    model = @cdxmodel.resolve_ref(ref)
+    @cdxmodel.set_obj('activeplot', model)
+
+  render_activeplot : () ->
+    activeplot = @cdxmodel.get_obj('activeplot')
+    if activeplot
+      view = new activeplot.default_view(model : activeplot)
+      @$plotholder.html('').append(view.$el)
+    else
+      @$plotholder.html('')
 
   render_activetable : () ->
     activetable = @cdxmodel.get_obj('activetable')
@@ -120,13 +141,13 @@ class CDXApp extends Backbone.View
     @$namespace = $('<div class="namespaceholder hundredpct"></div>')
     @$table = $('<div class="tableholder hundredpct"></div>')
     @$plotholder = $('<div class="plotholder hundredpct"></div>')
-    ##@$plotlist = $('<div class="plotlistholder hundredpct"></div>')
+    @$plotlist = $('<div class="plotlistholder hundredpct"></div>')
     @plotbox = new layout.HBoxView(
-      elements : [@$namespace, @$table, @$plotholder]
+      elements : [@$namespace, @$table, @$plotholder, @$plotlist]
       height : '100%',
       width : '100%',
     )
-    @plotbox.sizes = [20, 40, 40]
+    @plotbox.sizes = [10, 40, 40, 10]
     @plotbox.set_sizes()
     ipcell = $('<div id="thecell" class="hundredpct"></div>')
     @layout = new layout.VBoxView(
