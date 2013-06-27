@@ -88,24 +88,25 @@ a.cdxtooltip span
 @background_gray_light: #5f6a79;
 @background_gray_dark: #464e59;
 @regular_text_color: white;
-@header_text_color: 464e59;
+@header_text_color: #464e59;
 
 
-.bokehtable .table thead tr th:nth-child(even) {
+.bokehdatatable .table thead tr th:nth-child(even) {
     background: @background_gray_dark;
 }
 
-.bokehtable .table thead tr th:nth-child(odd) {
+.bokehdatatable .table thead tr th:nth-child(odd) {
     background: @background_gray_light;
 }
 
-.bokehtable .table tbody tr td:nth-child(even) {
+.bokehdatatable .table tbody tr td:nth-child(even) {
     background: @background_gray_light_light;
 }
 
-.bokehtable .table thead th {
-  border-color: #464e59 !important;
+.bokehdatatable .table thead th {
+  border-color: @background_gray_dark !important;;
   color: #fff;
+  text-transform: capitalize;
   font-weight: 400;
   text-shadow: 1px 1px 0 #444;
   a {
@@ -117,15 +118,15 @@ a.cdxtooltip span
   }
 }
 
-.bokehtable .table td {
+.bokehdatatable .table td {
   border-top: 1px solid #b1b7c0 !important;
 }
 
-.bokehtable .table-bordered {
+.bokehdatatable .table-bordered {
   border: 1px solid #b1b7c0 !important;
 }
 
-.bokehtable .table-bordered th, 
-.bokehtable .table-bordered td {
+.bokehdatatable .table-bordered th, 
+.bokehdatatable .table-bordered td {
   border-left: 1px solid #b1b7c0 !important;
 }
