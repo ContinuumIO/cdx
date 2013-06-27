@@ -23592,7 +23592,7 @@ window.setup_ipython = function (ws_url) {
     var thecell = new IPython.CodeCell(kernel);
     $("div#thecell").append(thecell.element);
     window.thecell = thecell
-    thecell.code_mirror.setSize("100%", 100)
+    thecell.code_mirror.setSize("100%", 93)
     // set some example input
     // focus the cell
     thecell.select();
@@ -23730,25 +23730,25 @@ window.setup_ipython = function (ws_url) {
           __out.push(__sanitize(varname));
           __out.push('">\n    ');
           if (idx === 0) {
-            __out.push('\n    <td class="namespace-element" \n        valign="top" \n        rowspan="');
-            __out.push(__sanitize(this.metadata[varname]._colnames.length));
-            __out.push('">\n      ');
+            __out.push('\n    <td class="namespace-element namespace-title">\n      ');
             __out.push(__sanitize(varname));
             __out.push('\n    </td>\n    ');
+          } else {
+            __out.push('\n    <td class="cdxtooltip namespace-element">\n      <a>');
+            __out.push(__sanitize(colname));
+            __out.push(' </a>\n      <span>\n        Summary Statistics\n        <table cellpadding="0" cellspacing="0">\n          ');
+            _ref2 = this.metadata[varname][colname]._statnames;
+            for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+              statname = _ref2[_k];
+              __out.push('\n          <tr>\n            <td class="">\n              ');
+              __out.push(__sanitize(statname));
+              __out.push('\n            </td>\n            <td class="">\n              ');
+              __out.push(__sanitize(this.data[varname][colname][statname]));
+              __out.push('\n            </td>\n          </tr>\n          ');
+            }
+            __out.push('\n        </table>\n      </span>\n    </td>\n    ');
           }
-          __out.push('\n    <td class="namespace-element">\n      <a class="cdxtooltip">');
-          __out.push(__sanitize(colname));
-          __out.push('\n        <span>\n          Summary Statistics\n          <table cellpadding="0" cellspacing="0">\n            ');
-          _ref2 = this.metadata[varname][colname]._statnames;
-          for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-            statname = _ref2[_k];
-            __out.push('\n            <tr>\n              <td class="namespace-element">\n                ');
-            __out.push(__sanitize(statname));
-            __out.push('\n              </td>\n              <td class="namespace-element">\n                ');
-            __out.push(__sanitize(this.data[varname][colname][statname]));
-            __out.push('\n              </td>\n            </tr>\n            ');
-          }
-          __out.push('\n          </table>\n        </span>\n      </a>\n    </td>\n  </tr>\n  ');
+          __out.push('\n  </tr>\n  ');
         }
         __out.push('\n  ');
       }
@@ -24637,7 +24637,8 @@ window.setup_ipython = function (ws_url) {
       _.delay((function() {
         return thecell.execute();
       }), 1000);
-      return view.split_ipython();
+      view.split_ipython();
+      return $('#thecell').parent().css('overflow', 'hidden');
     };
 
     return CDXRouter;
@@ -27012,7 +27013,7 @@ window.setup_ipython = function (ws_url) {
     };
 
     PlotView.prototype.render_init = function() {
-      this.$el.append($("<div class='button_bar'/>\n<div class='bokeh_canvas_wrapper'>\n  <canvas class='bokeh_canvas'></canvas>\n</div>"));
+      this.$el.append($("<div class='button_bar'/>\n<div class='plottitle'>" + (this.mget('title')) + "</div>\n<div class='bokeh_canvas_wrapper'>\n  <canvas class='bokeh_canvas'></canvas>\n</div>"));
       this.button_bar = this.$el.find('.button_bar');
       this.canvas_wrapper = this.$el.find('.bokeh_canvas_wrapper');
       return this.canvas = this.$el.find('canvas.bokeh_canvas');
@@ -27674,8 +27675,7 @@ window.setup_ipython = function (ws_url) {
 
     function PlotContextView() {
       this.removeplot = __bind(this.removeplot, this);
-      this.closeall = __bind(this.closeall, this);
-      this.savetitle = __bind(this.savetitle, this);      _ref = PlotContextView.__super__.constructor.apply(this, arguments);
+      this.closeall = __bind(this.closeall, this);      _ref = PlotContextView.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
@@ -27704,8 +27704,7 @@ window.setup_ipython = function (ws_url) {
 
     PlotContextView.prototype.events = {
       'click .plotclose': 'removeplot',
-      'click .closeall': 'closeall',
-      'keydown .plottitle': 'savetitle'
+      'click .closeall': 'closeall'
     };
 
     PlotContextView.prototype.size_textarea = function(textarea) {
@@ -27713,21 +27712,6 @@ window.setup_ipython = function (ws_url) {
 
       scrollHeight = $(textarea).height(0).prop('scrollHeight');
       return $(textarea).height(scrollHeight);
-    };
-
-    PlotContextView.prototype.savetitle = function(e) {
-      var plotnum, s_pc;
-
-      if (e.keyCode === 13) {
-        e.preventDefault();
-        plotnum = parseInt($(e.currentTarget).parent().attr('data-plot_num'));
-        s_pc = this.model.resolve_ref(this.mget('children')[plotnum]);
-        s_pc.set('title', $(e.currentTarget).val());
-        s_pc.save();
-        $(e.currentTarget).blur();
-        return false;
-      }
-      return this.size_textarea($(e.currentTarget));
     };
 
     PlotContextView.prototype.closeall = function(e) {
@@ -27761,7 +27745,7 @@ window.setup_ipython = function (ws_url) {
     };
 
     PlotContextView.prototype.render = function() {
-      var index, key, modelref, node, numplots, tab_names, title, to_render, val, view, _i, _len, _ref1, _ref2,
+      var index, key, modelref, node, numplots, tab_names, to_render, val, view, _i, _len, _ref1, _ref2,
         _this = this;
 
       PlotContextView.__super__.render.call(this);
@@ -27785,8 +27769,6 @@ window.setup_ipython = function (ws_url) {
         view = this.views[modelref.id];
         node = $("<div class='jsp' data-plot_num='" + index + "'></div>");
         this.$el.append(node);
-        title = view.model.get('title');
-        node.append($("<textarea class='plottitle'>" + title + "</textarea>"));
         node.append($("<a class='plotclose'>[close]</a>"));
         node.append(view.el);
       }
@@ -30791,7 +30773,7 @@ window.setup_ipython = function (ws_url) {
         } else {
           __out.push('\n    <input type="checkbox" class="filterselected"/>\n    ');
         }
-        __out.push('\n    Filter Selection\n  </label>\n  <input type="button" class="clearselected btn btn-mini" value="Clear Selection"/>\n  <label>\n    Search\n  </label>\n  <input type="text" class="search input-medium"/>\n  ');
+        __out.push('\n    Filter Selection\n  </label>\n  <input type="button" class="clearselected btn btn-mini" value="Clear Selection"/>\n  <label>\n    Search\n  </label>\n  <input type="text" class="search input-large"/>\n  ');
       }
     
       __out.push('\n  \n  ');
@@ -30812,7 +30794,7 @@ window.setup_ipython = function (ws_url) {
         __out.push('\n    <tr>\n      <td>\n        <input type="text" class="computedname input-mini"/>\n      </td>\n      <td>\n        <input type="text" class="computedtxtbox input-medium"/>\n      </td>\n      <td>\n      </td>\n    </tr>\n  </table>\n  ');
       }
     
-      __out.push('\n  \n</form>\n\n<table class="table table-bordered"\n');
+      __out.push('\n  \n</form>\n\n<table class="bokehdatatable table table-bordered"\n');
     
       if (this.width) {
         __out.push('\n       style="max-height:');
@@ -33002,6 +32984,8 @@ window.setup_ipython = function (ws_url) {
       yscreenbounds = [_.min(yscreenbounds), _.max(yscreenbounds)];
       console.log(xscreenbounds);
       console.log(yscreenbounds);
+      console.log('min', _.min(this.sx), _.min(this.sy));
+      console.log('max', _.max(this.sx), _.max(this.sy));
       selected = [];
       for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
         if (xscreenbounds) {
