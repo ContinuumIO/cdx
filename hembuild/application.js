@@ -30825,9 +30825,9 @@ window.setup_ipython = function (ws_url) {
           __out.push(__sanitize(column));
           __out.push('</a>\n      \n      ');
           if (this.sort_ascendings[column] === true) {
-            __out.push('\n      <i class="icon-chevron-up"></i>\n      ');
+            __out.push('\n      <i class="icon-caret-up"></i>\n      ');
           } else if (this.sort_ascendings[column] === false) {
-            __out.push('\n      <i class="icon-chevron-down"></i>\n      ');
+            __out.push('\n      <i class="icon-caret-down"></i>\n      ');
           }
           __out.push('\n      \n      ');
         }
