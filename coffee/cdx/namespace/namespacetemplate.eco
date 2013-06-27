@@ -7,24 +7,23 @@
       <%= varname %>
     </td>
     <% else: %>
-    <td class="namespace-element">
-      <a class="cdxtooltip"><%= colname %>
-        <span>
-          Summary Statistics
-          <table cellpadding="0" cellspacing="0">
-            <% for statname in @metadata[varname][colname]._statnames: %>
-            <tr>
-              <td class="namespace-element">
-                <%= statname %>
-              </td>
-              <td class="namespace-element">
-                <%= @data[varname][colname][statname] %>
-              </td>
-            </tr>
-            <% end %>
-          </table>
-        </span>
-      </a>
+    <td class="cdxtooltip namespace-element">
+      <a><%= colname %> </a>
+      <span>
+        Summary Statistics
+        <table cellpadding="0" cellspacing="0">
+          <% for statname in @metadata[varname][colname]._statnames: %>
+          <tr>
+            <td class="">
+              <%= statname %>
+            </td>
+            <td class="">
+              <%= @data[varname][colname][statname] %>
+            </td>
+          </tr>
+          <% end %>
+        </table>
+      </span>
     </td>
     <% end %>
   </tr>
