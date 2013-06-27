@@ -53,6 +53,11 @@ class TwoPointEventGenerator
         @_stop_drag(e)
         return false)
 
+    @plotview.canvas_wrapper.bind('mouseout', (e) =>
+      if @button_activated
+        @_stop_drag(e)
+        return false)
+
     @$tool_button = $("<button class='btn btn-small'> #{@options.buttonText} </button>")
     @plotview.$el.find('.button_bar').append(@$tool_button)
 
