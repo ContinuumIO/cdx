@@ -80,10 +80,16 @@ def get_data(varname, transforms):
 def jsonify(df):
     column_names = df.columns.tolist()
     data = {}
+    metadata = {}
     for k in column_names:
-        data[k] = df[k].tolist()
-    data['_index'] = df.index.tolist()
-    return dict(data=data, column_names=column_names)
+        if df[k].dtype.type == np.datetime64:
+            metadata[k] = {'date' : True}
+            data[k] = df[k].astype('datetime64[ms]').astype('int64').tolist()
+        else:
+            data[k] = df[k].tolist()
+    data['index'] = df.index.tolist()
+    column_names.insert(0, "index")
+    return dict(data=data, column_names=column_names, metadata=metadata)
 
 @app.route("/array/<varname>/computed")
 def set_computed(varname):
