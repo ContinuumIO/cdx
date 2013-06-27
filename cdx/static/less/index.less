@@ -88,7 +88,7 @@ a.cdxtooltip span
 @background_gray_light: #5f6a79;
 @background_gray_dark: #464e59;
 @regular_text_color: white;
-@header_text_color: 464e59;
+@header_text_color: #464e59;
 
 
 .bokehdatatable .table thead tr th:nth-child(even) {
@@ -104,8 +104,9 @@ a.cdxtooltip span
 }
 
 .bokehdatatable .table thead th {
-  border-color: #464e59 !important;;
+  border-color: @background_gray_dark !important;;
   color: #fff;
+  text-transform: capitalize;
   font-weight: 400;
   text-shadow: 1px 1px 0 #444;
   a {
