@@ -107,8 +107,10 @@ class CDXSession(PlotServerSession):
                             dimensions=("width","height"))
         selecttool = SelectionTool(renderers=[glyph_renderer])
         overlay = BoxSelectionOverlay(tool=selecttool)
+        title = "%s %s vs %s" % (varname, xname, yname)
         plot = Plot(x_range=xdr, y_range=ydr, data_sources=[],
-                    border= 80)
+                    title=title, border_top=0, border_right=0,
+                    )
         xaxis = LinearAxis(plot=plot, dimension=0)
         yaxis = LinearAxis(plot=plot, dimension=1)
         xgrid = Rule(plot=plot, dimension=0)
