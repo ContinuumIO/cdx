@@ -129,8 +129,8 @@ class CDXApp extends Backbone.View
       ratio1 = width / activeplot.get('outer_width')
       ratio2 = height / activeplot.get('outer_height')
       ratio = _.min([ratio1, ratio2])
-      newwidth = activeplot.get('outer_width') * ratio
-      newheight = activeplot.get('outer_height') * ratio
+      newwidth = activeplot.get('outer_width') * ratio * 0.9
+      newheight = activeplot.get('outer_height') * ratio * 0.9
       view = new activeplot.default_view(
         model : activeplot
         canvas_height : newwidth
