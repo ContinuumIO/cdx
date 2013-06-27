@@ -91,11 +91,15 @@ class CDXApp extends Backbone.View
 
   make_table : (varname) ->
     coll = base.Collections("IPythonRemoteData")
-    remotedata = new coll.model (
-      host : @conninfo.host
-      port : @conninfo.port
-      varname : varname
-    )
+    remotedata = coll.filter((obj) -> obj.get('varname') == varname)
+    if remotedata.length > 0
+      remotedata = remotedata[0]
+    else
+      remotedata = new coll.model (
+        host : @conninfo.host
+        port : @conninfo.port
+        varname : varname
+      )
     coll.add(remotedata)
     coll = base.Collections("PandasPivotTable")
     pivot = new coll.model()

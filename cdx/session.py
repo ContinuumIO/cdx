@@ -6,10 +6,16 @@ from bokeh.objects import (
     ColumnDataSource, GlyphRenderer, ObjectArrayDataSource,
     PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay)
 from bokeh.glyphs import Circle
-from bokeh.pandasobjects import PandasPlotSource
+from bokeh.pandasobjects import PandasPlotSource, IPythonRemoteData
 import os
 
 class CDXSession(PlotServerSession):
+    def __init__(self, username=None, serverloc=None, userapikey="nokey",
+                 arrayserver_port=10020):
+        self.arrayserver_port = arrayserver_port
+        super(CDXSession, self).__init__(username=username,
+                                         serverloc=serverloc,
+                                         userapikey=userapikey)
     def load_doc(self, docid):
         super(CDXSession, self).load_doc(docid)
         cdx = self.load_type('CDX')
@@ -29,6 +35,7 @@ class CDXSession(PlotServerSession):
             self.store_obj(ns)
             self.store_obj(cdx)
         cdx.namespace.name = self.docname
+        cdx.namespace.port = self.arrayserver_port
         if not cdx.plotcontext:
             cdx.plotcontext = self.plotcontext
             self.store_obj(cdx)
@@ -50,10 +57,36 @@ class CDXSession(PlotServerSession):
         self.cdx.plotlist.children = []
         self.cdx.plotlist._dirty = True
         self.cdx.namespace.data = {}
+        self.cdx.activeplot = None
+
+
+        
         self.store_all()
         
-    def plot(self, xname, yname, source):
-        plot_source = PandasPlotSource(source=source)
+    def _get_plotsource(self, varname):
+        plot_source = [m for m in self._models.values() \
+                       if isinstance(m, PandasPlotSource) and \
+                       m.source.varname == varname]
+        if len(plot_source) > 0:
+            return plot_source[0]
+        remote_source = [m for m in self._models.values() \
+                       if isinstance(m, IPythonRemoteData) and \
+                       m.varname == varname]
+        if len(remote_source) > 0:
+            remote_source = remote_source[0]
+        else:
+            remote_source = IPythonRemoteData(host='localhost',
+                                              port=self.arrayserver_port,
+                                              varname=varname)
+            self.add(remote_source)
+        plot_source = PandasPlotSource(source=remote_source)
+        self.add(plot_source)
+        return plot_source
+            
+    def plot(self, xname, yname, varname, load=True):
+        if load:
+            self.load_all()
+        plot_source = self._get_plotsource(varname)
         xdr = DataRange1d(sources=[plot_source.columns(xname)])
         ydr = DataRange1d(sources=[plot_source.columns(yname)])
         circle = Circle(x=xname, y=yname, fill="blue", alpha=0.6, radius=3,

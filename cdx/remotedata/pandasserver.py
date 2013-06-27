@@ -168,13 +168,13 @@ def shutdown():
     server.shutdown()
     server.socket.close()
     
-def run():
+def run(port):
     global namespace
     global server
     if server:
         shutdown()
     import werkzeug.serving
-    server = werkzeug.serving.make_server("localhost", 10020, app=app)
+    server = werkzeug.serving.make_server("localhost", port, app=app)
     import signal
     import os
     if hasattr(get_ipython(), 'exit'):

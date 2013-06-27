@@ -12,9 +12,11 @@ import bokeh.objects
 import bokeh.glyphs
 
 from bokeh.objects import PlotObject, Plot
+from bokeh.pandasobjects import PlotObject, Plot, IPythonRemoteData
 from bokeh.session import PlotContext, PlotList
 
 
+global store
 
 # plot object is a bad name
 class Table(PlotObject):
@@ -23,6 +25,7 @@ class Table(PlotObject):
 class Namespace(PlotObject):
     data = Dict()
     name = String()
+    arrayserver_port = Int()
     
     def populate(self, todisk=True):
         ns = get_ipython().user_ns
@@ -35,23 +38,25 @@ class Namespace(PlotObject):
         if not todisk:
             return
         fname = self.filename
-        store = pd.HDFStore(fname)
-        for k,v in ns.iteritems():
-            if k in self.data:
-                store[k] = v
-        store.close()
+        with open(fname, "w+") as f:
+            data = {}
+            for k,v in ns.iteritems():
+                if k in self.data:
+                    data[k] = v
+            pickle.dump(data, f, protocol=-1)
         
     @property
     def filename(self):
-        return self.name + ".hdf5"
+        return self.name + ".pickle"
 
     def load(self):
         ns = get_ipython().user_ns
         if os.path.exists(self.filename):
-            store = pd.HDFStore(self.filename)
-            for k,v in store.iteritems():
-                k = k.strip("/")
-                ns[k] = store.select(k)
+            fname = self.filename
+            with open(fname) as f:
+                data = pickle.load(f)
+            for k,v in data.iteritems():
+                ns[k] = v
 
 class CDX(PlotObject):
     namespace = Instance(Namespace, has_ref=True)

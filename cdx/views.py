@@ -20,6 +20,7 @@ def index():
     return render('cdx.html',
                   ipython_ws_addr=ipython_ws_addr,
                   cdx_addr=cdx_addr,
+                  arrayserver_port=cdx_app.arrayserver_port
                   )
 
     
