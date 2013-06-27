@@ -23460,6 +23460,101 @@ var IPython = (function (IPython) {
     return IPython;
 }(IPython));
 
+// highly adapted for codemiror jshint
+(function () {
+    "use strict";
+
+    function forEach(arr, f) {
+        for (var i = 0, e = arr.length; i < e; ++i) f(arr[i]);
+    }
+
+    function arrayContains(arr, item) {
+        if (!Array.prototype.indexOf) {
+            var i = arr.length;
+            while (i--) {
+                if (arr[i] === item) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return arr.indexOf(item) != -1;
+    }
+
+    CodeMirror.contextHint = function (editor) {
+        // Find the token at the cursor
+        var cur = editor.getCursor(),
+            token = editor.getTokenAt(cur),
+            tprop = token;
+        // If it's not a 'word-style' token, ignore the token.
+        // If it is a property, find out what it is a property of.
+        var list = new Array();
+        var clist = getCompletions(token, editor);
+        for (var i = 0; i < clist.length; i++) {
+            list.push({
+                str: clist[i],
+                type: "context",
+                from: {
+                    line: cur.line,
+                    ch: token.start
+                },
+                to: {
+                    line: cur.line,
+                    ch: token.end
+                }
+            })
+        }
+        return list;
+    }
+
+    // find all 'words' of current cell
+    var getAllTokens = function (editor) {
+            var found = [];
+
+            // add to found if not already in it
+
+
+            function maybeAdd(str) {
+                if (!arrayContains(found, str)) found.push(str);
+            }
+
+            // loop through all token on all lines
+            var lineCount = editor.lineCount();
+            // loop on line
+            for (var l = 0; l < lineCount; l++) {
+                var line = editor.getLine(l);
+                //loop on char
+                for (var c = 1; c < line.length; c++) {
+                    var tk = editor.getTokenAt({
+                        line: l,
+                        ch: c
+                    });
+                    // if token has a class, it has geat chances of beeing
+                    // of interest. Add it to the list of possible completions.
+                    // we could skip token of ClassName 'comment'
+                    // or 'number' and 'operator'
+                    if (tk.className != null) {
+                        maybeAdd(tk.string);
+                    }
+                    // jump to char after end of current token
+                    c = tk.end;
+                }
+            }
+            return found;
+        }
+
+
+    function getCompletions(token, editor) {
+        var candidates = getAllTokens(editor);
+        // filter all token that have a common start (but nox exactly) the lenght of the current token
+        var lambda = function (x) {
+                return (x.indexOf(token.string) == 0 && x != token.string)
+            };
+        var filterd = candidates.filter(lambda);
+        return filterd;
+    }
+})();
+
 //----------------------------------------------------------------------------
 //  Copyright (C) 2013  The IPython Development Team
 //
@@ -24063,7 +24158,7 @@ window.setup_ipython = function (ws_url) {
     HBoxView.prototype.template = hboxtemplate;
 
     HBoxView.prototype.attributes = {
-      "class": 'hbox'
+      "class": 'cdxhbox'
     };
 
     HBoxView.prototype.events = {
@@ -24093,7 +24188,7 @@ window.setup_ipython = function (ws_url) {
     VBoxView.prototype.template = vboxtemplate;
 
     VBoxView.prototype.attributes = {
-      "class": 'vbox'
+      "class": 'cdxvbox'
     };
 
     VBoxView.prototype.events = {
@@ -24334,11 +24429,18 @@ window.setup_ipython = function (ws_url) {
         _this = this;
 
       coll = base.Collections("IPythonRemoteData");
-      remotedata = new coll.model({
-        host: this.conninfo.host,
-        port: this.conninfo.port,
-        varname: varname
+      remotedata = coll.filter(function(obj) {
+        return obj.get('varname') === varname;
       });
+      if (remotedata.length > 0) {
+        remotedata = remotedata[0];
+      } else {
+        remotedata = new coll.model({
+          host: this.conninfo.host,
+          port: this.conninfo.port,
+          varname: varname
+        });
+      }
       coll.add(remotedata);
       coll = base.Collections("PandasPivotTable");
       pivot = new coll.model();
@@ -24376,13 +24478,25 @@ window.setup_ipython = function (ws_url) {
     };
 
     CDXApp.prototype.render_activeplot = function() {
-      var activeplot, view;
+      var activeplot, height, newheight, newwidth, ratio, ratio1, ratio2, view, width;
 
       activeplot = this.cdxmodel.get_obj('activeplot');
       if (activeplot) {
+        width = this.$plotholder.width();
+        height = this.$plotholder.height();
+        ratio1 = width / activeplot.get('outer_width');
+        ratio2 = height / activeplot.get('outer_height');
+        ratio = _.min([ratio1, ratio2]);
+        newwidth = activeplot.get('outer_width') * ratio * 0.9;
+        newheight = activeplot.get('outer_height') * ratio * 0.9;
         view = new activeplot.default_view({
-          model: activeplot
+          model: activeplot,
+          canvas_height: newwidth,
+          canvas_width: newheight,
+          outer_width: newwidth,
+          outer_height: newheight
         });
+        this.activeplotview = view;
         return this.$plotholder.html('').append(view.$el);
       } else {
         return this.$plotholder.html('');
@@ -24500,7 +24614,7 @@ window.setup_ipython = function (ws_url) {
     };
 
     CDXRouter.prototype.main = function(title) {
-      var cdx_addr, cdxlink, code, ipython_ws_addr, plotlink, view,
+      var arrayserver_port, cdx_addr, cdxlink, code, ipython_ws_addr, plotlink, view,
         _this = this;
 
       cdxlink = window.location.href.replace("#justplots", "#cdx");
@@ -24515,8 +24629,9 @@ window.setup_ipython = function (ws_url) {
       ipython_ws_addr = $('body').data('ipython-ws-addr');
       window.setup_ipython(ipython_ws_addr);
       cdx_addr = $('body').data('cdx-addr');
-      code = "import cdx.remotedata.pandasserver as pds; pds.run()\n";
-      code += "from cdx.session import CDXSession; sess = CDXSession(serverloc='" + cdx_addr + "')\n";
+      arrayserver_port = $('body').data('arrayserver-port');
+      code = "import cdx.remotedata.pandasserver as pds; pds.run(" + arrayserver_port + ")\n";
+      code += "from cdx.session import CDXSession; sess = CDXSession(serverloc='" + cdx_addr + "', arrayserver_port=" + arrayserver_port + ")\n";
       code += "sess.use_doc('" + title + "')\n";
       thecell.set_text(code);
       _.delay((function() {
@@ -30697,7 +30812,7 @@ window.setup_ipython = function (ws_url) {
         __out.push('\n    <tr>\n      <td>\n        <input type="text" class="computedname input-mini"/>\n      </td>\n      <td>\n        <input type="text" class="computedtxtbox input-medium"/>\n      </td>\n      <td>\n      </td>\n    </tr>\n  </table>\n  ');
       }
     
-      __out.push('\n  \n</form>\n<table class="table\n              table-bordered table-condensed"\n');
+      __out.push('\n  \n</form>\n\n<table class="table table-bordered"\n');
     
       if (this.width) {
         __out.push('\n       style="max-height:');
@@ -30742,33 +30857,21 @@ window.setup_ipython = function (ws_url) {
       _ref2 = _.range(this.length);
       for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
         idx = _ref2[_k];
-        __out.push('\n  ');
-        if (this.colors) {
-          __out.push('\n  <tr class="pandasrow" rownum="');
-          __out.push(__sanitize(idx));
-          __out.push('" \n      style="background-color:');
+        __out.push('\n  <tr class="pandasrow" rownum="');
+        __out.push(__sanitize(idx));
+        __out.push('">\n    ');
+        if (this.selected && this.selected[idx]) {
+          __out.push('\n      <td style="background-color:');
           __out.push(__sanitize(this.colors[idx]));
-          __out.push('">\n    ');
+          __out.push('"> \n        ');
+          __out.push(__sanitize(this.selected[idx]));
+          __out.push('/');
+          __out.push(__sanitize(this.counts[idx]));
+          __out.push('\n      </td>      \n    ');
         } else {
-          __out.push('\n  <tr class="pandasrow" rownum="');
-          __out.push(__sanitize(idx));
-          __out.push('">\n    ');
-        }
-        __out.push('\n    ');
-        if (this.counts) {
-          __out.push('\n    ');
-          if (this.selected && this.selected[idx]) {
-            __out.push('\n    <td> ');
-            __out.push(__sanitize(this.selected[idx]));
-            __out.push('/');
-            __out.push(__sanitize(this.counts[idx]));
-            __out.push(' </td>\n    ');
-          } else {
-            __out.push('\n    <td> ');
-            __out.push(__sanitize(this.counts[idx]));
-            __out.push(' </td>\n    ');
-          }
-          __out.push('\n    ');
+          __out.push('\n      <td> ');
+          __out.push(__sanitize(this.counts[idx]));
+          __out.push(' </td>\n    ');
         }
         __out.push('\n    <td> ');
         __out.push(__sanitize(this.index[idx]));
@@ -30776,13 +30879,13 @@ window.setup_ipython = function (ws_url) {
         _ref3 = this.columns;
         for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
           column = _ref3[_l];
-          __out.push('\n    ');
+          __out.push('\n      ');
           if (!this.skip[column]) {
-            __out.push('    \n    <td> ');
+            __out.push('    \n      <td> ');
             __out.push(__sanitize(this.data[column][idx]));
-            __out.push(' </td>\n    ');
+            __out.push(' </td>\n      ');
           }
-          __out.push('    \n    ');
+          __out.push('\n    ');
         }
         __out.push('\n  </tr>\n  ');
       }
@@ -31138,7 +31241,7 @@ window.setup_ipython = function (ws_url) {
           var alpha, count;
 
           count = temp[0], selected = temp[1];
-          alpha = 0.5 * selected / count;
+          alpha = 0.3 * selected / count;
           return "rgba(0,0,255," + alpha + ")";
         });
       } else {
@@ -31147,7 +31250,7 @@ window.setup_ipython = function (ws_url) {
     };
 
     PandasPivotView.prototype.render = function() {
-      var colors, group, html, obj, sort, sort_ascendings, template_data, _i, _len, _ref4;
+      var colors, group, html, obj, sort, sort_ascendings, source, template_data, _i, _len, _ref4;
 
       group = this.mget('group');
       if (_.isArray(group)) {
@@ -31164,10 +31267,12 @@ window.setup_ipython = function (ws_url) {
         obj = _ref4[_i];
         sort_ascendings[obj['column']] = obj['ascending'];
       }
+      source = this.mget_obj('source');
       template_data = {
         skip: {
           _counts: true,
-          _selected: true
+          _selected: true,
+          index: true
         },
         tablecontrolstate: this.mget('tablecontrolstate'),
         computed_columns: this.mget_obj('source').get('computed_columns'),
@@ -31185,7 +31290,7 @@ window.setup_ipython = function (ws_url) {
         selected: this.mget('tabledata').data._selected,
         controls_hide: this.controls_hide,
         colors: colors,
-        index: this.mget('tabledata').data._index
+        index: this.mget('tabledata').data.index
       };
       this.$el.empty();
       html = this.template(template_data);
