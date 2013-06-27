@@ -1,3 +1,4 @@
+import pandas as pd
 from bokeh.session import PlotServerSession, PlotList
 from objects import CDX, Namespace
 from bokeh.objects import (
@@ -6,6 +7,7 @@ from bokeh.objects import (
     PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay)
 from bokeh.glyphs import Circle
 from bokeh.pandasobjects import PandasPlotSource
+import os
 
 class CDXSession(PlotServerSession):
     def load_doc(self, docid):
@@ -21,12 +23,12 @@ class CDXSession(PlotServerSession):
         self.plotcontext.children.append(cdx)
         self.plotcontext._dirty = True
         if not cdx.namespace:
-            ns = Namespace()
+            ns = Namespace(name=self.docname)
             self.add(ns)
             cdx.namespace = ns
             self.store_obj(ns)
             self.store_obj(cdx)
-            
+        cdx.namespace.name = self.docname
         if not cdx.plotcontext:
             cdx.plotcontext = self.plotcontext
             self.store_obj(cdx)
@@ -35,6 +37,9 @@ class CDXSession(PlotServerSession):
             cdx.plotlist = PlotList()
             self.add(cdx.plotlist)
             self.store_objs([cdx, cdx.plotlist])
+        #load namespace
+        self.cdx.namespace.load()
+        self.cdx.namespace.populate(todisk=False)
             
     @property
     def source(self):
