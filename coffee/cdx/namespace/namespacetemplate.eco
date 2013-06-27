@@ -3,12 +3,10 @@
   <% for colname, idx in @metadata[varname]._colnames: %>  
   <tr class="namespace-row" varname="<%= varname %>">
     <% if idx == 0: %>
-    <td class="namespace-element" 
-        valign="top" 
-        rowspan="<%= @metadata[varname]._colnames.length %>">
+    <td class="namespace-element namespace-title">
       <%= varname %>
     </td>
-    <% end %>
+    <% else: %>
     <td class="namespace-element">
       <a class="cdxtooltip"><%= colname %>
         <span>
@@ -28,6 +26,7 @@
         </span>
       </a>
     </td>
+    <% end %>
   </tr>
   <% end %>
   <% end %>
