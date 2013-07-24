@@ -8,7 +8,7 @@ from bokeh.objects import (
 from bokeh.glyphs import Circle
 from bokeh.pandasobjects import PandasPlotSource, IPythonRemoteData
 import os
-
+import bokeh.plotting  as plotting
 class CDXSession(PlotServerSession):
     def __init__(self, username=None, serverloc=None, userapikey="nokey",
                  arrayserver_port=10020):
@@ -16,6 +16,12 @@ class CDXSession(PlotServerSession):
         super(CDXSession, self).__init__(username=username,
                                          serverloc=serverloc,
                                          userapikey=userapikey)
+        #hack... ?
+        plotting._config["session"] = self
+        plotting._config["output_url"] = self.root_url
+        plotting._config["output_type"] = "server"
+        plotting._config["output_file"] = None
+        
     def load_doc(self, docid):
         super(CDXSession, self).load_doc(docid)
         cdx = self.load_type('CDX')
@@ -58,9 +64,6 @@ class CDXSession(PlotServerSession):
         self.cdx.plotlist._dirty = True
         self.cdx.namespace.data = {}
         self.cdx.activeplot = None
-
-
-        
         self.store_all()
         
     def _get_plotsource(self, varname):
@@ -87,38 +90,10 @@ class CDXSession(PlotServerSession):
         if load:
             self.load_all()
         plot_source = self._get_plotsource(varname)
-        xdr = DataRange1d(sources=[plot_source.columns(xname)])
-        ydr = DataRange1d(sources=[plot_source.columns(yname)])
-        circle = Circle(x=xname, y=yname, fill="blue", alpha=0.6, radius=3,
-                        line_color="black")
-        nonselection_circle = Circle(x="weight", y="mpg", fill="blue",
-                                     fill_alpha=0.1, radius=3,
-                                     line_color="black")
-        glyph_renderer = GlyphRenderer(
-            data_source = plot_source,
-            xdata_range = xdr,
-            ydata_range = ydr,
-            glyph = circle,
-            nonselection_glyph = nonselection_circle,
-            )
-        pantool = PanTool(dataranges = [xdr, ydr],
-                          dimensions=["width","height"])
-        zoomtool = ZoomTool(dataranges=[xdr, ydr],
-                            dimensions=("width","height"))
-        selecttool = SelectionTool(renderers=[glyph_renderer])
-        overlay = BoxSelectionOverlay(tool=selecttool)
-        title = "%s %s vs %s" % (varname, xname, yname)
-        plot = Plot(x_range=xdr, y_range=ydr, data_sources=[],
-                    title=title, border_top=0, border_right=0,
-                    )
-        xaxis = LinearAxis(plot=plot, dimension=0)
-        yaxis = LinearAxis(plot=plot, dimension=1)
-        xgrid = Rule(plot=plot, dimension=0)
-        ygrid = Rule(plot=plot, dimension=1)
-        plot.renderers.append(glyph_renderer)
-        plot.tools = [pantool, zoomtool, selecttool]
-        plot.renderers.append(overlay)
-        self.add(plot, glyph_renderer, xaxis, yaxis, xgrid, ygrid, plot_source, xdr, ydr, pantool, zoomtool, selecttool, overlay)
+        title = "%s %s vs %s" % (varname, xname, yname)        
+        plot = plotting.scatter(xname, yname, source=plot_source, title=title,
+                                tools="pan,zoom,select"
+                                )
         self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
