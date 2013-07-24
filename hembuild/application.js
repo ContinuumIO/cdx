@@ -23592,7 +23592,7 @@ window.setup_ipython = function (ws_url) {
     var thecell = new IPython.CodeCell(kernel);
     $("div#thecell").append(thecell.element);
     window.thecell = thecell
-    thecell.code_mirror.setSize("100%", 93)
+    thecell.code_mirror.setSize("100%", 106);
     // set some example input
     // focus the cell
     thecell.select();
@@ -24493,8 +24493,8 @@ window.setup_ipython = function (ws_url) {
           model: activeplot,
           canvas_height: newwidth,
           canvas_width: newheight,
-          outer_width: newwidth,
-          outer_height: newheight
+          outer_height: newwidth,
+          outer_width: newheight
         });
         this.activeplotview = view;
         return this.$plotholder.html('').append(view.$el);
@@ -25866,6 +25866,8 @@ window.setup_ipython = function (ws_url) {
 
   })(HasParent);
 
+  BoxSelectionOverlay.prototype.defaults = _.clone(BoxSelectionOverlay.prototype.defaults);
+
   _.extend(BoxSelectionOverlay.prototype.defaults, {
     tool: null,
     level: 'overlay'
@@ -26560,6 +26562,46 @@ window.setup_ipython = function (ws_url) {
   exports.ContinuumView = ContinuumView;
 
 }).call(this);
+}, "common/textutils": function(exports, require, module) {(function() {
+  var cache, getTextHeight;
+
+  cache = {};
+
+  getTextHeight = function(font) {
+    var block, body, div, result, text;
+
+    if (cache[font] != null) {
+      return cache[font];
+    }
+    text = $('<span>Hg</span>').css({
+      font: font
+    });
+    block = $('<div style="display: inline-block; width: 1px; height: 0px;"></div>');
+    div = $('<div></div>');
+    div.append(text, block);
+    body = $('body');
+    body.append(div);
+    try {
+      result = {};
+      block.css({
+        verticalAlign: 'baseline'
+      });
+      result.ascent = block.offset().top - text.offset().top;
+      block.css({
+        verticalAlign: 'bottom'
+      });
+      result.height = block.offset().top - text.offset().top;
+      result.descent = result.height - result.ascent;
+    } finally {
+      div.remove();
+    }
+    cache[font] = result;
+    return result;
+  };
+
+  exports.getTextHeight = getTextHeight;
+
+}).call(this);
 }, "common/plot_widget": function(exports, require, module) {(function() {
   var ContinuumView, PlotWidget, base, safebind, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -26587,6 +26629,7 @@ window.setup_ipython = function (ws_url) {
       this._fixup_line_dash(this.plot_view.ctx);
       this._fixup_line_dash_offset(this.plot_view.ctx);
       this._fixup_image_smoothing(this.plot_view.ctx);
+      this._fixup_measure_text(this.plot_view.ctx);
       return PlotWidget.__super__.initialize.call(this, options);
     };
 
@@ -26624,6 +26667,19 @@ window.setup_ipython = function (ws_url) {
 
         return (_ref1 = ctx.imageSmoothingEnabled) != null ? _ref1 : true;
       };
+    };
+
+    PlotWidget.prototype._fixup_measure_text = function(ctx) {
+      if (ctx.measureText && (ctx.html5MeasureText == null)) {
+        ctx.html5MeasureText = ctx.measureText;
+        return ctx.measureText = function(text) {
+          var textMetrics;
+
+          textMetrics = ctx.html5MeasureText(text);
+          textMetrics.ascent = ctx.html5MeasureText("m").width * 1.6;
+          return textMetrics;
+        };
+      }
     };
 
     PlotWidget.prototype.bind_bokeh_events = function() {};
@@ -26775,7 +26831,8 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "common/plot": function(exports, require, module) {(function() {
-  var ActiveToolManager, Collections, ContinuumView, GridMapper, HasParent, LEVELS, LinearMapper, PNGView, Plot, PlotView, Plots, ViewState, base, build_views, safebind, _ref, _ref1, _ref2, _ref3,
+  var ActiveToolManager, Collections, ContinuumView, GridMapper, HasParent, LEVELS, LinearMapper, PNGView, Plot, PlotView, Plots, ViewState, base, build_views, properties, safebind, text_properties, _ref, _ref1, _ref2, _ref3,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -26788,6 +26845,10 @@ window.setup_ipython = function (ws_url) {
   safebind = base.safebind;
 
   build_views = base.build_views;
+
+  properties = require('../renderers/properties');
+
+  text_properties = properties.text_properties;
 
   ContinuumView = require('./continuum_view').ContinuumView;
 
@@ -26805,20 +26866,21 @@ window.setup_ipython = function (ws_url) {
     __extends(PlotView, _super);
 
     function PlotView() {
-      _ref = PlotView.__super__.constructor.apply(this, arguments);
+      this._mousemove = __bind(this._mousemove, this);
+      this._mousedown = __bind(this._mousedown, this);      _ref = PlotView.__super__.constructor.apply(this, arguments);
       return _ref;
     }
+
+    PlotView.prototype.events = {
+      "mousemove .bokeh_canvas_wrapper": "_mousemove",
+      "mousedown .bokeh_canvas_wrapper": "_mousedown"
+    };
 
     PlotView.prototype.view_options = function() {
       return _.extend({
         plot_model: this.model,
         plot_view: this
       }, this.options);
-    };
-
-    PlotView.prototype.events = {
-      "mousemove .bokeh_canvas_wrapper": "_mousemove",
-      "mousedown .bokeh_canvas_wrapper": "_mousedown"
     };
 
     PlotView.prototype._mousedown = function(e) {
@@ -26849,9 +26911,16 @@ window.setup_ipython = function (ws_url) {
       return this.is_paused = true;
     };
 
-    PlotView.prototype.unpause = function() {
+    PlotView.prototype.unpause = function(render_canvas) {
+      if (render_canvas == null) {
+        render_canvas = false;
+      }
       this.is_paused = false;
-      return this.request_render();
+      if (render_canvas) {
+        return this.request_render_canvas(true);
+      } else {
+        return this.request_render();
+      }
     };
 
     PlotView.prototype.request_render = function() {
@@ -26860,17 +26929,18 @@ window.setup_ipython = function (ws_url) {
       }
     };
 
-    PlotView.prototype.request_render_canvas = function() {
+    PlotView.prototype.request_render_canvas = function(full_render) {
       if (!this.is_paused) {
-        this.throttled_render_canvas();
+        this.throttled_render_canvas(full_render);
       }
     };
 
     PlotView.prototype.initialize = function(options) {
-      var _ref1, _ref10, _ref11, _ref12, _ref13, _ref14, _ref15, _ref16, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+      var level, _i, _len, _ref1, _ref10, _ref11, _ref12, _ref13, _ref14, _ref15, _ref16, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
 
-      this.throttled_render = _.throttle(this.render, 50);
-      this.throttled_render_canvas = _.throttle(this.render_canvas, 30);
+      this.throttled_render = _.throttle(this.render, 100);
+      this.throttled_render_canvas = _.throttle(this.render_canvas, 100);
+      this.title_props = new text_properties(this, {}, 'title_');
       PlotView.__super__.initialize.call(this, _.defaults(options, this.default_options));
       this.view_state = new ViewState({
         canvas_width: (_ref1 = options.canvas_width) != null ? _ref1 : this.mget('canvas_width'),
@@ -26879,10 +26949,14 @@ window.setup_ipython = function (ws_url) {
         y_offset: (_ref4 = options.y_offset) != null ? _ref4 : this.mget('y_offset'),
         outer_width: (_ref5 = options.outer_width) != null ? _ref5 : this.mget('outer_width'),
         outer_height: (_ref6 = options.outer_height) != null ? _ref6 : this.mget('outer_height'),
-        border_top: (_ref7 = (_ref8 = options.border_top) != null ? _ref8 : this.mget('border_top')) != null ? _ref7 : this.mget('border'),
-        border_bottom: (_ref9 = (_ref10 = options.border_bottom) != null ? _ref10 : this.mget('border_bottom')) != null ? _ref9 : this.mget('border'),
-        border_left: (_ref11 = (_ref12 = options.border_left) != null ? _ref12 : this.mget('border_left')) != null ? _ref11 : this.mget('border'),
-        border_right: (_ref13 = (_ref14 = options.border_right) != null ? _ref14 : this.mget('border_right')) != null ? _ref13 : this.mget('border')
+        min_border_top: (_ref7 = (_ref8 = options.min_border_top) != null ? _ref8 : this.mget('min_border_top')) != null ? _ref7 : this.mget('min_border'),
+        min_border_bottom: (_ref9 = (_ref10 = options.min_border_bottom) != null ? _ref10 : this.mget('min_border_bottom')) != null ? _ref9 : this.mget('min_border'),
+        min_border_left: (_ref11 = (_ref12 = options.min_border_left) != null ? _ref12 : this.mget('min_border_left')) != null ? _ref11 : this.mget('min_border'),
+        min_border_right: (_ref13 = (_ref14 = options.min_border_right) != null ? _ref14 : this.mget('min_border_right')) != null ? _ref13 : this.mget('min_border'),
+        requested_border_top: 0,
+        requested_border_bottom: 0,
+        requested_border_left: 0,
+        requested_border_right: 0
       });
       this.x_range = (_ref15 = options.x_range) != null ? _ref15 : this.mget_obj('x_range');
       this.y_range = (_ref16 = options.y_range) != null ? _ref16 : this.mget_obj('y_range');
@@ -26898,6 +26972,13 @@ window.setup_ipython = function (ws_url) {
         domain_mapper: this.xmapper,
         codomain_mapper: this.ymapper
       });
+      this.requested_padding = {
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0
+      };
+      this.am_rendering = false;
       this.renderers = {};
       this.tools = {};
       this.eventSink = _.extend({}, Backbone.Events);
@@ -26906,8 +26987,16 @@ window.setup_ipython = function (ws_url) {
       this.keydownCallbacks = [];
       this.render_init();
       this.render_canvas(false);
+      this.atm = new ActiveToolManager(this.eventSink);
+      this.levels = {};
+      for (_i = 0, _len = LEVELS.length; _i < _len; _i++) {
+        level = LEVELS[_i];
+        this.levels[level] = {};
+      }
       this.build_levels();
       this.request_render();
+      this.atm.bind_bokeh_events();
+      this.bind_bokeh_events();
       return this;
     };
 
@@ -26940,60 +27029,29 @@ window.setup_ipython = function (ws_url) {
     };
 
     PlotView.prototype.build_tools = function() {
-      build_views(this.tools, this.mget_obj('tools'), this.view_options());
-      return this;
-    };
-
-    PlotView.prototype.bind_tools = function() {
-      var toolspec, _i, _len, _ref1;
-
-      _ref1 = this.mget('tools');
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        toolspec = _ref1[_i];
-        this.tools[toolspec.id].bind_events(this);
-      }
-      return this;
+      return build_views(this.tools, this.mget_obj('tools'), this.view_options());
     };
 
     PlotView.prototype.build_views = function() {
-      build_views(this.renderers, this.mget_obj('renderers'), this.view_options());
-      return this;
+      return build_views(this.renderers, this.mget_obj('renderers'), this.view_options());
     };
 
     PlotView.prototype.build_levels = function() {
-      var k, level, toolview, v, view, _i, _j, _k, _len, _len1, _len2, _ref1, _ref2, _ref3, _ref4;
+      var level, t, tools, v, views, _i, _j, _len, _len1;
 
-      this.build_views();
-      this.build_tools();
-      this.levels = {};
-      for (_i = 0, _len = LEVELS.length; _i < _len; _i++) {
-        level = LEVELS[_i];
-        this.levels[level] = {};
-      }
-      _ref1 = this.renderers;
-      for (k in _ref1) {
-        v = _ref1[k];
+      views = this.build_views();
+      tools = this.build_tools();
+      for (_i = 0, _len = views.length; _i < _len; _i++) {
+        v = views[_i];
         level = v.mget('level');
-        this.levels[level][k] = v;
+        this.levels[level][v.model.id] = v;
+        v.bind_bokeh_events();
       }
-      _ref2 = this.tools;
-      for (k in _ref2) {
-        v = _ref2[k];
-        level = v.mget('level');
-        this.levels[level][k] = v;
-      }
-      this.atm = new ActiveToolManager(this.eventSink);
-      this.atm.bind_bokeh_events();
-      this.bind_bokeh_events();
-      _ref3 = _.values(this.tools);
-      for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
-        toolview = _ref3[_j];
-        toolview.bind_bokeh_events();
-      }
-      _ref4 = _.values(this.renderers);
-      for (_k = 0, _len2 = _ref4.length; _k < _len2; _k++) {
-        view = _ref4[_k];
-        view.bind_bokeh_events();
+      for (_j = 0, _len1 = tools.length; _j < _len1; _j++) {
+        t = tools[_j];
+        level = t.mget('level');
+        this.levels[level][t.model.id] = t;
+        t.bind_bokeh_events();
       }
       return this;
     };
@@ -27001,7 +27059,10 @@ window.setup_ipython = function (ws_url) {
     PlotView.prototype.bind_bokeh_events = function() {
       var _this = this;
 
-      safebind(this, this.view_state, 'change', this.request_render_canvas);
+      safebind(this, this.view_state, 'change', function() {
+        _this.request_render_canvas();
+        return _this.request_render();
+      });
       safebind(this, this.x_range, 'change', this.request_render);
       safebind(this, this.y_range, 'change', this.request_render);
       safebind(this, this.model, 'change:renderers', this.build_levels);
@@ -27013,7 +27074,7 @@ window.setup_ipython = function (ws_url) {
     };
 
     PlotView.prototype.render_init = function() {
-      this.$el.append($("<div class='button_bar'/>\n<div class='plottitle'>" + (this.mget('title')) + "</div>\n<div class='bokeh_canvas_wrapper'>\n  <canvas class='bokeh_canvas'></canvas>\n</div>"));
+      this.$el.append($("<div class='button_bar btn-group'/>\n<div class='bokeh_canvas_wrapper'>\n  <canvas class='bokeh_canvas'></canvas>\n</div>"));
       this.button_bar = this.$el.find('.button_bar');
       this.canvas_wrapper = this.$el.find('.bokeh_canvas_wrapper');
       return this.canvas = this.$el.find('canvas.bokeh_canvas');
@@ -27033,9 +27094,17 @@ window.setup_ipython = function (ws_url) {
       this.$el.attr("width", ow).attr('height', oh);
       this.ctx = this.canvas[0].getContext('2d');
       if (full_render) {
-        this.render();
+        return this.render();
       }
-      return this.render_end();
+    };
+
+    PlotView.prototype.save_png = function() {
+      var data_uri;
+
+      this.render();
+      data_uri = this.canvas[0].toDataURL();
+      this.model.set('png', this.canvas[0].toDataURL());
+      return base.Collections.bulksave([this.model]);
     };
 
     PlotView.prototype.save_png = function() {
@@ -27048,9 +27117,43 @@ window.setup_ipython = function (ws_url) {
     };
 
     PlotView.prototype.render = function(force) {
-      var k, level, renderers, v, _i, _j, _len, _len1, _ref1, _ref2, _results;
+      var k, level, pr, renderers, sx, sy, th, title, v, _i, _j, _k, _len, _len1, _len2, _ref1, _ref2, _ref3, _ref4;
 
       PlotView.__super__.render.call(this);
+      this.requested_padding = {
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0
+      };
+      _ref1 = ['image', 'underlay', 'glyph', 'overlay', 'annotation', 'tool'];
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        level = _ref1[_i];
+        renderers = this.levels[level];
+        for (k in renderers) {
+          v = renderers[k];
+          if (v.padding_request != null) {
+            pr = v.padding_request();
+            for (k in pr) {
+              v = pr[k];
+              this.requested_padding[k] += v;
+            }
+          }
+        }
+      }
+      title = this.mget('title');
+      if (title) {
+        this.title_props.set(this.ctx, {});
+        th = this.ctx.measureText(this.mget('title')).ascent;
+        this.requested_padding['top'] += th + this.mget('title_standoff');
+      }
+      this.is_paused = true;
+      _ref2 = this.requested_padding;
+      for (k in _ref2) {
+        v = _ref2[k];
+        this.view_state.set("requested_border_" + k, v);
+      }
+      this.is_paused = false;
       this.ctx.fillStyle = this.mget('border_fill');
       this.ctx.fillRect(0, 0, this.view_state.get('canvas_width'), this.view_state.get('canvas_height'));
       this.ctx.fillStyle = this.mget('background_fill');
@@ -27060,9 +27163,9 @@ window.setup_ipython = function (ws_url) {
       this.ctx.rect(this.view_state.get('border_left'), this.view_state.get('border_top'), this.view_state.get('inner_width'), this.view_state.get('inner_height'));
       this.ctx.clip();
       this.ctx.beginPath();
-      _ref1 = ['image', 'underlay', 'glyph'];
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        level = _ref1[_i];
+      _ref3 = ['image', 'underlay', 'glyph'];
+      for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
+        level = _ref3[_j];
         renderers = this.levels[level];
         for (k in renderers) {
           v = renderers[k];
@@ -27070,23 +27173,21 @@ window.setup_ipython = function (ws_url) {
         }
       }
       this.ctx.restore();
-      _ref2 = ['overlay', 'annotation', 'tool'];
-      _results = [];
-      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-        level = _ref2[_j];
+      _ref4 = ['overlay', 'annotation', 'tool'];
+      for (_k = 0, _len2 = _ref4.length; _k < _len2; _k++) {
+        level = _ref4[_k];
         renderers = this.levels[level];
-        _results.push((function() {
-          var _results1;
-
-          _results1 = [];
-          for (k in renderers) {
-            v = renderers[k];
-            _results1.push(v.render());
-          }
-          return _results1;
-        })());
+        for (k in renderers) {
+          v = renderers[k];
+          v.render();
+        }
       }
-      return _results;
+      if (title) {
+        sx = this.view_state.get('outer_width') / 2;
+        sy = th;
+        this.title_props.set(this.ctx, {});
+        return this.ctx.fillText(title, sx, sy);
+      }
     };
 
     return PlotView;
@@ -27140,7 +27241,7 @@ window.setup_ipython = function (ws_url) {
       return this.set('renderers', renderers);
     };
 
-    Plot.prototype.parent_properties = ['background_fill', 'border_fill', 'canvas_width', 'canvas_height', 'outer_width', 'outer_height', 'border', 'border_top', 'border_bottom', 'border_left', 'border_right'];
+    Plot.prototype.parent_properties = ['background_fill', 'border_fill', 'canvas_width', 'canvas_height', 'outer_width', 'outer_height', 'min_border', 'min_border_top', 'min_border_bottom', 'min_border_left', 'min_border_right'];
 
     return Plot;
 
@@ -27160,13 +27261,21 @@ window.setup_ipython = function (ws_url) {
   _.extend(Plot.prototype.display_defaults, {
     background_fill: "#fff",
     border_fill: "#eee",
-    border: 40,
+    min_border: 40,
     x_offset: 0,
     y_offset: 0,
     canvas_width: 300,
     canvas_height: 300,
     outer_width: 300,
-    outer_height: 300
+    outer_height: 300,
+    title_standoff: 8,
+    title_text_font: "helvetica",
+    title_text_font_size: "20pt",
+    title_text_font_style: "normal",
+    title_text_color: "#444444",
+    title_text_alpha: 1.0,
+    title_text_align: "center",
+    title_text_baseline: "alphabetic"
   });
 
   Plots = (function(_super) {
@@ -27193,7 +27302,7 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "common/ticking": function(exports, require, module) {(function() {
-  var BasicTickFormatter, arange, auto_interval, auto_ticks, heckbert_interval, is_base2, log10, log2, nice_10, nice_2_5_10;
+  var BasicTickFormatter, arange, argsort, arr_div2, arr_div3, auto_interval, auto_ticks, float, heckbert_interval, is_base2, log10, log2, nice_10, nice_2_5_10;
 
   log10 = function(num) {
     "Returns the base 10 logarithm of a number.";    if (num === 0.0) {
@@ -27430,46 +27539,93 @@ window.setup_ipython = function (ws_url) {
     })();
   };
 
-  auto_interval = function(data_low, data_high) {
-    " Calculates the tick interval for a range.\n\nThe boundaries for the data to be plotted on the axis are::\n\n    data_bounds = (data_low,data_high)\n\nThe function chooses the number of tick marks, which can be between\n3 and 9 marks (including end points), and chooses tick intervals at\n1, 2, 2.5, 5, 10, 20, ... TODO\n\nReturns\n-------\ninterval : float\n    tick mark interval for axis";
-    var candidate_intervals, diff, divisions, expv, f, i, ind, interval, j, magic_intervals, max, min, newdiff, nticks, _i, _j, _k, _len, _ref, _ref1, _ref2;
+  arr_div2 = function(numerator, denominators) {
+    var output_arr, val, _i, _len;
 
-    divisions = [8, 7, 6, 5, 4, 3];
+    output_arr = [];
+    for (_i = 0, _len = denominators.length; _i < _len; _i++) {
+      val = denominators[_i];
+      output_arr.push(numerator / val);
+    }
+    return output_arr;
+  };
+
+  arr_div3 = function(numerators, denominators) {
+    var i, output_arr, val, _i, _len;
+
+    output_arr = [];
+    for (i = _i = 0, _len = denominators.length; _i < _len; i = ++_i) {
+      val = denominators[i];
+      output_arr.push(numerators[i] / val);
+    }
+    return output_arr;
+  };
+
+  argsort = function(arr) {
+    var i, ret_arr, sorted_arr, y, _i, _len;
+
+    sorted_arr = _.sortBy(arr, _.identity);
+    ret_arr = [];
+    for (i = _i = 0, _len = sorted_arr.length; _i < _len; i = ++_i) {
+      y = sorted_arr[i];
+      ret_arr[i] = arr.indexOf(y);
+    }
+    return ret_arr;
+  };
+
+  float = function(x) {
+    return x + 0.0;
+  };
+
+  auto_interval = function(data_low, data_high) {
+    " Calculates the tick interval for a range.\n\nThe boundaries for the data to be plotted on the axis are::\n\n    data_bounds = (data_low,data_high)\n\nThe function chooses the number of tick marks, which can be between\n3 and 9 marks (including end points), and chooses tick intervals at\n1, 2, 2.5, 5, 10, 20, ...\n\nReturns\n-------\ninterval : float\n    tick mark interval for axis";
+    var best_magics, best_mantissas, candidate_intervals, diff_arr, divisions, interval, ma, magic_index, magic_intervals, magnitude, magnitudes, mantissa_index, mantissas, mi, range, result, _i, _j, _len, _len1;
+
+    range = float(data_high) - float(data_low);
+    divisions = [8.0, 7.0, 6.0, 5.0, 4.0, 3.0];
+    candidate_intervals = arr_div2(range, divisions);
+    magnitudes = candidate_intervals.map(function(candidate) {
+      return Math.pow(10.0, Math.floor(log10(candidate)));
+    });
+    mantissas = arr_div3(candidate_intervals, magnitudes);
     magic_intervals = [1.0, 2.0, 2.5, 5.0, 10.0];
-    candidate_intervals = [];
-    for (_i = 0, _len = divisions.length; _i < _len; _i++) {
-      nticks = divisions[_i];
-      _ref = heckbert_interval(data_low, data_high, nticks, nice_2_5_10), min = _ref[0], max = _ref[1], interval = _ref[2];
-      candidate_intervals.push([min, max, interval]);
+    best_mantissas = [];
+    best_magics = [];
+    for (_i = 0, _len = magic_intervals.length; _i < _len; _i++) {
+      mi = magic_intervals[_i];
+      diff_arr = mantissas.map(function(x) {
+        return Math.abs(mi - x);
+      });
+      best_magics.push(_.min(diff_arr));
     }
-    diff = 10000;
-    ind = 0;
-    for (i = _j = 0, _ref1 = candidate_intervals.length - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
-      for (j = _k = 0, _ref2 = magic_intervals.length - 1; 0 <= _ref2 ? _k <= _ref2 : _k >= _ref2; j = 0 <= _ref2 ? ++_k : --_k) {
-        expv = Math.floor(log10(candidate_intervals[i][2]));
-        f = candidate_intervals[i][2] / Math.pow(10.0, expv);
-        newdiff = Math.abs(f - magic_intervals[i]);
-        if (newdiff < diff) {
-          diff = newdiff;
-          ind = i;
-        }
-      }
+    for (_j = 0, _len1 = mantissas.length; _j < _len1; _j++) {
+      ma = mantissas[_j];
+      diff_arr = magic_intervals.map(function(x) {
+        return Math.abs(ma - x);
+      });
+      best_mantissas.push(_.min(diff_arr));
     }
-    return candidate_intervals[ind][2];
+    magic_index = argsort(best_magics)[0];
+    mantissa_index = argsort(best_mantissas)[0];
+    interval = magic_intervals[magic_index];
+    magnitude = magnitudes[mantissa_index];
+    result = interval * magnitude;
+    return result;
   };
 
   BasicTickFormatter = (function() {
     function BasicTickFormatter(precision, use_scientific, power_limit_high, power_limit_low) {
-      this.precision = precision != null ? precision : 4;
+      this.precision = precision != null ? precision : 'auto';
       this.use_scientific = use_scientific != null ? use_scientific : true;
       this.power_limit_high = power_limit_high != null ? power_limit_high : 5;
       this.power_limit_low = power_limit_low != null ? power_limit_low : -3;
       this.scientific_limit_low = Math.pow(10.0, power_limit_low);
       this.scientific_limit_high = Math.pow(10.0, power_limit_high);
+      this.last_precision = 3;
     }
 
     BasicTickFormatter.prototype.format = function(ticks) {
-      var i, labels, need_sci, tick, tick_abs, zero_eps, _i, _j, _k, _len, _ref, _ref1;
+      var i, is_ok, labels, need_sci, tick, tick_abs, x, zero_eps, _i, _j, _k, _l, _len, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4;
 
       zero_eps = 0;
       if (ticks.length >= 2) {
@@ -27486,14 +27642,53 @@ window.setup_ipython = function (ws_url) {
           }
         }
       }
-      labels = new Array(ticks.length);
-      if (need_sci) {
-        for (i = _j = 0, _ref = ticks.length - 1; 0 <= _ref ? _j <= _ref : _j >= _ref; i = 0 <= _ref ? ++_j : --_j) {
-          labels[i] = ticks[i].toExponential(this.precision);
+      if (_.isNumber(this.precision)) {
+        labels = new Array(ticks.length);
+        if (need_sci) {
+          for (i = _j = 0, _ref = ticks.length - 1; 0 <= _ref ? _j <= _ref : _j >= _ref; i = 0 <= _ref ? ++_j : --_j) {
+            labels[i] = ticks[i].toExponential(this.precision);
+          }
+        } else {
+          for (i = _k = 0, _ref1 = ticks.length - 1; 0 <= _ref1 ? _k <= _ref1 : _k >= _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
+            labels[i] = ticks[i].toPrecision(this.precision).replace(/(\.[0-9]*?)0+$/, "$1").replace(/\.$/, "");
+          }
         }
-      } else {
-        for (i = _k = 0, _ref1 = ticks.length - 1; 0 <= _ref1 ? _k <= _ref1 : _k >= _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
-          labels[i] = ticks[i].toPrecision(this.precision).replace(/(\.[0-9]*?)0+$/, "$1").replace(/\.$/, "");
+        return labels;
+      } else if (this.precision === 'auto') {
+        labels = new Array(ticks.length);
+        for (x = _l = _ref2 = this.last_precision; _ref2 <= 15 ? _l <= 15 : _l >= 15; x = _ref2 <= 15 ? ++_l : --_l) {
+          is_ok = true;
+          if (need_sci) {
+            for (i = _m = 0, _ref3 = ticks.length - 1; 0 <= _ref3 ? _m <= _ref3 : _m >= _ref3; i = 0 <= _ref3 ? ++_m : --_m) {
+              labels[i] = ticks[i].toExponential(x);
+              if (i > 0) {
+                if (labels[i] === labels[i - 1]) {
+                  is_ok = false;
+                  break;
+                }
+              }
+            }
+            if (is_ok) {
+              break;
+            }
+          } else {
+            for (i = _n = 0, _ref4 = ticks.length - 1; 0 <= _ref4 ? _n <= _ref4 : _n >= _ref4; i = 0 <= _ref4 ? ++_n : --_n) {
+              labels[i] = ticks[i].toPrecision(x).replace(/(\.[0-9]*?)0+$/, "$1").replace(/\.$/, "");
+              if (i > 0) {
+                if (labels[i] === labels[i - 1]) {
+                  is_ok = false;
+                  break;
+                }
+              }
+            }
+            if (is_ok) {
+              break;
+            }
+          }
+          if (is_ok) {
+            this.last_precision = x;
+            return labels;
+          }
         }
       }
       return labels;
@@ -27541,6 +27736,22 @@ window.setup_ipython = function (ws_url) {
       var _inner_range_horizontal, _inner_range_vertical;
 
       ViewState.__super__.initialize.call(this, attrs, options);
+      this.register_property('border_top', function() {
+        return Math.max(this.get('min_border_top'), this.get('requested_border_top'));
+      }, false);
+      this.add_dependencies('border_top', this, ['min_border_top', 'requested_border_top']);
+      this.register_property('border_bottom', function() {
+        return Math.max(this.get('min_border_bottom'), this.get('requested_border_bottom'));
+      }, false);
+      this.add_dependencies('border_bottom', this, ['min_border_bottom', 'requested_border_bottom']);
+      this.register_property('border_left', function() {
+        return Math.max(this.get('min_border_left'), this.get('requested_border_left'));
+      }, false);
+      this.add_dependencies('border_left', this, ['min_border_left', 'requested_border_left']);
+      this.register_property('border_right', function() {
+        return Math.max(this.get('min_border_right'), this.get('requested_border_right'));
+      }, false);
+      this.add_dependencies('border_right', this, ['min_border_right', 'requested_border_right']);
       this.register_property('canvas_aspect', function() {
         return this.get('canvas_height') / this.get('canvas_width');
       }, true);
@@ -27832,7 +28043,7 @@ window.setup_ipython = function (ws_url) {
       _ref2 = this.mget_obj('children');
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
         view_model = _ref2[_i];
-        if (view_model.get('png') === "") {
+        if (!view_model.get('png')) {
           console.log("no png for " + view_model.id + " making one");
           pv = new PlotView({
             model: view_model
@@ -28075,6 +28286,157 @@ window.setup_ipython = function (ws_url) {
   exports.PNGContextView = PNGContextView;
 
 }).call(this);
+}, "common/grid_view_state": function(exports, require, module) {(function() {
+  var GridViewState, ViewState, base, safebind, _ref,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  base = require("../base");
+
+  safebind = base.safebind;
+
+  ViewState = require('./view_state').ViewState;
+
+  GridViewState = (function(_super) {
+    __extends(GridViewState, _super);
+
+    function GridViewState() {
+      this.layout_widths = __bind(this.layout_widths, this);
+      this.layout_heights = __bind(this.layout_heights, this);
+      this.setup_layout_properties = __bind(this.setup_layout_properties, this);      _ref = GridViewState.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    GridViewState.prototype.setup_layout_properties = function() {
+      var row, viewstate, _i, _len, _ref1, _results;
+
+      this.register_property('layout_heights', this.layout_heights, true);
+      this.register_property('layout_widths', this.layout_widths, true);
+      _ref1 = this.get('childviewstates');
+      _results = [];
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        row = _ref1[_i];
+        _results.push((function() {
+          var _j, _len1, _results1;
+
+          _results1 = [];
+          for (_j = 0, _len1 = row.length; _j < _len1; _j++) {
+            viewstate = row[_j];
+            this.add_dependencies('layout_heights', viewstate, 'outer_height');
+            _results1.push(this.add_dependencies('layout_widths', viewstate, 'outer_width'));
+          }
+          return _results1;
+        }).call(this));
+      }
+      return _results;
+    };
+
+    GridViewState.prototype.initialize = function(attrs, options) {
+      GridViewState.__super__.initialize.call(this, attrs, options);
+      this.setup_layout_properties();
+      safebind(this, this, 'change:childviewstates', this.setup_layout_properties);
+      this.register_property('height', function() {
+        return _.reduce(this.get('layout_heights'), (function(x, y) {
+          return x + y;
+        }), 0);
+      }, true);
+      this.add_dependencies('height', this, 'layout_heights');
+      this.register_property('width', function() {
+        return _.reduce(this.get('layout_widths'), (function(x, y) {
+          return x + y;
+        }), 0);
+      }, true);
+      return this.add_dependencies('width', this, 'layout_widths');
+    };
+
+    GridViewState.prototype.position_child_x = function(childsize, offset) {
+      return this.sx_to_device(offset);
+    };
+
+    GridViewState.prototype.position_child_y = function(childsize, offset) {
+      return this.sy_to_device(offset) - childsize;
+    };
+
+    GridViewState.prototype.maxdim = function(dim, row) {
+      if (row.length === 0) {
+        return 0;
+      } else {
+        return _.max(_.map(row, (function(x) {
+          return x.get(dim);
+        })));
+      }
+    };
+
+    GridViewState.prototype.layout_heights = function() {
+      var row, row_heights;
+
+      row_heights = (function() {
+        var _i, _len, _ref1, _results;
+
+        _ref1 = this.get('childviewstates');
+        _results = [];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          row = _ref1[_i];
+          _results.push(this.maxdim('outer_height', row));
+        }
+        return _results;
+      }).call(this);
+      return row_heights;
+    };
+
+    GridViewState.prototype.layout_widths = function() {
+      var col, col_widths, columns, n, num_cols, row;
+
+      num_cols = this.get('childviewstates')[0].length;
+      columns = (function() {
+        var _i, _len, _ref1, _results;
+
+        _ref1 = _.range(num_cols);
+        _results = [];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          n = _ref1[_i];
+          _results.push((function() {
+            var _j, _len1, _ref2, _results1;
+
+            _ref2 = this.get('childviewstates');
+            _results1 = [];
+            for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
+              row = _ref2[_j];
+              _results1.push(row[n]);
+            }
+            return _results1;
+          }).call(this));
+        }
+        return _results;
+      }).call(this);
+      col_widths = (function() {
+        var _i, _len, _results;
+
+        _results = [];
+        for (_i = 0, _len = columns.length; _i < _len; _i++) {
+          col = columns[_i];
+          _results.push(this.maxdim('outer_width', col));
+        }
+        return _results;
+      }).call(this);
+      return col_widths;
+    };
+
+    return GridViewState;
+
+  })(ViewState);
+
+  GridViewState.prototype.defaults = _.clone(GridViewState.prototype.defaults);
+
+  _.extend(GridViewState.prototype.defaults, {
+    childviewstates: [[]],
+    border_space: 0
+  });
+
+  exports.GridViewState = GridViewState;
+
+}).call(this);
 }, "common/ranges": function(exports, require, module) {(function() {
   var DataFactorRange, DataFactorRanges, DataRange1d, DataRange1ds, FactorRange, FactorRanges, HasProperties, Range1d, Range1ds, base, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8,
     __hasProp = {}.hasOwnProperty,
@@ -28143,7 +28505,7 @@ window.setup_ipython = function (ws_url) {
     DataRange1d.prototype.type = 'DataRange1d';
 
     DataRange1d.prototype._get_minmax = function() {
-      var center, colname, columns, max, min, source, sourceobj, span, _i, _j, _len, _len1, _ref3, _ref4, _ref5, _ref6;
+      var center, colname, columns, i, max, maxs, min, mins, source, sourceobj, span, _i, _j, _k, _len, _len1, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8;
 
       columns = [];
       _ref3 = this.get('sources');
@@ -28162,10 +28524,20 @@ window.setup_ipython = function (ws_url) {
       columns = _.filter(columns, function(x) {
         return typeof x !== "string";
       });
-      _ref5 = [_.min(columns), _.max(columns)], min = _ref5[0], max = _ref5[1];
+      if (!_.isArray(columns[0])) {
+        _ref5 = [_.min(columns), _.max(columns)], min = _ref5[0], max = _ref5[1];
+      } else {
+        maxs = Array(columns.length);
+        mins = Array(columns.length);
+        for (i = _k = 0, _ref6 = columns.length - 1; 0 <= _ref6 ? _k <= _ref6 : _k >= _ref6; i = 0 <= _ref6 ? ++_k : --_k) {
+          maxs[i] = _.max(columns[i]);
+          mins[i] = _.min(columns[i]);
+        }
+        _ref7 = [_.min(mins), _.max(maxs)], min = _ref7[0], max = _ref7[1];
+      }
       span = (max - min) * (1 + this.get('rangepadding'));
       center = (max + min) / 2.0;
-      _ref6 = [center - span / 2.0, center + span / 2.0], min = _ref6[0], max = _ref6[1];
+      _ref8 = [center - span / 2.0, center + span / 2.0], min = _ref8[0], max = _ref8[1];
       return [min, max];
     };
 
@@ -28882,26 +29254,29 @@ window.setup_ipython = function (ws_url) {
     }
 
     SelectionToolView.prototype.initialize = function(options) {
-      var renderer, select_callback, _i, _len, _ref1, _results,
-        _this = this;
+      var _this = this;
 
       SelectionToolView.__super__.initialize.call(this, options);
-      select_callback = _.debounce((function() {
+      this.select_callback = _.debounce((function() {
         return _this._select_data();
       }), 50);
-      safebind(this, this.model, 'change', this.request_render);
-      safebind(this, this.model, 'change', select_callback);
+      return this.listenTo(this.model, 'change', this.select_callback);
+    };
+
+    SelectionToolView.prototype.bind_bokeh_events = function() {
+      var renderer, rendererview, _i, _len, _ref1, _results;
+
+      SelectionToolView.__super__.bind_bokeh_events.call(this);
       _ref1 = this.mget_obj('renderers');
       _results = [];
       for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
         renderer = _ref1[_i];
-        safebind(this, renderer, 'change', this.request_render);
-        safebind(this, renderer.get_obj('xdata_range'), 'change', this.request_render);
-        safebind(this, renderer.get_obj('ydata_range'), 'change', this.request_render);
-        safebind(this, renderer.get_obj('data_source'), 'change', this.request_render);
-        safebind(this, renderer, 'change', select_callback);
-        safebind(this, renderer.get_obj('xdata_range'), 'change', select_callback);
-        _results.push(safebind(this, renderer.get_obj('ydata_range'), 'change', select_callback));
+        rendererview = this.plot_view.renderers[renderer.id];
+        this.listenTo(rendererview.xrange(), 'change', this.select_callback);
+        this.listenTo(rendererview.yrange(), 'change', this.select_callback);
+        this.listenTo(renderer, 'change', this.select_callback);
+        this.listenTo(renderer.get_obj('data_source'), 'change', this.select_callback);
+        _results.push(this.listenTo(renderer, 'change', this.select_callback));
       }
       return _results;
     };
@@ -28910,7 +29285,8 @@ window.setup_ipython = function (ws_url) {
 
     SelectionToolView.prototype.evgen_options = {
       keyName: "ctrlKey",
-      buttonText: "Select"
+      buttonText: "Select",
+      restrict_to_innercanvas: true
     };
 
     SelectionToolView.prototype.tool_events = {
@@ -29210,8 +29586,7 @@ window.setup_ipython = function (ws_url) {
     }
 
     PreviewSaveToolView.prototype.initialize = function(options) {
-      PreviewSaveToolView.__super__.initialize.call(this, options);
-      return console.log("png", this.plot_model.get('png'));
+      return PreviewSaveToolView.__super__.initialize.call(this, options);
     };
 
     PreviewSaveToolView.prototype.eventGeneratorClass = ButtonEventGenerator;
@@ -29289,6 +29664,7 @@ window.setup_ipython = function (ws_url) {
 
   TwoPointEventGenerator = (function() {
     function TwoPointEventGenerator(options) {
+      this.restrict_to_innercanvas = options.restrict_to_innercanvas;
       this.options = options;
       this.toolName = this.options.eventBasename;
       this.dragging = false;
@@ -29326,6 +29702,40 @@ window.setup_ipython = function (ws_url) {
           return e.stopPropagation();
         }
       });
+      this.plotview.moveCallbacks.push(function(e, x, y) {
+        var inner_range_horizontal, inner_range_vertical, offset, xend, xstart, yend, ystart;
+
+        if (_this.dragging) {
+          offset = $(e.currentTarget).offset();
+          e.bokehX = e.pageX - offset.left;
+          e.bokehY = e.pageY - offset.top;
+          inner_range_horizontal = _this.plotview.view_state.get('inner_range_horizontal');
+          inner_range_vertical = _this.plotview.view_state.get('inner_range_vertical');
+          x = _this.plotview.view_state.device_to_sx(e.bokehX);
+          y = _this.plotview.view_state.device_to_sy(e.bokehY);
+          if (_this.restrict_to_innercanvas) {
+            xstart = inner_range_horizontal.get('start');
+            xend = inner_range_horizontal.get('end');
+            ystart = inner_range_vertical.get('start');
+            yend = inner_range_vertical.get('end');
+          } else {
+            xstart = 0;
+            xend = _this.plotview.view_state.get('outer_width');
+            ystart = 0;
+            yend = _this.plotview.view_state.get('outer_height');
+          }
+          if (x < xstart || x > xend) {
+            console.log("stopping1");
+            _this._stop_drag(e);
+            return false;
+          }
+          if (y < ystart || y > yend) {
+            console.log("stopping2");
+            _this._stop_drag(e);
+            return false;
+          }
+        }
+      });
       $(document).bind('keydown', function(e) {
         if (e[_this.options.keyName]) {
           _this._start_drag();
@@ -29346,6 +29756,12 @@ window.setup_ipython = function (ws_url) {
         }
       });
       this.plotview.canvas_wrapper.bind('mouseup', function(e) {
+        if (_this.button_activated) {
+          _this._stop_drag(e);
+          return false;
+        }
+      });
+      this.plotview.canvas_wrapper.bind('mouseleave', function(e) {
         if (_this.button_activated) {
           _this._stop_drag(e);
           return false;
@@ -29439,15 +29855,6 @@ window.setup_ipython = function (ws_url) {
           return eventSink.trigger("clear_active_tool");
         }
       });
-      this.mouseover_count = 0;
-      this.plotview.$el.bind("mouseout", function(e) {
-        _this.mouseover_count -= 1;
-        return _.delay((function() {
-          if (_this.mouseover_count === 0) {
-            return eventSink.trigger("clear_active_tool");
-          }
-        }), 500);
-      });
       this.plotview.$el.bind("mousein", function(e) {
         return eventSink.trigger("clear_active_tool");
       });
@@ -29519,15 +29926,6 @@ window.setup_ipython = function (ws_url) {
         if (e.keyCode === 27) {
           return eventSink.trigger("clear_active_tool");
         }
-      });
-      this.mouseover_count = 0;
-      this.plotview.$el.bind("mouseout", function(e) {
-        _this.mouseover_count -= 1;
-        return _.delay((function() {
-          if (_this.mouseover_count === 0) {
-            return eventSink.trigger("clear_active_tool");
-          }
-        }), 500);
       });
       this.plotview.$el.bind("mouseover", function(e) {
         return _this.mouseover_count += 1;
@@ -29887,16 +30285,27 @@ window.setup_ipython = function (ws_url) {
       xdiff = x - this.x;
       ydiff = y - this.y;
       _ref2 = [x, y], this.x = _ref2[0], this.y = _ref2[1];
-      ch = this.plot_view.view_state.get('outer_height') + ydiff;
-      cw = this.plot_view.view_state.get('outer_width') + xdiff;
+      ch = this.plot_view.view_state.get('outer_height');
+      cw = this.plot_view.view_state.get('outer_width');
       this.popup.text("width: " + cw + " height: " + ch);
-      this.plot_view.view_state.set('outer_height', ch + ydiff);
-      this.plot_view.view_state.set('outer_width', cw + xdiff);
-      this.plot_view.view_state.set('canvas_height', ch + ydiff);
-      this.plot_view.view_state.set('canvas_width', cw + xdiff);
-      this.plot_view.unpause();
-      this.plot_view.view_state.trigger('change');
-      this.plot_view.request_render();
+      this.plot_view.view_state.set('outer_height', ch + ydiff, {
+        'silent': true
+      });
+      this.plot_view.view_state.set('outer_width', cw + xdiff, {
+        'silent': true
+      });
+      this.plot_view.view_state.set('canvas_height', ch + ydiff, {
+        'silent': true
+      });
+      this.plot_view.view_state.set('canvas_width', cw + xdiff, {
+        'silent': true
+      });
+      this.plot_view.view_state.trigger('change:outer_height', ch + ydiff);
+      this.plot_view.view_state.trigger('change:outer_width', cw + xdiff);
+      this.plot_view.view_state.trigger('change:canvas_height', ch + ydiff);
+      this.plot_view.view_state.trigger('change:canvas_width', cw + xdiff);
+      this.plot_view.view_state.trigger('change', this.plot_view.view_state);
+      this.plot_view.unpause(true);
       return null;
     };
 
@@ -30084,7 +30493,8 @@ window.setup_ipython = function (ws_url) {
 
     PanToolView.prototype.evgen_options = {
       keyName: "shiftKey",
-      buttonText: "Pan"
+      buttonText: "Pan",
+      restrict_to_innercanvas: true
     };
 
     PanToolView.prototype.tool_events = {
@@ -30183,7 +30593,7 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "testutils": function(exports, require, module) {(function() {
-  var Collections, bar_plot, base, data_table, glyph_plot, line_plot, make_glyph_test, make_range_and_mapper, scatter_plot, typeIsArray, zip,
+  var Collections, bar_plot, base, data_table, glyph_plot, line_plot, make_glyph_plot, make_glyph_test, make_range_and_mapper, scatter_plot, zip,
     __hasProp = {}.hasOwnProperty;
 
   base = require("./base");
@@ -30539,141 +30949,227 @@ window.setup_ipython = function (ws_url) {
     return plot_model;
   };
 
-  typeIsArray = function(value) {
-    return value && typeof value === 'object' && value instanceof Array && typeof value.length === 'number' && typeof value.splice === 'function' && !(value.propertyIsEnumerable('length'));
-  };
+  make_glyph_plot = function(data_source, defaults, glyphspecs, xrange, yrange, _arg) {
+    var axes, boxselectionoverlay, dims, ds, g, glyph, glyphs, glyphspec, idx, legend, legend_name, legend_renderer, legends, pantool, plot_model, plot_title, plot_tools, pstool, reference_point, resizetool, selecttool, tools, val, x, xaxis1, xaxis2, xrule, yaxis1, yaxis2, yrule, zoomtool, _i, _j, _k, _len, _len1, _len2, _ref;
 
-  make_glyph_test = function(test_name, data_source, defaults, glyphspecs, xrange, yrange, tools, dims, axes) {
-    if (tools == null) {
-      tools = false;
-    }
+    dims = _arg.dims, tools = _arg.tools, axes = _arg.axes, legend = _arg.legend, legend_name = _arg.legend_name, plot_title = _arg.plot_title, reference_point = _arg.reference_point;
     if (dims == null) {
       dims = [400, 400];
+    }
+    if (tools == null) {
+      tools = true;
     }
     if (axes == null) {
       axes = true;
     }
+    if (legend == null) {
+      legend = true;
+    }
+    if (legend_name == null) {
+      legend_name = "glyph";
+    }
+    if (plot_title == null) {
+      plot_title = "";
+    }
+    glyphs = [];
+    if (!_.isArray(glyphspecs)) {
+      glyphspecs = [glyphspecs];
+    }
+    if (!_.isArray(data_source)) {
+      for (_i = 0, _len = glyphspecs.length; _i < _len; _i++) {
+        glyphspec = glyphspecs[_i];
+        glyph = Collections('GlyphRenderer').create({
+          data_source: data_source.ref(),
+          glyphspec: glyphspec,
+          nonselection_glyphspec: {
+            fill_alpha: 0.1,
+            line_alpha: 0.1
+          },
+          reference_point: reference_point
+        });
+        glyph.set(defaults);
+        glyphs.push(glyph);
+      }
+    } else {
+      _ref = zip(glyphspecs, data_source);
+      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+        val = _ref[_j];
+        glyphspec = val[0], ds = val[1];
+        glyph = Collections('GlyphRenderer').create({
+          xdata_range: xrange.ref(),
+          ydata_range: yrange.ref(),
+          data_source: ds.ref(),
+          glyphspec: glyphspec
+        });
+        glyph.set(defaults);
+        glyphs.push(glyph);
+      }
+    }
+    plot_model = Collections('Plot').create({
+      x_range: xrange.ref(),
+      y_range: yrange.ref(),
+      canvas_width: dims[0],
+      canvas_height: dims[1],
+      outer_width: dims[0],
+      outer_height: dims[1],
+      title: plot_title
+    });
+    plot_model.set(defaults);
+    plot_model.add_renderers((function() {
+      var _k, _len2, _results;
+
+      _results = [];
+      for (_k = 0, _len2 = glyphs.length; _k < _len2; _k++) {
+        g = glyphs[_k];
+        _results.push(g.ref());
+      }
+      return _results;
+    })());
+    if (axes) {
+      xaxis1 = Collections('GuideRenderer').create({
+        guidespec: {
+          type: 'linear_axis',
+          dimension: 0,
+          location: 'min',
+          bounds: 'auto'
+        },
+        axis_label: 'x',
+        plot: plot_model.ref()
+      });
+      yaxis1 = Collections('GuideRenderer').create({
+        guidespec: {
+          type: 'linear_axis',
+          dimension: 1,
+          location: 'min',
+          bounds: 'auto'
+        },
+        axis_label: 'y',
+        plot: plot_model.ref()
+      });
+      xaxis2 = Collections('GuideRenderer').create({
+        guidespec: {
+          type: 'linear_axis',
+          dimension: 0,
+          location: 'max',
+          bounds: 'auto'
+        },
+        axis_label: 'x',
+        plot: plot_model.ref()
+      });
+      yaxis2 = Collections('GuideRenderer').create({
+        guidespec: {
+          type: 'linear_axis',
+          dimension: 1,
+          location: 'max',
+          bounds: 'auto'
+        },
+        axis_label: 'y',
+        plot: plot_model.ref()
+      });
+      xrule = Collections('GuideRenderer').create({
+        guidespec: {
+          type: 'rule',
+          dimension: 0,
+          bounds: 'auto'
+        },
+        plot: plot_model.ref()
+      });
+      yrule = Collections('GuideRenderer').create({
+        guidespec: {
+          type: 'rule',
+          dimension: 1,
+          bounds: 'auto'
+        },
+        plot: plot_model.ref()
+      });
+      plot_model.add_renderers([xrule.ref(), yrule.ref(), xaxis1.ref(), yaxis1.ref(), xaxis2.ref(), yaxis2.ref()]);
+    }
+    if (tools) {
+      pantool = Collections('PanTool').create({
+        dataranges: [xrange.ref(), yrange.ref()],
+        dimensions: ['width', 'height']
+      });
+      zoomtool = Collections('ZoomTool').create({
+        dataranges: [xrange.ref(), yrange.ref()],
+        dimensions: ['width', 'height']
+      });
+      selecttool = Collections('SelectionTool').create({
+        renderers: (function() {
+          var _k, _len2, _results;
+
+          _results = [];
+          for (_k = 0, _len2 = glyphs.length; _k < _len2; _k++) {
+            x = glyphs[_k];
+            _results.push(x.ref());
+          }
+          return _results;
+        })()
+      });
+      boxselectionoverlay = Collections('BoxSelectionOverlay').create({
+        tool: selecttool.ref()
+      });
+      resizetool = Collections('ResizeTool').create();
+      pstool = Collections('PreviewSaveTool').create();
+      plot_tools = [pantool, zoomtool, pstool, resizetool, selecttool];
+      plot_model.set_obj('tools', plot_tools);
+      plot_model.add_renderers([boxselectionoverlay.ref()]);
+    }
+    if (legend) {
+      legends = {};
+      legend_renderer = Collections("AnnotationRenderer").create({
+        plot: plot_model.ref(),
+        annotationspec: {
+          type: "legend",
+          orientation: "top_right",
+          legends: legends
+        }
+      });
+      for (idx = _k = 0, _len2 = glyphs.length; _k < _len2; idx = ++_k) {
+        g = glyphs[idx];
+        legends[legend_name + String(idx)] = [g.ref()];
+      }
+      plot_model.add_renderers([legend_renderer.ref()]);
+    }
+    return plot_model;
+  };
+
+  make_glyph_test = function(test_name, data_source, defaults, glyphspecs, xrange, yrange, _arg) {
+    var axes, dims, legend, legend_name, plot_title, reference_point, tools;
+
+    dims = _arg.dims, tools = _arg.tools, axes = _arg.axes, legend = _arg.legend, legend_name = _arg.legend_name, plot_title = _arg.plot_title, reference_point = _arg.reference_point;
+    if (dims == null) {
+      dims = [400, 400];
+    }
+    if (tools == null) {
+      tools = true;
+    }
+    if (axes == null) {
+      axes = true;
+    }
+    if (legend == null) {
+      legend = true;
+    }
+    if (legend_name == null) {
+      legend_name = "glyph";
+    }
+    if (plot_title == null) {
+      plot_title = "";
+    }
     return function() {
-      var div, ds, g, glyph, glyphs, glyphspec, myrender, pantool, plot_model, plot_tools, pstool, resizetool, val, xaxis1, xaxis2, xrule, yaxis1, yaxis2, yrule, zoomtool, _i, _j, _len, _len1, _ref;
+      var div, myrender, opts, plot_model;
 
       expect(0);
-      plot_tools = [];
-      if (tools) {
-        pantool = Collections('PanTool').create({
-          dataranges: [xrange.ref(), yrange.ref()],
-          dimensions: ['width', 'height']
-        });
-        zoomtool = Collections('ZoomTool').create({
-          dataranges: [xrange.ref(), yrange.ref()],
-          dimensions: ['width', 'height']
-        });
-        resizetool = Collections('ResizeTool').create();
-        pstool = Collections('PreviewSaveTool').create();
-        plot_tools = [pantool, zoomtool, pstool, resizetool];
-      }
-      glyphs = [];
-      if (!typeIsArray(glyphspecs)) {
-        glyphspecs = [glyphspecs];
-      }
-      if (!typeIsArray(data_source)) {
-        for (_i = 0, _len = glyphspecs.length; _i < _len; _i++) {
-          glyphspec = glyphspecs[_i];
-          glyph = Collections('GlyphRenderer').create({
-            data_source: data_source.ref(),
-            glyphspec: glyphspec
-          });
-          glyph.set(defaults);
-          glyphs.push(glyph);
-        }
-      } else {
-        _ref = zip(glyphspecs, data_source);
-        for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-          val = _ref[_j];
-          glyphspec = val[0], ds = val[1];
-          glyph = Collections('GlyphRenderer').create({
-            data_source: ds.ref(),
-            glyphspec: glyphspec
-          });
-          glyph.set(defaults);
-          glyphs.push(glyph);
-        }
-      }
-      plot_model = Collections('Plot').create({
-        x_range: xrange,
-        y_range: yrange,
-        canvas_width: dims[0],
-        canvas_height: dims[1],
-        outer_width: dims[0],
-        outer_height: dims[1],
-        tools: plot_tools
-      });
-      plot_model.set(defaults);
-      plot_model.add_renderers((function() {
-        var _k, _len2, _results;
-
-        _results = [];
-        for (_k = 0, _len2 = glyphs.length; _k < _len2; _k++) {
-          g = glyphs[_k];
-          _results.push(g.ref());
-        }
-        return _results;
-      })());
-      if (axes) {
-        xaxis1 = Collections('GuideRenderer').create({
-          guidespec: {
-            type: 'linear_axis',
-            dimension: 0,
-            location: 'min',
-            bounds: 'auto'
-          },
-          parent: plot_model.ref()
-        });
-        yaxis1 = Collections('GuideRenderer').create({
-          guidespec: {
-            type: 'linear_axis',
-            dimension: 1,
-            location: 'min',
-            bounds: 'auto'
-          },
-          parent: plot_model.ref()
-        });
-        xaxis2 = Collections('GuideRenderer').create({
-          guidespec: {
-            type: 'linear_axis',
-            dimension: 0,
-            location: 'max',
-            bounds: 'auto'
-          },
-          parent: plot_model.ref()
-        });
-        yaxis2 = Collections('GuideRenderer').create({
-          guidespec: {
-            type: 'linear_axis',
-            dimension: 1,
-            location: 'max',
-            bounds: 'auto'
-          },
-          parent: plot_model.ref()
-        });
-        xrule = Collections('GuideRenderer').create({
-          guidespec: {
-            type: 'rule',
-            dimension: 0,
-            bounds: 'auto'
-          },
-          parent: plot_model.ref()
-        });
-        yrule = Collections('GuideRenderer').create({
-          guidespec: {
-            type: 'rule',
-            dimension: 1,
-            bounds: 'auto'
-          },
-          parent: plot_model.ref()
-        });
-        plot_model.add_renderers([xrule.ref(), yrule.ref(), xaxis1.ref(), yaxis1.ref(), xaxis2.ref(), yaxis2.ref()]);
-      }
-      div = $('<div></div>');
+      opts = {
+        dims: dims,
+        tools: tools,
+        axes: axes,
+        legend: legend,
+        legend_name: legend_name,
+        plot_title: plot_title,
+        reference_point: reference_point
+      };
+      plot_model = make_glyph_plot(data_source, defaults, glyphspecs, xrange, yrange, opts);
+      div = $('<div class="plotdiv"></div>');
       $('body').append(div);
       myrender = function() {
         var view;
@@ -30713,6 +31209,8 @@ window.setup_ipython = function (ws_url) {
   exports.glyph_plot = glyph_plot;
 
   exports.make_glyph_test = make_glyph_test;
+
+  exports.make_glyph_plot = make_glyph_plot;
 
 }).call(this);
 }, "pandas/pandaspivot": function(exports, require, module) {module.exports = function(__obj) {
@@ -31421,144 +31919,195 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "renderers/annotation/legend": function(exports, require, module) {(function() {
-
-
-}).call(this);
-}, "renderers/annotation/title": function(exports, require, module) {(function() {
-
-
-}).call(this);
-}, "renderers/glyph/area": function(exports, require, module) {(function() {
-  var Area, AreaView, Glyph, GlyphView, fill_properties, glyph, glyph_properties, line_properties, properties, _ref, _ref1,
+  var HasParent, Legend, LegendView, PlotWidget, base, line_properties, properties, text_properties, textutils, _ref, _ref1,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
+  base = require('../../base');
+
+  HasParent = base.HasParent;
+
+  PlotWidget = require('../../common/plot_widget').PlotWidget;
+
   properties = require('../properties');
 
-  glyph_properties = properties.glyph_properties;
+  textutils = require('../../common/textutils');
 
   line_properties = properties.line_properties;
 
-  fill_properties = properties.fill_properties;
+  text_properties = properties.text_properties;
 
-  glyph = require('./glyph');
+  "Legends:\n\nlegend_padding is the boundary between the legend and the edge of the plot\nlegend_spacing goes between each legend entry and the edge of the legend,\nas well as between 2 adjacent legend entries.  It is also the space between\nthe legend label, and the legend glyph.\n\nA legend in the top right corner looks like this\n\nplotborder\npadding\nlegendborder\nspacing\nlegendborder|spacing|label|spacing|glyph|spacing|legendborder|padding|plotborder\nspacing\nlegendborder|spacing|label|spacing|glyph|spacing|legendborder|padding|plotborder\nspacing\nborder\n";
 
-  Glyph = glyph.Glyph;
+  LegendView = (function(_super) {
+    __extends(LegendView, _super);
 
-  GlyphView = glyph.GlyphView;
-
-  AreaView = (function(_super) {
-    __extends(AreaView, _super);
-
-    function AreaView() {
-      _ref = AreaView.__super__.constructor.apply(this, arguments);
+    function LegendView() {
+      _ref = LegendView.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
-    AreaView.prototype.initialize = function(options) {
-      var glyphspec;
-
-      glyphspec = this.mget('glyphspec');
-      this.glyph_props = new glyph_properties(this, glyphspec, ['xs:array', 'ys:array'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
-      this.do_fill = this.glyph_props.fill_properties.do_fill;
-      this.do_stroke = this.glyph_props.line_properties.do_stroke;
-      return AreaView.__super__.initialize.call(this, options);
+    LegendView.prototype.initialize = function(options) {
+      LegendView.__super__.initialize.call(this, options);
+      return this.change_annotationspec();
     };
 
-    AreaView.prototype._set_data = function(data) {
-      this.data = data;
+    LegendView.prototype.delegateEvents = function(events) {
+      LegendView.__super__.delegateEvents.call(this, events);
+      this.listenTo(this.model, 'change:annotationspec', this.change_annotationspec);
+      return this.listenTo(this.plot_view.view_state, 'change', this.calc_dims);
     };
 
-    AreaView.prototype._render = function() {
-      var ctx, i, pt, sx, sy, x, y, _i, _j, _k, _len, _ref1, _ref2, _ref3, _ref4;
+    LegendView.prototype.change_annotationspec = function() {
+      this.annotationspec = this.mget('annotationspec');
+      this.label_props = new text_properties(this, this.annotationspec, 'label_');
+      this.border_props = new line_properties(this, this.annotationspec, 'border_');
+      if (this.annotationspec.legend_names) {
+        this.legend_names = this.annotationspec.legend_names;
+      } else {
+        this.legend_names = _.keys(this.annotationspec.legends);
+      }
+      return this.calc_dims();
+    };
+
+    LegendView.prototype.calc_dims = function(options) {
+      var ctx, h_range, label_height, label_width, legend_padding, legend_spacing, orientation, text_width, text_widths, v_range, x, y, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8;
+
+      label_height = (_ref1 = this.annotationspec.label_height) != null ? _ref1 : this.mget('label_height');
+      this.glyph_height = (_ref2 = this.annotationspec.glyph_height) != null ? _ref2 : this.mget('glyph_height');
+      label_width = (_ref3 = this.annotationspec.label_width) != null ? _ref3 : this.mget('label_width');
+      this.glyph_width = (_ref4 = this.annotationspec.glyph_width) != null ? _ref4 : this.mget('glyph_width');
+      legend_spacing = (_ref5 = this.annotationspec.legend_spacing) != null ? _ref5 : this.mget('legend_spacing');
+      this.label_height = _.max([textutils.getTextHeight(this.label_props.font(this)), label_height, this.glyph_height]);
+      this.legend_height = this.label_height;
+      this.legend_height = this.legend_names.length * this.legend_height + (1 + this.legend_names.length) * legend_spacing;
+      ctx = this.plot_view.ctx;
+      ctx.save();
+      this.label_props.set(ctx, this);
+      text_widths = _.map(this.legend_names, function(txt) {
+        return ctx.measureText(txt).width;
+      });
+      ctx.restore();
+      text_width = _.max(text_widths);
+      this.label_width = _.max([text_width, label_width]);
+      this.legend_width = this.label_width + this.glyph_width + 3 * legend_spacing;
+      orientation = (_ref6 = this.annotationspec.orientation) != null ? _ref6 : this.mget('orientation');
+      legend_padding = (_ref7 = this.annotationspec.legend_padding) != null ? _ref7 : this.mget('legend_padding');
+      h_range = this.plot_view.view_state.get('inner_range_horizontal');
+      v_range = this.plot_view.view_state.get('inner_range_vertical');
+      if (orientation === "top_right") {
+        x = h_range.get('end') - legend_padding - this.legend_width;
+        y = v_range.get('end') - legend_padding;
+      } else if (orientation === "top_left") {
+        x = h_range.get('start') + legend_padding;
+        y = v_range.get('end') - legend_padding;
+      } else if (orientation === "bottom_left") {
+        x = h_range.get('start') + legend_padding;
+        y = v_range.get('start') + legend_padding + this.legend_height;
+      } else if (orientation === "bottom_right") {
+        x = h_range.get('end') - legend_padding - this.legend_width;
+        y = v_range.get('start') + legend_padding + this.legend_height;
+      } else if (orientation === "absolute") {
+        _ref8 = this.annotationspec.absolute_coords, x = _ref8[0], y = _ref8[1];
+      }
+      x = this.plot_view.view_state.sx_to_device(x);
+      y = this.plot_view.view_state.sy_to_device(y);
+      return this.box_coords = [x, y];
+    };
+
+    LegendView.prototype.render = function() {
+      var ctx, idx, legend_name, legend_spacing, renderer, view, x, x1, x2, y, y1, y2, yoffset, yspacing, _i, _j, _len, _len1, _ref1, _ref2, _ref3;
 
       ctx = this.plot_view.ctx;
       ctx.save();
-      _ref1 = this.data;
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        pt = _ref1[_i];
-        x = this.glyph_props.select('xs', pt);
-        y = this.glyph_props.select('ys', pt);
-        _ref2 = this.plot_view.map_to_screen(x, this.glyph_props.xs.units, y, this.glyph_props.ys.units), sx = _ref2[0], sy = _ref2[1];
-        if (this.do_fill) {
-          this.glyph_props.fill_properties.set(ctx, pt);
-          for (i = _j = 0, _ref3 = sx.length - 1; 0 <= _ref3 ? _j <= _ref3 : _j >= _ref3; i = 0 <= _ref3 ? ++_j : --_j) {
-            if (i === 0) {
-              ctx.beginPath();
-              ctx.moveTo(sx[i], sy[i]);
-              continue;
-            } else if (isNaN(sx[i] + sy[i])) {
-              ctx.closePath();
-              ctx.fill();
-              ctx.beginPath();
-              continue;
-            } else {
-              ctx.lineTo(sx[i], sy[i]);
-            }
-          }
-          ctx.closePath();
-          ctx.fill();
-        }
-        if (this.do_stroke) {
-          this.glyph_props.line_properties.set(ctx, pt);
-          for (i = _k = 0, _ref4 = sx.length - 1; 0 <= _ref4 ? _k <= _ref4 : _k >= _ref4; i = 0 <= _ref4 ? ++_k : --_k) {
-            if (i === 0) {
-              ctx.beginPath();
-              ctx.moveTo(sx[i], sy[i]);
-              continue;
-            } else if (isNaN(sx[i] + sy[i])) {
-              ctx.closePath();
-              ctx.stroke();
-              ctx.beginPath();
-              continue;
-            } else {
-              ctx.lineTo(sx[i], sy[i]);
-            }
-          }
-          ctx.closePath();
-          ctx.stroke();
+      ctx.fillStyle = this.plot_model.get('background_fill');
+      this.border_props.set(ctx, this);
+      ctx.beginPath();
+      ctx.rect(this.box_coords[0], this.box_coords[1], this.legend_width, this.legend_height);
+      ctx.fill();
+      ctx.stroke();
+      this.label_props.set(ctx, this);
+      legend_spacing = (_ref1 = this.annotationspec.legend_spacing) != null ? _ref1 : this.mget('legend_spacing');
+      _ref2 = this.legend_names;
+      for (idx = _i = 0, _len = _ref2.length; _i < _len; idx = ++_i) {
+        legend_name = _ref2[idx];
+        yoffset = idx * this.label_height;
+        yspacing = (1 + idx) * legend_spacing;
+        y = this.box_coords[1] + this.label_height / 2.0 + yoffset + yspacing;
+        x = this.box_coords[0] + legend_spacing;
+        x1 = this.box_coords[0] + 2 * legend_spacing + this.label_width;
+        x2 = x1 + this.glyph_width;
+        y1 = this.box_coords[1] + yoffset + yspacing;
+        y2 = y1 + this.glyph_height;
+        ctx.fillText(legend_name, x, y);
+        _ref3 = this.model.resolve_ref(this.annotationspec.legends[legend_name]);
+        for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
+          renderer = _ref3[_j];
+          view = this.plot_view.renderers[renderer.id];
+          view.draw_legend(ctx, x1, x2, y1, y2);
         }
       }
       return ctx.restore();
     };
 
-    return AreaView;
+    return LegendView;
 
-  })(GlyphView);
+  })(PlotWidget);
 
-  Area = (function(_super) {
-    __extends(Area, _super);
+  Legend = (function(_super) {
+    __extends(Legend, _super);
 
-    function Area() {
-      _ref1 = Area.__super__.constructor.apply(this, arguments);
+    function Legend() {
+      _ref1 = Legend.__super__.constructor.apply(this, arguments);
       return _ref1;
     }
 
-    Area.prototype.default_view = AreaView;
+    Legend.prototype.default_view = LegendView;
 
-    Area.prototype.type = 'GlyphRenderer';
+    Legend.prototype.type = 'AnnotationRenderer';
 
-    return Area;
+    return Legend;
 
-  })(Glyph);
+  })(HasParent);
 
-  Area.prototype.display_defaults = _.clone(Area.prototype.display_defaults);
+  Legend.prototype.defaults = _.clone(Legend.prototype.defaults);
 
-  _.extend(Area.prototype.display_defaults, {
-    fill: 'gray',
-    fill_alpha: 1.0,
-    line_color: 'red',
-    line_width: 1,
-    line_alpha: 1.0,
-    line_join: 'miter',
-    line_cap: 'butt',
-    line_dash: [],
-    line_dash_offset: 0
+  Legend.prototype.display_defaults = _.clone(Legend.prototype.display_defaults);
+
+  _.extend(Legend.prototype.display_defaults, {
+    level: 'overlay',
+    border_line_color: 'black',
+    border_line_width: 1,
+    border_line_alpha: 1.0,
+    border_line_join: 'miter',
+    border_line_cap: 'butt',
+    border_line_dash: [],
+    border_line_dash_offset: 0,
+    label_standoff: 15,
+    label_text_font: "helvetica",
+    label_text_font_size: "10pt",
+    label_text_font_style: "normal",
+    label_text_color: "#444444",
+    label_text_alpha: 1.0,
+    label_text_align: "center",
+    label_text_baseline: "middle",
+    glyph_height: 20,
+    glyph_width: 20,
+    label_height: 20,
+    label_width: 50,
+    legend_padding: 10,
+    legend_spacing: 3,
+    orientation: "top_right",
+    label_text_align: "left",
+    label_text_baseline: "middle",
+    datapoint: null
   });
 
-  exports.Area = Area;
+  exports.Legend = Legend;
 
-  exports.AreaView = AreaView;
+}).call(this);
+}, "renderers/annotation/title": function(exports, require, module) {(function() {
+
 
 }).call(this);
 }, "renderers/glyph/arc": function(exports, require, module) {(function() {
@@ -31707,6 +32256,39 @@ window.setup_ipython = function (ws_url) {
       }
     };
 
+    ArcView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var border, d, data_r, direction, end_angle, glyph_props, glyph_settings, line_props, r, reference_point, start_angle;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        data_r = this.distance([reference_point], 'x', 'radius', 'edge')[0];
+        start_angle = -this.glyph_props.select('start_angle', reference_point);
+        end_angle = -this.glyph_props.select('end_angle', reference_point);
+      } else {
+        glyph_settings = glyph_props;
+        start_angle = -0.1;
+        end_angle = -3.9;
+      }
+      direction = this.glyph_props.select('direction', glyph_settings);
+      direction = direction === "clock" ? false : true;
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      ctx.beginPath();
+      d = _.min([Math.abs(x2 - x1), Math.abs(y2 - y1)]);
+      d = d - 2 * border;
+      r = d / 2;
+      if (data_r != null) {
+        r = data_r > r ? r : data_r;
+      }
+      ctx.arc((x1 + x2) / 2.0, (y1 + y2) / 2.0, r, start_angle, end_angle, direction);
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
+    };
+
     return ArcView;
 
   })(GlyphView);
@@ -31743,6 +32325,176 @@ window.setup_ipython = function (ws_url) {
   exports.Arc = Arc;
 
   exports.ArcView = ArcView;
+
+}).call(this);
+}, "renderers/glyph/multi_line": function(exports, require, module) {(function() {
+  var Glyph, GlyphView, MultiLine, MultiLineView, glyph, glyph_properties, line_properties, properties, _ref, _ref1,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  properties = require('../properties');
+
+  glyph_properties = properties.glyph_properties;
+
+  line_properties = properties.line_properties;
+
+  glyph = require('./glyph');
+
+  Glyph = glyph.Glyph;
+
+  GlyphView = glyph.GlyphView;
+
+  MultiLineView = (function(_super) {
+    __extends(MultiLineView, _super);
+
+    function MultiLineView() {
+      _ref = MultiLineView.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    MultiLineView.prototype.initialize = function(options) {
+      var glyphspec;
+
+      glyphspec = this.mget('glyphspec');
+      this.glyph_props = new glyph_properties(this, glyphspec, ['xs:array', 'ys:array'], [new line_properties(this, glyphspec)]);
+      this.do_stroke = this.glyph_props.line_properties.do_stroke;
+      return MultiLineView.__super__.initialize.call(this, options);
+    };
+
+    MultiLineView.prototype._set_data = function(data) {
+      this.data = data;
+    };
+
+    MultiLineView.prototype._render = function() {
+      var ctx;
+
+      ctx = this.plot_view.ctx;
+      ctx.save();
+      if (this.glyph_props.fast_path) {
+        this._fast_path(ctx);
+      } else {
+        this._full_path(ctx);
+      }
+      return ctx.restore();
+    };
+
+    MultiLineView.prototype._fast_path = function(ctx) {
+      var i, pt, sx, sy, x, y, _i, _j, _len, _ref1, _ref2, _ref3, _results;
+
+      if (this.do_stroke) {
+        this.glyph_props.line_properties.set(ctx, this.glyph_props);
+        _ref1 = this.data;
+        _results = [];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          pt = _ref1[_i];
+          x = this.glyph_props.select('xs', pt);
+          y = this.glyph_props.select('ys', pt);
+          _ref2 = this.plot_view.map_to_screen(x, this.glyph_props.xs.units, y, this.glyph_props.ys.units), sx = _ref2[0], sy = _ref2[1];
+          for (i = _j = 0, _ref3 = sx.length - 1; 0 <= _ref3 ? _j <= _ref3 : _j >= _ref3; i = 0 <= _ref3 ? ++_j : --_j) {
+            if (i === 0) {
+              ctx.beginPath();
+              ctx.moveTo(sx[i], sy[i]);
+              continue;
+            } else if (isNaN(sx[i]) || isNaN(sy[i])) {
+              ctx.stroke();
+              ctx.beginPath();
+              continue;
+            } else {
+              ctx.lineTo(sx[i], sy[i]);
+            }
+          }
+          _results.push(ctx.stroke());
+        }
+        return _results;
+      }
+    };
+
+    MultiLineView.prototype._full_path = function(ctx) {
+      var i, pt, sx, sy, x, y, _i, _j, _len, _ref1, _ref2, _ref3, _results;
+
+      if (this.do_stroke) {
+        _ref1 = this.data;
+        _results = [];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          pt = _ref1[_i];
+          x = this.glyph_props.select('xs', pt);
+          y = this.glyph_props.select('ys', pt);
+          _ref2 = this.plot_view.map_to_screen(x, this.glyph_props.xs.units, y, this.glyph_props.ys.units), sx = _ref2[0], sy = _ref2[1];
+          this.glyph_props.line_properties.set(ctx, pt);
+          for (i = _j = 0, _ref3 = sx.length - 1; 0 <= _ref3 ? _j <= _ref3 : _j >= _ref3; i = 0 <= _ref3 ? ++_j : --_j) {
+            if (i === 0) {
+              ctx.beginPath();
+              ctx.moveTo(sx[i], sy[i]);
+              continue;
+            } else if (isNaN(sx[i]) || isNaN(sy[i])) {
+              ctx.stroke();
+              ctx.beginPath();
+              continue;
+            } else {
+              ctx.lineTo(sx[i], sy[i]);
+            }
+          }
+          _results.push(ctx.stroke());
+        }
+        return _results;
+      }
+    };
+
+    MultiLineView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var glyph_props, glyph_settings, line_props, reference_point;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+      } else {
+        glyph_settings = glyph_props;
+      }
+      line_props.set(ctx, glyph_settings);
+      ctx.beginPath();
+      ctx.moveTo(x1, (y1 + y2) / 2);
+      ctx.lineTo(x2, (y1 + y2) / 2);
+      ctx.stroke();
+      ctx.beginPath();
+      return ctx.restore();
+    };
+
+    return MultiLineView;
+
+  })(GlyphView);
+
+  MultiLine = (function(_super) {
+    __extends(MultiLine, _super);
+
+    function MultiLine() {
+      _ref1 = MultiLine.__super__.constructor.apply(this, arguments);
+      return _ref1;
+    }
+
+    MultiLine.prototype.default_view = MultiLineView;
+
+    MultiLine.prototype.type = 'GlyphRenderer';
+
+    return MultiLine;
+
+  })(Glyph);
+
+  MultiLine.prototype.display_defaults = _.clone(MultiLine.prototype.display_defaults);
+
+  _.extend(MultiLine.prototype.display_defaults, {
+    line_color: 'red',
+    line_width: 1,
+    line_alpha: 1.0,
+    line_join: 'miter',
+    line_cap: 'butt',
+    line_dash: [],
+    line_dash_offset: 0
+  });
+
+  exports.MultiLine = MultiLine;
+
+  exports.MultiLineView = MultiLineView;
 
 }).call(this);
 }, "renderers/glyph/image_rgba": function(exports, require, module) {(function() {
@@ -31878,6 +32630,131 @@ window.setup_ipython = function (ws_url) {
   exports.ImageRGBAView = ImageRGBAView;
 
 }).call(this);
+}, "renderers/glyph/square": function(exports, require, module) {(function() {
+  var Glyph, GlyphView, Square, SquareView, fill_properties, glyph, glyph_properties, line_properties, properties, rect, _ref, _ref1,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  properties = require('../properties');
+
+  glyph_properties = properties.glyph_properties;
+
+  line_properties = properties.line_properties;
+
+  fill_properties = properties.fill_properties;
+
+  glyph = require('./glyph');
+
+  Glyph = glyph.Glyph;
+
+  GlyphView = glyph.GlyphView;
+
+  rect = require("./rect");
+
+  SquareView = (function(_super) {
+    __extends(SquareView, _super);
+
+    function SquareView() {
+      _ref = SquareView.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    SquareView.prototype.initialize = function(options) {
+      var spec;
+
+      SquareView.__super__.initialize.call(this, options);
+      this.glyph_props = this.init_glyph(this.mget('glyphspec'));
+      if (this.mget('selection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('selection_glyphspec'));
+        this.selection_glyphprops = this.init_glyph(spec);
+      }
+      if (this.mget('nonselection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('nonselection_glyphspec'));
+        this.nonselection_glyphprops = this.init_glyph(spec);
+      }
+      this.do_fill = this.glyph_props.fill_properties.do_fill;
+      return this.do_stroke = this.glyph_props.line_properties.do_stroke;
+    };
+
+    SquareView.prototype.init_glyph = function(glyphspec) {
+      var fill_props, glyph_props, line_props;
+
+      fill_props = new fill_properties(this, glyphspec);
+      line_props = new line_properties(this, glyphspec);
+      glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'size', 'angle'], [line_props, fill_props]);
+      return glyph_props;
+    };
+
+    SquareView.prototype._map_data = function() {
+      var _ref1;
+
+      _ref1 = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref1[0], this.sy = _ref1[1];
+      this.sw = this.distance(this.data, 'x', 'size', 'center');
+      return this.sh = this.sw;
+    };
+
+    SquareView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var border, data_h, data_w, fill_props, glyph_props, glyph_settings, h, line_props, reference_point, w, x, y;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      fill_props = glyph_props.fill_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        data_w = this.distance([reference_point], 'x', 'size', 'center')[0];
+        data_h = data_w;
+      } else {
+        glyph_settings = glyph_props;
+      }
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      ctx.beginPath();
+      w = Math.abs(x2 - x1);
+      h = Math.abs(y2 - y1);
+      w = w - 2 * border;
+      h = h - 2 * border;
+      if (data_w != null) {
+        w = data_w > w ? w : data_w;
+      }
+      if (data_h != null) {
+        h = data_h > h ? h : data_h;
+      }
+      x = (x1 + x2) / 2 - (w / 2);
+      y = (y1 + y2) / 2 - (h / 2);
+      ctx.rect(x, y, w, h);
+      fill_props.set(ctx, glyph_settings);
+      ctx.fill();
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
+    };
+
+    return SquareView;
+
+  })(rect.RectView);
+
+  Square = (function(_super) {
+    __extends(Square, _super);
+
+    function Square() {
+      _ref1 = Square.__super__.constructor.apply(this, arguments);
+      return _ref1;
+    }
+
+    Square.prototype.default_view = SquareView;
+
+    Square.prototype.type = 'GlyphRenderer';
+
+    return Square;
+
+  })(rect.Rect);
+
+  exports.Square = Square;
+
+  exports.SquareView = SquareView;
+
+}).call(this);
 }, "renderers/glyph/line": function(exports, require, module) {(function() {
   var Glyph, GlyphView, Line, LineView, glyph, glyph_properties, line_properties, properties, _ref, _ref1,
     __hasProp = {}.hasOwnProperty,
@@ -31904,91 +32781,147 @@ window.setup_ipython = function (ws_url) {
     }
 
     LineView.prototype.initialize = function(options) {
-      var glyphspec;
+      var spec;
 
-      glyphspec = this.mget('glyphspec');
-      this.glyph_props = new glyph_properties(this, glyphspec, ['xs:array', 'ys:array'], [new line_properties(this, glyphspec)]);
-      this.do_stroke = this.glyph_props.line_properties.do_stroke;
-      return LineView.__super__.initialize.call(this, options);
+      LineView.__super__.initialize.call(this, options);
+      this.glyph_props = this.init_glyph(this.mget('glyphspec'));
+      if (this.mget('selection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('selection_glyphspec'));
+        this.selection_glyphprops = this.init_glyph(spec);
+      }
+      if (this.mget('nonselection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('nonselection_glyphspec'));
+        this.nonselection_glyphprops = this.init_glyph(spec);
+      }
+      return this.do_stroke = this.glyph_props.line_properties.do_stroke;
+    };
+
+    LineView.prototype.init_glyph = function(glyphspec) {
+      var glyph_props;
+
+      glyph_props = new glyph_properties(this, glyphspec, ['x:number', 'y:number'], [new line_properties(this, glyphspec)]);
+      return glyph_props;
     };
 
     LineView.prototype._set_data = function(data) {
+      var i, _i, _ref1, _results;
+
       this.data = data;
+      this.x = this.glyph_props.v_select('x', data);
+      this.y = this.glyph_props.v_select('y', data);
+      this.selected_mask = new Array(data.length - 1);
+      _results = [];
+      for (i = _i = 0, _ref1 = this.selected_mask.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        _results.push(this.selected_mask[i] = false);
+      }
+      return _results;
+    };
+
+    LineView.prototype._map_data = function() {
+      var _ref1;
+
+      return _ref1 = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref1[0], this.sy = _ref1[1], _ref1;
     };
 
     LineView.prototype._render = function() {
-      var ctx;
+      var ctx, idx, props, selected, _i, _len;
 
+      this._map_data();
       ctx = this.plot_view.ctx;
       ctx.save();
-      if (this.glyph_props.fast_path) {
-        this._fast_path(ctx);
+      selected = this.mget_obj('data_source').get('selected');
+      for (_i = 0, _len = selected.length; _i < _len; _i++) {
+        idx = selected[_i];
+        this.selected_mask[idx] = true;
+      }
+      if (selected && selected.length && this.nonselection_glyphprops) {
+        if (this.selection_glyphprops) {
+          props = this.selection_glyphprops;
+        } else {
+          props = this.glyph_props;
+        }
+        this._draw_path(ctx, this.nonselection_glyphprops, false);
+        this._draw_path(ctx, props, true);
       } else {
-        this._full_path(ctx);
+        this._draw_path(ctx);
       }
       return ctx.restore();
     };
 
-    LineView.prototype._fast_path = function(ctx) {
-      var i, pt, sx, sy, x, y, _i, _j, _len, _ref1, _ref2, _ref3, _results;
+    LineView.prototype._draw_path = function(ctx, glyph_props, draw_selected) {
+      var drawing, i, selected_mask, sx, sy, _i, _ref1;
 
-      if (this.do_stroke) {
-        this.glyph_props.line_properties.set(ctx, this.glyph_props);
-        _ref1 = this.data;
-        _results = [];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          pt = _ref1[_i];
-          x = this.glyph_props.select('xs', pt);
-          y = this.glyph_props.select('ys', pt);
-          _ref2 = this.plot_view.map_to_screen(x, this.glyph_props.xs.units, y, this.glyph_props.ys.units), sx = _ref2[0], sy = _ref2[1];
-          for (i = _j = 0, _ref3 = sx.length - 1; 0 <= _ref3 ? _j <= _ref3 : _j >= _ref3; i = 0 <= _ref3 ? ++_j : --_j) {
-            if (i === 0) {
-              ctx.beginPath();
-              ctx.moveTo(sx[i], sy[i]);
-              continue;
-            } else if (isNaN(sx[i]) || isNaN(sy[i])) {
-              ctx.stroke();
-              ctx.beginPath();
-              continue;
-            } else {
-              ctx.lineTo(sx[i], sy[i]);
-            }
+      if (!glyph_props) {
+        glyph_props = this.glyph_props;
+      }
+      glyph_props.line_properties.set(ctx, glyph_props);
+      sx = this.sx;
+      sy = this.sy;
+      selected_mask = this.selected_mask;
+      drawing = false;
+      for (i = _i = 0, _ref1 = sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        if (isNaN(sx[i] + sy[i]) || (draw_selected && !selected_mask[i]) || (!draw_selected && selected_mask[i])) {
+          if (drawing) {
+            ctx.stroke();
           }
-          _results.push(ctx.stroke());
+          drawing = false;
+          continue;
         }
-        return _results;
+        if (!drawing) {
+          ctx.beginPath();
+          ctx.moveTo(sx[i], sy[i]);
+          drawing = true;
+        } else {
+          ctx.lineTo(sx[i], sy[i]);
+        }
+      }
+      if (drawing) {
+        return ctx.stroke();
       }
     };
 
-    LineView.prototype._full_path = function(ctx) {
-      var i, pt, sx, sy, x, y, _i, _j, _len, _ref1, _ref2, _ref3, _results;
+    LineView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var glyph_props, glyph_settings, line_props, reference_point;
 
-      if (this.do_stroke) {
-        _ref1 = this.data;
-        _results = [];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          pt = _ref1[_i];
-          x = this.glyph_props.select('xs', pt);
-          y = this.glyph_props.select('ys', pt);
-          _ref2 = this.plot_view.map_to_screen(x, this.glyph_props.xs.units, y, this.glyph_props.ys.units), sx = _ref2[0], sy = _ref2[1];
-          this.glyph_props.line_properties.set(ctx, pt);
-          for (i = _j = 0, _ref3 = sx.length - 1; 0 <= _ref3 ? _j <= _ref3 : _j >= _ref3; i = 0 <= _ref3 ? ++_j : --_j) {
-            if (i === 0) {
-              ctx.beginPath();
-              ctx.moveTo(sx[i], sy[i]);
-              continue;
-            } else if (isNaN(sx[i]) || isNaN(sy[i])) {
-              ctx.stroke();
-              ctx.beginPath();
-              continue;
-            } else {
-              ctx.lineTo(sx[i], sy[i]);
-            }
-          }
-          _results.push(ctx.stroke());
-        }
-        return _results;
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+      } else {
+        glyph_settings = glyph_props;
       }
+      line_props.set(ctx, glyph_settings);
+      ctx.beginPath();
+      ctx.moveTo(x1, (y1 + y2) / 2);
+      ctx.lineTo(x2, (y1 + y2) / 2);
+      ctx.stroke();
+      ctx.beginPath();
+      return ctx.restore();
+    };
+
+    LineView.prototype.select = function(xscreenbounds, yscreenbounds) {
+      var i, selected, _i, _ref1;
+
+      xscreenbounds = [this.plot_view.view_state.sx_to_device(xscreenbounds[0]), this.plot_view.view_state.sx_to_device(xscreenbounds[1])];
+      yscreenbounds = [this.plot_view.view_state.sy_to_device(yscreenbounds[0]), this.plot_view.view_state.sy_to_device(yscreenbounds[1])];
+      xscreenbounds = [_.min(xscreenbounds), _.max(xscreenbounds)];
+      yscreenbounds = [_.min(yscreenbounds), _.max(yscreenbounds)];
+      selected = [];
+      for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        if (xscreenbounds) {
+          if (this.sx[i] < xscreenbounds[0] || this.sx[i] > xscreenbounds[1]) {
+            continue;
+          }
+        }
+        if (yscreenbounds) {
+          if (this.sy[i] < yscreenbounds[0] || this.sy[i] > yscreenbounds[1]) {
+            continue;
+          }
+        }
+        selected.push(i);
+      }
+      return selected;
     };
 
     return LineView;
@@ -32156,6 +33089,33 @@ window.setup_ipython = function (ws_url) {
         }
         return _results;
       }
+    };
+
+    RayView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var angle, glyph_props, glyph_settings, line_props, r, reference_point, sx, sy;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+      } else {
+        glyph_settings = glyph_props;
+      }
+      angle = -this.glyph_props.select('angle', glyph_settings);
+      r = _.min([Math.abs(x2 - x1), Math.abs(y2 - y1)]) / 2;
+      sx = (x1 + x2) / 2;
+      sy = (y1 + y2) / 2;
+      ctx.beginPath();
+      ctx.translate(sx, sy);
+      ctx.rotate(angle);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(r, 0);
+      ctx.rotate(-angle);
+      ctx.translate(-sx, -sy);
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
     };
 
     return RayView;
@@ -32424,6 +33384,26 @@ window.setup_ipython = function (ws_url) {
       }
     };
 
+    SegmentView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var glyph_props, glyph_settings, line_props, reference_point;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+      } else {
+        glyph_settings = glyph_props;
+      }
+      line_props.set(ctx, glyph_settings);
+      ctx.beginPath();
+      ctx.moveTo(x1, (y1 + y2) / 2);
+      ctx.lineTo(x2, (y1 + y2) / 2);
+      ctx.stroke();
+      ctx.beginPath();
+      return ctx.restore();
+    };
+
     return SegmentView;
 
   })(GlyphView);
@@ -32489,17 +33469,31 @@ window.setup_ipython = function (ws_url) {
     }
 
     OvalView.prototype.initialize = function(options) {
-      var glyphspec;
+      var spec;
 
-      glyphspec = this.mget('glyphspec');
-      this.glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'width', 'height', 'angle'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      this.glyph_props = this.init_glyph(this.mget('glyphspec'));
+      if (this.mget('selection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('selection_glyphspec'));
+        this.selection_glyphprops = this.init_glyph(spec);
+      }
+      if (this.mget('nonselection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('nonselection_glyphspec'));
+        this.nonselection_glyphprops = this.init_glyph(spec);
+      }
       this.do_fill = this.glyph_props.fill_properties.do_fill;
       this.do_stroke = this.glyph_props.line_properties.do_stroke;
       return OvalView.__super__.initialize.call(this, options);
     };
 
+    OvalView.prototype.init_glyph = function(glyphspec) {
+      var glyph_props;
+
+      glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'width', 'height', 'angle'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      return glyph_props;
+    };
+
     OvalView.prototype._set_data = function(data) {
-      var angle, angles, obj;
+      var angle, angles, i, obj, _i, _ref1, _results;
 
       this.data = data;
       this.x = this.glyph_props.v_select('x', data);
@@ -32514,7 +33508,7 @@ window.setup_ipython = function (ws_url) {
         }
         return _results;
       }).call(this);
-      return this.angle = (function() {
+      this.angle = (function() {
         var _i, _len, _results;
 
         _results = [];
@@ -32524,20 +33518,41 @@ window.setup_ipython = function (ws_url) {
         }
         return _results;
       })();
+      this.selected_mask = new Array(data.length - 1);
+      _results = [];
+      for (i = _i = 0, _ref1 = this.selected_mask.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        _results.push(this.selected_mask[i] = false);
+      }
+      return _results;
     };
 
     OvalView.prototype._render = function() {
-      var ctx, _ref1;
+      var ctx, idx, props, selected, _i, _len, _ref1;
 
       _ref1 = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref1[0], this.sy = _ref1[1];
       this.sw = this.distance(this.data, 'x', 'width', 'center');
       this.sh = this.distance(this.data, 'y', 'height', 'center');
       ctx = this.plot_view.ctx;
       ctx.save();
+      selected = this.mget_obj('data_source').get('selected');
+      for (_i = 0, _len = selected.length; _i < _len; _i++) {
+        idx = selected[_i];
+        this.selected_mask[idx] = true;
+      }
       if (this.glyph_props.fast_path) {
         this._fast_path(ctx);
       } else {
-        this._full_path(ctx);
+        if (selected && selected.length && this.nonselection_glyphprops) {
+          if (this.selection_glyphprops) {
+            props = this.selection_glyphprops;
+          } else {
+            props = this.glyph_props;
+          }
+          this._full_path(ctx, props, 'selected');
+          this._full_path(ctx, this.nonselection_glyphprops, 'unselected');
+        } else {
+          this._full_path(ctx);
+        }
       }
       return ctx.restore();
     };
@@ -32582,12 +33597,24 @@ window.setup_ipython = function (ws_url) {
       }
     };
 
-    OvalView.prototype._full_path = function(ctx) {
+    OvalView.prototype._full_path = function(ctx, glyph_props, use_selection) {
       var i, _i, _ref1, _results;
 
+      if (!glyph_props) {
+        glyph_props = this.glyph_props;
+      }
       _results = [];
       for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
         if (isNaN(this.sx[i] + this.sy[i] + this.sw[i] + this.sh[i] + this.angle[i])) {
+          continue;
+        }
+        if (isNaN(this.sx[i] + this.sy[i] + this.sw[i] + this.sh[i] + this.angle[i])) {
+          continue;
+        }
+        if (use_selection === 'selected' && !this.selected_mask[i]) {
+          continue;
+        }
+        if (use_selection === 'unselected' && this.selected_mask[i]) {
           continue;
         }
         ctx.translate(this.sx[i], this.sy[i]);
@@ -32598,17 +33625,81 @@ window.setup_ipython = function (ws_url) {
         ctx.bezierCurveTo(-this.sw[i] / 2, this.sh[i] / 2, -this.sw[i] / 2, -this.sh[i] / 2, 0, -this.sh[i] / 2);
         ctx.closePath();
         if (this.do_fill) {
-          this.glyph_props.fill_properties.set(ctx, this.data[i]);
+          glyph_props.fill_properties.set(ctx, this.data[i]);
           ctx.fill();
         }
         if (this.do_stroke) {
-          this.glyph_props.line_properties.set(ctx, this.data[i]);
+          glyph_props.line_properties.set(ctx, this.data[i]);
           ctx.stroke();
         }
         ctx.rotate(-this.angle[i]);
         _results.push(ctx.translate(-this.sx[i], -this.sy[i]));
       }
       return _results;
+    };
+
+    OvalView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var border, fill_props, glyph_props, glyph_settings, h, line_props, ratio, ratio1, ratio2, reference_point, sh, sw, w;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      fill_props = glyph_props.fill_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        sw = this.distance([reference_point], 'x', 'width', 'center')[0];
+        sh = this.distance([refrence_point], 'y', 'height', 'center')[0];
+      } else {
+        glyph_settings = glyph_props;
+        sw = 1.0;
+        sh = 2.0;
+      }
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      w = Math.abs(x2 - x1);
+      h = Math.abs(y2 - y1);
+      w = w - 2 * border;
+      h = h - 2 * border;
+      ratio1 = h / sh;
+      ratio2 = w / sw;
+      ratio = _.min([ratio1, ratio2]);
+      h = sh * ratio;
+      w = sw * ratio;
+      ctx.translate((x1 + x2) / 2, (y1 + y2) / 2);
+      ctx.beginPath();
+      ctx.moveTo(0, -h / 2);
+      ctx.bezierCurveTo(w / 2, -h / 2, w / 2, h / 2, 0, h / 2);
+      ctx.bezierCurveTo(-w / 2, h / 2, -w / 2, -h / 2, 0, -h / 2);
+      ctx.closePath();
+      fill_props.set(ctx, glyph_settings);
+      ctx.fill();
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
+    };
+
+    OvalView.prototype.select = function(xscreenbounds, yscreenbounds) {
+      var i, selected, _i, _ref1;
+
+      xscreenbounds = [this.plot_view.view_state.sx_to_device(xscreenbounds[0]), this.plot_view.view_state.sx_to_device(xscreenbounds[1])];
+      yscreenbounds = [this.plot_view.view_state.sy_to_device(yscreenbounds[0]), this.plot_view.view_state.sy_to_device(yscreenbounds[1])];
+      xscreenbounds = [_.min(xscreenbounds), _.max(xscreenbounds)];
+      yscreenbounds = [_.min(yscreenbounds), _.max(yscreenbounds)];
+      selected = [];
+      for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        if (xscreenbounds) {
+          if (this.sx[i] < xscreenbounds[0] || this.sx[i] > xscreenbounds[1]) {
+            continue;
+          }
+        }
+        if (yscreenbounds) {
+          if (this.sy[i] < yscreenbounds[0] || this.sy[i] > yscreenbounds[1]) {
+            continue;
+          }
+        }
+        selected.push(i);
+      }
+      return selected;
     };
 
     return OvalView;
@@ -32679,35 +33770,72 @@ window.setup_ipython = function (ws_url) {
     }
 
     AnnulusView.prototype.initialize = function(options) {
-      var glyphspec;
+      var spec;
 
-      glyphspec = this.mget('glyphspec');
-      this.glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'inner_radius', 'outer_radius'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      this.glyph_props = this.init_glyph(this.mget('glyphspec'));
+      if (this.mget('selection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('selection_glyphspec'));
+        this.selection_glyphprops = this.init_glyph(spec);
+      }
+      if (this.mget('nonselection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('nonselection_glyphspec'));
+        this.nonselection_glyphprops = this.init_glyph(spec);
+      }
       this.do_fill = this.glyph_props.fill_properties.do_fill;
       this.do_stroke = this.glyph_props.line_properties.do_stroke;
       return AnnulusView.__super__.initialize.call(this, options);
     };
 
+    AnnulusView.prototype.init_glyph = function(glyphspec) {
+      var glyph_props;
+
+      glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'inner_radius', 'outer_radius'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      return glyph_props;
+    };
+
     AnnulusView.prototype._set_data = function(data) {
+      var i, _i, _ref1, _results;
+
       this.data = data;
       this.x = this.glyph_props.v_select('x', data);
-      return this.y = this.glyph_props.v_select('y', data);
+      this.y = this.glyph_props.v_select('y', data);
+      this.selected_mask = new Array(data.length - 1);
+      _results = [];
+      for (i = _i = 0, _ref1 = this.selected_mask.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        _results.push(this.selected_mask[i] = false);
+      }
+      return _results;
     };
 
     AnnulusView.prototype._render = function() {
-      var ctx, _ref1;
+      var ctx, idx, props, selected, _i, _len, _ref1;
 
       _ref1 = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref1[0], this.sy = _ref1[1];
       this.inner_radius = this.distance(this.data, 'x', 'inner_radius', 'edge');
       this.outer_radius = this.distance(this.data, 'x', 'outer_radius', 'edge');
       ctx = this.plot_view.ctx;
       ctx.save();
-      if (this.glyph_props.fast_path) {
-        this._fast_path(ctx);
-      } else {
-        this._full_path(ctx);
+      selected = this.mget_obj('data_source').get('selected');
+      for (_i = 0, _len = selected.length; _i < _len; _i++) {
+        idx = selected[_i];
+        this.selected_mask[idx] = true;
       }
-      return ctx.restore();
+      if (this.glyph_props.fast_path) {
+        return this._fast_path(ctx);
+      } else {
+        if (selected && selected.length && this.nonselection_glyphprops) {
+          if (this.selection_glyphprops) {
+            props = this.selection_glyphprops;
+          } else {
+            props = this.glyph_props;
+          }
+          this._full_path(ctx, props, 'selected');
+          this._full_path(ctx, this.nonselection_glyphprops, 'unselected');
+        } else {
+          this._full_path(ctx);
+        }
+        return ctx.restore();
+      }
     };
 
     AnnulusView.prototype._fast_path = function(ctx) {
@@ -32743,12 +33871,21 @@ window.setup_ipython = function (ws_url) {
       }
     };
 
-    AnnulusView.prototype._full_path = function(ctx) {
+    AnnulusView.prototype._full_path = function(ctx, glyph_props, use_selection) {
       var i, _i, _ref1, _results;
 
+      if (!glyph_props) {
+        glyph_props = this.glyph_props;
+      }
       _results = [];
       for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
         if (isNaN(this.sx[i] + this.sy[i] + this.inner_radius[i] + this.outer_radius[i])) {
+          continue;
+        }
+        if (use_selection === 'selected' && !this.selected_mask[i]) {
+          continue;
+        }
+        if (use_selection === 'unselected' && this.selected_mask[i]) {
           continue;
         }
         ctx.beginPath();
@@ -32756,17 +33893,83 @@ window.setup_ipython = function (ws_url) {
         ctx.moveTo(this.sx[i] + this.outer_radius[i], this.sy[i]);
         ctx.arc(this.sx[i], this.sy[i], this.outer_radius[i], 0, 2 * Math.PI * 2, true);
         if (this.do_fill) {
-          this.glyph_props.fill_properties.set(ctx, this.data[i]);
+          glyph_props.fill_properties.set(ctx, this.data[i]);
           ctx.fill();
         }
         if (this.do_stroke) {
-          this.glyph_props.line_properties.set(ctx, this.data[i]);
+          glyph_props.line_properties.set(ctx, this.data[i]);
           _results.push(ctx.stroke());
         } else {
           _results.push(void 0);
         }
       }
       return _results;
+    };
+
+    AnnulusView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var border, d, fill_props, glyph_props, glyph_settings, inner_radius, line_props, outer_radius, r, ratio, reference_point, sx, sy;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      fill_props = glyph_props.fill_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        outer_radius = this.distance([reference_point], 'x', 'outer_radius', 'edge');
+        outer_radius = outer_radius[0];
+        inner_radius = this.distance([reference_point], 'x', 'inner_radius', 'edge');
+        inner_radius = inner_radius[0];
+      } else {
+        glyph_settings = glyph_props;
+      }
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      d = _.min([Math.abs(x2 - x1), Math.abs(y2 - y1)]);
+      d = d - 2 * border;
+      r = d / 2;
+      if ((outer_radius != null) || (inner_radius != null)) {
+        ratio = r / outer_radius;
+        outer_radius = r;
+        inner_radius = inner_radius * ratio;
+      } else {
+        outer_radius = r;
+        inner_radius = r / 2;
+      }
+      sx = (x1 + x2) / 2.0;
+      sy = (y1 + y2) / 2.0;
+      ctx.beginPath();
+      ctx.arc(sx, sy, inner_radius, 0, 2 * Math.PI * 2, false);
+      ctx.moveTo(sx + outer_radius, sy);
+      ctx.arc(sx, sy, outer_radius, 0, 2 * Math.PI * 2, true);
+      fill_props.set(ctx, glyph_settings);
+      ctx.fill();
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
+    };
+
+    AnnulusView.prototype.select = function(xscreenbounds, yscreenbounds) {
+      var i, selected, _i, _ref1;
+
+      xscreenbounds = [this.plot_view.view_state.sx_to_device(xscreenbounds[0]), this.plot_view.view_state.sx_to_device(xscreenbounds[1])];
+      yscreenbounds = [this.plot_view.view_state.sy_to_device(yscreenbounds[0]), this.plot_view.view_state.sy_to_device(yscreenbounds[1])];
+      xscreenbounds = [_.min(xscreenbounds), _.max(xscreenbounds)];
+      yscreenbounds = [_.min(yscreenbounds), _.max(yscreenbounds)];
+      selected = [];
+      for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        if (xscreenbounds) {
+          if (this.sx[i] < xscreenbounds[0] || this.sx[i] > xscreenbounds[1]) {
+            continue;
+          }
+        }
+        if (yscreenbounds) {
+          if (this.sy[i] < yscreenbounds[0] || this.sy[i] > yscreenbounds[1]) {
+            continue;
+          }
+        }
+        selected.push(i);
+      }
+      return selected;
     };
 
     return AnnulusView;
@@ -32836,13 +34039,17 @@ window.setup_ipython = function (ws_url) {
     }
 
     CircleView.prototype.initialize = function(options) {
+      var spec;
+
       CircleView.__super__.initialize.call(this, options);
       this.glyph_props = this.init_glyph(this.mget('glyphspec'));
       if (this.mget('selection_glyphspec')) {
-        this.selection_glyphprops = this.init_glyph(this.mget('selection_glyphspec'));
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('selection_glyphspec'));
+        this.selection_glyphprops = this.init_glyph(spec);
       }
       if (this.mget('nonselection_glyphspec')) {
-        return this.nonselection_glyphprops = this.init_glyph(this.mget('nonselection_glyphspec'));
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('nonselection_glyphspec'));
+        return this.nonselection_glyphprops = this.init_glyph(spec);
       }
     };
 
@@ -32850,8 +34057,6 @@ window.setup_ipython = function (ws_url) {
       var glyph_props;
 
       glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'radius'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
-      glyph_props.do_fill = glyph_props.fill_properties.do_fill;
-      glyph_props.do_stroke = glyph_props.fill_properties.do_stroke;
       return glyph_props;
     };
 
@@ -32899,7 +34104,7 @@ window.setup_ipython = function (ws_url) {
           if (this.selection_glyphprops) {
             props = this.selection_glyphprops;
           } else {
-            props = this.glyphprops;
+            props = this.glyph_props;
           }
           this._full_path(ctx, props, 'selected');
           this._full_path(ctx, this.nonselection_glyphprops, 'unselected');
@@ -32916,7 +34121,7 @@ window.setup_ipython = function (ws_url) {
       if (!glyph_props) {
         glyph_props = this.glyph_props;
       }
-      if (this.glyph_props.do_fill) {
+      if (glyph_props.fill_properties.do_fill) {
         this.glyph_props.fill_properties.set(ctx, this.glyph_props);
         for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
           if (isNaN(this.sx[i] + this.sy[i] + this.radius[i]) || !this.mask[i]) {
@@ -32927,7 +34132,7 @@ window.setup_ipython = function (ws_url) {
           ctx.fill();
         }
       }
-      if (this.glyph_props.do_stroke) {
+      if (glyph_props.line_properties.do_stroke) {
         this.glyph_props.line_properties.set(ctx, this.glyph_props);
         _results = [];
         for (i = _j = 0, _ref2 = this.sx.length - 1; 0 <= _ref2 ? _j <= _ref2 : _j >= _ref2; i = 0 <= _ref2 ? ++_j : --_j) {
@@ -32961,11 +34166,11 @@ window.setup_ipython = function (ws_url) {
         }
         ctx.beginPath();
         ctx.arc(this.sx[i], this.sy[i], this.radius[i], 0, 2 * Math.PI, false);
-        if (glyph_props.do_fill) {
+        if (glyph_props.fill_properties.do_fill) {
           glyph_props.fill_properties.set(ctx, this.data[i]);
           ctx.fill();
         }
-        if (glyph_props.do_stroke) {
+        if (glyph_props.line_properties.do_stroke) {
           glyph_props.line_properties.set(ctx, this.data[i]);
           _results.push(ctx.stroke());
         } else {
@@ -32982,10 +34187,6 @@ window.setup_ipython = function (ws_url) {
       yscreenbounds = [this.plot_view.view_state.sy_to_device(yscreenbounds[0]), this.plot_view.view_state.sy_to_device(yscreenbounds[1])];
       xscreenbounds = [_.min(xscreenbounds), _.max(xscreenbounds)];
       yscreenbounds = [_.min(yscreenbounds), _.max(yscreenbounds)];
-      console.log(xscreenbounds);
-      console.log(yscreenbounds);
-      console.log('min', _.min(this.sx), _.min(this.sy));
-      console.log('max', _.max(this.sx), _.max(this.sy));
       selected = [];
       for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
         if (xscreenbounds) {
@@ -33001,6 +34202,37 @@ window.setup_ipython = function (ws_url) {
         selected.push(i);
       }
       return selected;
+    };
+
+    CircleView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var border, d, data_r, fill_props, glyph_props, glyph_settings, line_props, r, reference_point;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      fill_props = glyph_props.fill_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        data_r = this.distance([reference_point], 'x', 'radius', 'edge')[0];
+      } else {
+        glyph_settings = glyph_props;
+        data_r = glyph_props.select('radius', glyph_props)["default"];
+      }
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      ctx.beginPath();
+      d = _.min([Math.abs(x2 - x1), Math.abs(y2 - y1)]);
+      d = d - 2 * border;
+      r = d / 2;
+      if (data_r != null) {
+        r = data_r > r ? r : data_r;
+      }
+      ctx.arc((x1 + x2) / 2.0, (y1 + y2) / 2.0, r, 2 * Math.PI, false);
+      fill_props.set(ctx, glyph_settings);
+      ctx.fill();
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
     };
 
     return CircleView;
@@ -33156,6 +34388,26 @@ window.setup_ipython = function (ws_url) {
         _results.push(ctx.translate(-this.sx[i], -this.sy[i]));
       }
       return _results;
+    };
+
+    TextView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var glyph_props, glyph_settings, reference_point, text_props;
+
+      glyph_props = this.glyph_props;
+      text_props = glyph_props.text_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+      } else {
+        glyph_settings = glyph_props;
+      }
+      text_props.set(ctx, glyph_settings);
+      ctx.font = text_props.font(12);
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillText("txt", x2, (y1 + y2) / 2);
+      return ctx.restore();
     };
 
     return TextView;
@@ -33323,6 +34575,50 @@ window.setup_ipython = function (ws_url) {
       return _results;
     };
 
+    QuadView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var border, bottom, data_h, data_w, fill_props, glyph_props, glyph_settings, h, left, line_props, ratio, ratio1, ratio2, reference_point, right, sx0, sx1, sy0, sy1, top, w, x, y, _ref1, _ref2;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      fill_props = glyph_props.fill_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        left = this.glyph_props.select('left', glyph_settings);
+        top = this.glyph_props.select('top', glyph_settings);
+        right = this.glyph_props.select('right', glyph_settings);
+        bottom = this.glyph_props.select('bottom', glyph_settings);
+        _ref1 = this.plot_view.map_to_screen([left], this.glyph_props.left.units, [top], this.glyph_props.top.units), sx0 = _ref1[0], sy0 = _ref1[1];
+        _ref2 = this.plot_view.map_to_screen([right], this.glyph_props.right.units, [bottom], this.glyph_props.bottom.units), sx1 = _ref2[0], sy1 = _ref2[1];
+        data_w = sx1[0] - sx0[0];
+        data_h = sy1[0] - sy0[0];
+      } else {
+        glyph_settings = glyph_props;
+        data_w = 1;
+        data_h = 1;
+      }
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      data_w = data_w - 2 * border;
+      data_h = data_h - 2 * border;
+      w = Math.abs(x2 - x1);
+      h = Math.abs(y2 - y1);
+      ratio1 = w / data_w;
+      ratio2 = h / data_h;
+      ratio = _.min([ratio1, ratio2]);
+      w = ratio * data_w;
+      h = ratio * data_h;
+      x = (x1 + x2) / 2 - (w / 2);
+      y = (y1 + y2) / 2 - (h / 2);
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      fill_props.set(ctx, glyph_settings);
+      ctx.fill();
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
+    };
+
     return QuadView;
 
   })(GlyphView);
@@ -33394,12 +34690,12 @@ window.setup_ipython = function (ws_url) {
     };
 
     ImageURIView.prototype._set_data = function(data) {
-      var obj;
+      var img, obj;
 
       this.data = data;
       this.x = this.glyph_props.v_select('x', data);
       this.y = this.glyph_props.v_select('y', data);
-      this.image = (function() {
+      this.url = (function() {
         var _i, _len, _results;
 
         _results = [];
@@ -33409,7 +34705,7 @@ window.setup_ipython = function (ws_url) {
         }
         return _results;
       }).call(this);
-      return this.angle = (function() {
+      this.angle = (function() {
         var _i, _len, _results;
 
         _results = [];
@@ -33419,36 +34715,86 @@ window.setup_ipython = function (ws_url) {
         }
         return _results;
       }).call(this);
+      this.image = (function() {
+        var _i, _len, _ref1, _results;
+
+        _ref1 = this.url;
+        _results = [];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          img = _ref1[_i];
+          _results.push(null);
+        }
+        return _results;
+      }).call(this);
+      this.need_load = (function() {
+        var _i, _len, _ref1, _results;
+
+        _ref1 = this.url;
+        _results = [];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          img = _ref1[_i];
+          _results.push(true);
+        }
+        return _results;
+      }).call(this);
+      return this.loaded = (function() {
+        var _i, _len, _ref1, _results;
+
+        _ref1 = this.url;
+        _results = [];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          img = _ref1[_i];
+          _results.push(false);
+        }
+        return _results;
+      }).call(this);
     };
 
     ImageURIView.prototype._render = function() {
-      var ctx, i, img, _i, _ref1, _ref2,
+      var ctx, i, img, vs, _i, _ref1, _ref2,
         _this = this;
 
       _ref1 = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref1[0], this.sy = _ref1[1];
       ctx = this.plot_view.ctx;
+      vs = this.plot_view.view_state;
       ctx.save();
       for (i = _i = 0, _ref2 = this.sx.length - 1; 0 <= _ref2 ? _i <= _ref2 : _i >= _ref2; i = 0 <= _ref2 ? ++_i : --_i) {
         if (isNaN(this.sx[i] + this.sy[i] + this.angle[i])) {
           continue;
         }
-        img = new Image();
-        img.onload = (function(img, i) {
-          return function() {
-            if (_this.angle[i]) {
-              ctx.translate(_this.sx[i], _this.sy[i]);
-              ctx.rotate(_this.angle[i]);
-              ctx.drawImage(img, 0, 0);
-              ctx.rotate(-_this.angle[i]);
-              return ctx.translate(-_this.sx[i], -_this.sy[i]);
-            } else {
-              return ctx.drawImage(img, _this.sx[i], _this.sy[i]);
-            }
-          };
-        })(img, i);
-        img.src = this.image[i];
+        if (this.need_load[i]) {
+          img = new Image();
+          img.onload = (function(img, i) {
+            return function() {
+              _this.loaded[i] = true;
+              _this.image[i] = img;
+              ctx.save();
+              ctx.beginPath();
+              ctx.rect(vs.get('border_left') + 1, vs.get('border_top') + 1, vs.get('inner_width') - 2, vs.get('inner_height') - 2);
+              ctx.clip();
+              _this._render_image(ctx, vs, i, img);
+              return ctx.restore();
+            };
+          })(img, i);
+          img.src = this.url[i];
+          this.need_load[i] = false;
+        } else if (this.loaded[i]) {
+          this._render_image(ctx, vs, i, this.image[i]);
+        }
       }
       return ctx.restore();
+    };
+
+    ImageURIView.prototype._render_image = function(ctx, vs, i, img) {
+      if (this.angle[i]) {
+        ctx.translate(this.sx[i], this.sy[i]);
+        ctx.rotate(this.angle[i]);
+        ctx.drawImage(img, 0, 0);
+        ctx.rotate(-this.angle[i]);
+        return ctx.translate(-this.sx[i], -this.sy[i]);
+      } else {
+        return ctx.drawImage(img, this.sx[i], this.sy[i]);
+      }
     };
 
     return ImageURIView;
@@ -33646,17 +34992,31 @@ window.setup_ipython = function (ws_url) {
     }
 
     AnnularWedgeView.prototype.initialize = function(options) {
-      var glyphspec;
+      var spec;
 
-      glyphspec = this.mget('glyphspec');
-      this.glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'inner_radius', 'outer_radius', 'start_angle', 'end_angle', 'direction:string'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      this.glyph_props = this.init_glyph(this.mget('glyphspec'));
+      if (this.mget('selection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('selection_glyphspec'));
+        this.selection_glyphprops = this.init_glyph(spec);
+      }
+      if (this.mget('nonselection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('nonselection_glyphspec'));
+        this.nonselection_glyphprops = this.init_glyph(spec);
+      }
       this.do_fill = this.glyph_props.fill_properties.do_fill;
       this.do_stroke = this.glyph_props.line_properties.do_stroke;
       return AnnularWedgeView.__super__.initialize.call(this, options);
     };
 
+    AnnularWedgeView.prototype.init_glyph = function(glyphspec) {
+      var glyph_props;
+
+      glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'inner_radius', 'outer_radius', 'start_angle', 'end_angle', 'direction:string'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      return glyph_props;
+    };
+
     AnnularWedgeView.prototype._set_data = function(data) {
-      var angle, dir, end_angle, i, obj, start_angle, _i, _j, _ref1, _ref2, _results;
+      var angle, dir, end_angle, i, obj, start_angle, _i, _j, _k, _ref1, _ref2, _ref3, _results;
 
       this.data = data;
       this.x = this.glyph_props.v_select('x', data);
@@ -33706,32 +35066,51 @@ window.setup_ipython = function (ws_url) {
         this.angle[i] = this.end_angle[i] - this.start_angle[i];
       }
       this.direction = new Array(this.data.length);
-      _results = [];
       for (i = _j = 0, _ref2 = this.data.length - 1; 0 <= _ref2 ? _j <= _ref2 : _j >= _ref2; i = 0 <= _ref2 ? ++_j : --_j) {
         dir = this.glyph_props.select('direction', data[i]);
         if (dir === 'clock') {
-          _results.push(this.direction[i] = false);
+          this.direction[i] = false;
         } else if (dir === 'anticlock') {
-          _results.push(this.direction[i] = true);
+          this.direction[i] = true;
         } else {
-          _results.push(this.direction[i] = NaN);
+          this.direction[i] = NaN;
         }
+      }
+      this.selected_mask = new Array(data.length - 1);
+      _results = [];
+      for (i = _k = 0, _ref3 = this.selected_mask.length - 1; 0 <= _ref3 ? _k <= _ref3 : _k >= _ref3; i = 0 <= _ref3 ? ++_k : --_k) {
+        _results.push(this.selected_mask[i] = false);
       }
       return _results;
     };
 
     AnnularWedgeView.prototype._render = function() {
-      var ctx, _ref1;
+      var ctx, idx, props, selected, _i, _len, _ref1;
 
       _ref1 = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref1[0], this.sy = _ref1[1];
       this.inner_radius = this.distance(this.data, 'x', 'inner_radius', 'edge');
       this.outer_radius = this.distance(this.data, 'x', 'outer_radius', 'edge');
       ctx = this.plot_view.ctx;
       ctx.save();
+      selected = this.mget_obj('data_source').get('selected');
+      for (_i = 0, _len = selected.length; _i < _len; _i++) {
+        idx = selected[_i];
+        this.selected_mask[idx] = true;
+      }
       if (this.glyph_props.fast_path) {
         this._fast_path(ctx);
       } else {
-        this._full_path(ctx);
+        if (selected && selected.length && this.nonselection_glyphprops) {
+          if (this.selection_glyphprops) {
+            props = this.selection_glyphprops;
+          } else {
+            props = this.glyph_props;
+          }
+          this._full_path(ctx, props, 'selected');
+          this._full_path(ctx, this.nonselection_glyphprops, 'unselected');
+        } else {
+          this._full_path(ctx);
+        }
       }
       return ctx.restore();
     };
@@ -33781,12 +35160,21 @@ window.setup_ipython = function (ws_url) {
       }
     };
 
-    AnnularWedgeView.prototype._full_path = function(ctx) {
+    AnnularWedgeView.prototype._full_path = function(ctx, glyph_props, use_selection) {
       var i, _i, _ref1, _results;
 
+      if (!glyph_props) {
+        glyph_props = this.glyph_props;
+      }
       _results = [];
       for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
         if (isNaN(this.sx[i] + this.sy[i] + this.inner_radius[i] + this.outer_radius[i] + this.start_angle[i] + this.end_angle[i])) {
+          continue;
+        }
+        if (use_selection === 'selected' && !this.selected_mask[i]) {
+          continue;
+        }
+        if (use_selection === 'unselected' && this.selected_mask[i]) {
           continue;
         }
         ctx.translate(this.sx[i], this.sy[i]);
@@ -33801,17 +35189,95 @@ window.setup_ipython = function (ws_url) {
         ctx.rotate(-this.angle[i] - this.start_angle[i]);
         ctx.translate(-this.sx[i], -this.sy[i]);
         if (this.do_fill) {
-          this.glyph_props.fill_properties.set(ctx, this.data[i]);
+          glyph_props.fill_properties.set(ctx, this.data[i]);
           ctx.fill();
         }
         if (this.do_stroke) {
-          this.glyph_props.line_properties.set(ctx, this.data[i]);
+          glyph_props.line_properties.set(ctx, this.data[i]);
           _results.push(ctx.stroke());
         } else {
           _results.push(void 0);
         }
       }
       return _results;
+    };
+
+    AnnularWedgeView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var angle, border, d, direction, end_angle, fill_props, glyph_props, glyph_settings, inner_radius, line_props, outer_radius, r, ratio, reference_point, start_angle, sx, sy;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      fill_props = glyph_props.fill_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        outer_radius = this.distance([reference_point], 'x', 'outer_radius', 'edge');
+        outer_radius = outer_radius[0];
+        inner_radius = this.distance([reference_point], 'x', 'inner_radius', 'edge');
+        inner_radius = inner_radius[0];
+        start_angle = -this.glyph_props.select('start_angle', reference_point);
+        end_angle = -this.glyph_props.select('end_angle', reference_point);
+      } else {
+        glyph_settings = glyph_props;
+        start_angle = -0.1;
+        end_angle = -3.9;
+      }
+      angle = end_angle - start_angle;
+      direction = this.glyph_props.select('direction', glyph_settings);
+      direction = direction === "clock" ? false : true;
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      d = _.min([Math.abs(x2 - x1), Math.abs(y2 - y1)]);
+      d = d - 2 * border;
+      r = d / 2;
+      if ((outer_radius != null) || (inner_radius != null)) {
+        ratio = r / outer_radius;
+        outer_radius = r;
+        inner_radius = inner_radius * ratio;
+      } else {
+        outer_radius = r;
+        inner_radius = r / 2;
+      }
+      sx = (x1 + x2) / 2.0;
+      sy = (y1 + y2) / 2.0;
+      ctx.translate(sx, sy);
+      ctx.rotate(start_angle);
+      ctx.moveTo(outer_radius, 0);
+      ctx.beginPath();
+      ctx.arc(0, 0, outer_radius, 0, angle, direction);
+      ctx.rotate(angle);
+      ctx.lineTo(inner_radius, 0);
+      ctx.arc(0, 0, inner_radius, 0, -angle, !direction);
+      ctx.closePath();
+      fill_props.set(ctx, glyph_settings);
+      ctx.fill();
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
+    };
+
+    AnnularWedgeView.prototype.select = function(xscreenbounds, yscreenbounds) {
+      var i, selected, _i, _ref1;
+
+      xscreenbounds = [this.plot_view.view_state.sx_to_device(xscreenbounds[0]), this.plot_view.view_state.sx_to_device(xscreenbounds[1])];
+      yscreenbounds = [this.plot_view.view_state.sy_to_device(yscreenbounds[0]), this.plot_view.view_state.sy_to_device(yscreenbounds[1])];
+      xscreenbounds = [_.min(xscreenbounds), _.max(xscreenbounds)];
+      yscreenbounds = [_.min(yscreenbounds), _.max(yscreenbounds)];
+      selected = [];
+      for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        if (xscreenbounds) {
+          if (this.sx[i] < xscreenbounds[0] || this.sx[i] > xscreenbounds[1]) {
+            continue;
+          }
+        }
+        if (yscreenbounds) {
+          if (this.sy[i] < yscreenbounds[0] || this.sy[i] > yscreenbounds[1]) {
+            continue;
+          }
+        }
+        selected.push(i);
+      }
+      return selected;
     };
 
     return AnnularWedgeView;
@@ -33852,6 +35318,268 @@ window.setup_ipython = function (ws_url) {
   exports.AnnularWedge = AnnularWedge;
 
   exports.AnnularWedgeView = AnnularWedgeView;
+
+}).call(this);
+}, "renderers/glyph/patches": function(exports, require, module) {(function() {
+  var Glyph, GlyphView, Patches, PatchesView, fill_properties, glyph, glyph_properties, line_properties, properties, _ref, _ref1,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  properties = require('../properties');
+
+  glyph_properties = properties.glyph_properties;
+
+  line_properties = properties.line_properties;
+
+  fill_properties = properties.fill_properties;
+
+  glyph = require('./glyph');
+
+  Glyph = glyph.Glyph;
+
+  GlyphView = glyph.GlyphView;
+
+  PatchesView = (function(_super) {
+    __extends(PatchesView, _super);
+
+    function PatchesView() {
+      _ref = PatchesView.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    PatchesView.prototype.initialize = function(options) {
+      var glyphspec;
+
+      glyphspec = this.mget('glyphspec');
+      this.glyph_props = new glyph_properties(this, glyphspec, ['xs:array', 'ys:array'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      this.do_fill = this.glyph_props.fill_properties.do_fill;
+      this.do_stroke = this.glyph_props.line_properties.do_stroke;
+      return PatchesView.__super__.initialize.call(this, options);
+    };
+
+    PatchesView.prototype._set_data = function(data) {
+      this.data = data;
+    };
+
+    PatchesView.prototype._render = function() {
+      var ctx, i, pt, sx, sy, x, y, _i, _j, _k, _len, _ref1, _ref2, _ref3, _ref4;
+
+      ctx = this.plot_view.ctx;
+      ctx.save();
+      _ref1 = this.data;
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        pt = _ref1[_i];
+        x = this.glyph_props.select('xs', pt);
+        y = this.glyph_props.select('ys', pt);
+        _ref2 = this.plot_view.map_to_screen(x, this.glyph_props.xs.units, y, this.glyph_props.ys.units), sx = _ref2[0], sy = _ref2[1];
+        if (this.do_fill) {
+          this.glyph_props.fill_properties.set(ctx, pt);
+          for (i = _j = 0, _ref3 = sx.length - 1; 0 <= _ref3 ? _j <= _ref3 : _j >= _ref3; i = 0 <= _ref3 ? ++_j : --_j) {
+            if (i === 0) {
+              ctx.beginPath();
+              ctx.moveTo(sx[i], sy[i]);
+              continue;
+            } else if (isNaN(sx[i] + sy[i])) {
+              ctx.closePath();
+              ctx.fill();
+              ctx.beginPath();
+              continue;
+            } else {
+              ctx.lineTo(sx[i], sy[i]);
+            }
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+        if (this.do_stroke) {
+          this.glyph_props.line_properties.set(ctx, pt);
+          for (i = _k = 0, _ref4 = sx.length - 1; 0 <= _ref4 ? _k <= _ref4 : _k >= _ref4; i = 0 <= _ref4 ? ++_k : --_k) {
+            if (i === 0) {
+              ctx.beginPath();
+              ctx.moveTo(sx[i], sy[i]);
+              continue;
+            } else if (isNaN(sx[i] + sy[i])) {
+              ctx.closePath();
+              ctx.stroke();
+              ctx.beginPath();
+              continue;
+            } else {
+              ctx.lineTo(sx[i], sy[i]);
+            }
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+      return ctx.restore();
+    };
+
+    return PatchesView;
+
+  })(GlyphView);
+
+  Patches = (function(_super) {
+    __extends(Patches, _super);
+
+    function Patches() {
+      _ref1 = Patches.__super__.constructor.apply(this, arguments);
+      return _ref1;
+    }
+
+    Patches.prototype.default_view = PatchesView;
+
+    Patches.prototype.type = 'GlyphRenderer';
+
+    return Patches;
+
+  })(Glyph);
+
+  Patches.prototype.display_defaults = _.clone(Patches.prototype.display_defaults);
+
+  _.extend(Patches.prototype.display_defaults, {
+    fill: 'gray',
+    fill_alpha: 1.0,
+    line_color: 'red',
+    line_width: 1,
+    line_alpha: 1.0,
+    line_join: 'miter',
+    line_cap: 'butt',
+    line_dash: [],
+    line_dash_offset: 0
+  });
+
+  exports.Patches = Patches;
+
+  exports.PatchesView = PatchesView;
+
+}).call(this);
+}, "renderers/glyph/patch": function(exports, require, module) {(function() {
+  var Glyph, GlyphView, Patch, PatchView, fill_properties, glyph, glyph_properties, line_properties, properties, _ref, _ref1,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  properties = require('../properties');
+
+  glyph_properties = properties.glyph_properties;
+
+  line_properties = properties.line_properties;
+
+  fill_properties = properties.fill_properties;
+
+  glyph = require('./glyph');
+
+  Glyph = glyph.Glyph;
+
+  GlyphView = glyph.GlyphView;
+
+  PatchView = (function(_super) {
+    __extends(PatchView, _super);
+
+    function PatchView() {
+      _ref = PatchView.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    PatchView.prototype.initialize = function(options) {
+      var glyphspec;
+
+      glyphspec = this.mget('glyphspec');
+      this.glyph_props = new glyph_properties(this, glyphspec, ['x:number', 'y:number'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      this.do_fill = this.glyph_props.fill_properties.do_fill;
+      this.do_stroke = this.glyph_props.line_properties.do_stroke;
+      return PatchView.__super__.initialize.call(this, options);
+    };
+
+    PatchView.prototype._set_data = function(data) {
+      this.data = data;
+      this.x = this.glyph_props.v_select('x', data);
+      return this.y = this.glyph_props.v_select('y', data);
+    };
+
+    PatchView.prototype._render = function() {
+      var ctx, i, sx, sy, _i, _j, _ref1, _ref2, _ref3;
+
+      ctx = this.plot_view.ctx;
+      ctx.save();
+      _ref1 = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), sx = _ref1[0], sy = _ref1[1];
+      if (this.do_fill) {
+        this.glyph_props.fill_properties.set(ctx, this.glyph_props);
+        for (i = _i = 0, _ref2 = sx.length - 1; 0 <= _ref2 ? _i <= _ref2 : _i >= _ref2; i = 0 <= _ref2 ? ++_i : --_i) {
+          if (i === 0) {
+            ctx.beginPath();
+            ctx.moveTo(sx[i], sy[i]);
+            continue;
+          } else if (isNaN(sx[i] + sy[i])) {
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            continue;
+          } else {
+            ctx.lineTo(sx[i], sy[i]);
+          }
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+      if (this.do_stroke) {
+        this.glyph_props.line_properties.set(ctx, this.glyph_props);
+        for (i = _j = 0, _ref3 = sx.length - 1; 0 <= _ref3 ? _j <= _ref3 : _j >= _ref3; i = 0 <= _ref3 ? ++_j : --_j) {
+          if (i === 0) {
+            ctx.beginPath();
+            ctx.moveTo(sx[i], sy[i]);
+            continue;
+          } else if (isNaN(sx[i] + sy[i])) {
+            ctx.closePath();
+            ctx.stroke();
+            ctx.beginPath();
+            continue;
+          } else {
+            ctx.lineTo(sx[i], sy[i]);
+          }
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+      return ctx.restore();
+    };
+
+    return PatchView;
+
+  })(GlyphView);
+
+  Patch = (function(_super) {
+    __extends(Patch, _super);
+
+    function Patch() {
+      _ref1 = Patch.__super__.constructor.apply(this, arguments);
+      return _ref1;
+    }
+
+    Patch.prototype.default_view = PatchView;
+
+    Patch.prototype.type = 'GlyphRenderer';
+
+    return Patch;
+
+  })(Glyph);
+
+  Patch.prototype.display_defaults = _.clone(Patch.prototype.display_defaults);
+
+  _.extend(Patch.prototype.display_defaults, {
+    fill: 'gray',
+    fill_alpha: 1.0,
+    line_color: 'red',
+    line_width: 1,
+    line_alpha: 1.0,
+    line_join: 'miter',
+    line_cap: 'butt',
+    line_dash: [],
+    line_dash_offset: 0
+  });
+
+  exports.Patch = Patch;
+
+  exports.PatchView = PatchView;
 
 }).call(this);
 }, "renderers/glyph/wedge": function(exports, require, module) {(function() {
@@ -34024,6 +35752,47 @@ window.setup_ipython = function (ws_url) {
         }
       }
       return _results;
+    };
+
+    WedgeView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var angle, border, d, data_r, direction, end_angle, fill_props, glyph_props, glyph_settings, line_props, r, reference_point, start_angle, sx, sy;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      fill_props = glyph_props.fill_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        data_r = this.distance([reference_point], 'x', 'radius', 'edge')[0];
+        start_angle = -this.glyph_props.select('start_angle', reference_point);
+        end_angle = -this.glyph_props.select('end_angle', reference_point);
+      } else {
+        glyph_settings = glyph_props;
+        start_angle = -0.1;
+        end_angle = -3.9;
+      }
+      angle = end_angle - start_angle;
+      direction = this.glyph_props.select('direction', glyph_settings);
+      direction = direction === "clock" ? false : true;
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      d = _.min([Math.abs(x2 - x1), Math.abs(y2 - y1)]);
+      d = d - 2 * border;
+      r = d / 2;
+      if (data_r != null) {
+        r = data_r > r ? r : data_r;
+      }
+      ctx.beginPath();
+      sx = (x1 + x2) / 2.0;
+      sy = (y1 + y2) / 2.0;
+      ctx.arc(sx, sy, r, start_angle, end_angle, direction);
+      ctx.lineTo(sx, sy);
+      ctx.closePath();
+      fill_props.set(ctx, glyph_settings);
+      ctx.fill();
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
     };
 
     return WedgeView;
@@ -34259,6 +36028,14 @@ window.setup_ipython = function (ws_url) {
       return 'pass';
     };
 
+    GlyphView.prototype.xrange = function() {
+      return this.plot_view.x_range;
+    };
+
+    GlyphView.prototype.yrange = function() {
+      return this.plot_view.y_range;
+    };
+
     GlyphView.prototype.bind_bokeh_events = function() {
       this.listenTo(this.model, 'change', this.request_render);
       return this.listenTo(this.mget_obj('data_source'), 'change', this.set_data);
@@ -34366,6 +36143,19 @@ window.setup_ipython = function (ws_url) {
       })();
     };
 
+    GlyphView.prototype.get_reference_point = function() {
+      var reference_point;
+
+      reference_point = this.mget('reference_point');
+      if (_.isNumber(reference_point)) {
+        return this.data[reference_point];
+      } else {
+        return reference_point;
+      }
+    };
+
+    GlyphView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {};
+
     return GlyphView;
 
   })(PlotWidget);
@@ -34432,17 +36222,33 @@ window.setup_ipython = function (ws_url) {
     }
 
     RectView.prototype.initialize = function(options) {
-      var glyphspec;
+      var spec;
 
-      glyphspec = this.mget('glyphspec');
-      this.glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'width', 'height', 'angle'], [new fill_properties(this, glyphspec), new line_properties(this, glyphspec)]);
+      RectView.__super__.initialize.call(this, options);
+      this.glyph_props = this.init_glyph(this.mget('glyphspec'));
+      if (this.mget('selection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('selection_glyphspec'));
+        this.selection_glyphprops = this.init_glyph(spec);
+      }
+      if (this.mget('nonselection_glyphspec')) {
+        spec = _.extend({}, this.mget('glyphspec'), this.mget('nonselection_glyphspec'));
+        this.nonselection_glyphprops = this.init_glyph(spec);
+      }
       this.do_fill = this.glyph_props.fill_properties.do_fill;
-      this.do_stroke = this.glyph_props.line_properties.do_stroke;
-      return RectView.__super__.initialize.call(this, options);
+      return this.do_stroke = this.glyph_props.line_properties.do_stroke;
+    };
+
+    RectView.prototype.init_glyph = function(glyphspec) {
+      var fill_props, glyph_props, line_props;
+
+      fill_props = new fill_properties(this, glyphspec);
+      line_props = new line_properties(this, glyphspec);
+      glyph_props = new glyph_properties(this, glyphspec, ['x', 'y', 'width', 'height', 'angle'], [line_props, fill_props]);
+      return glyph_props;
     };
 
     RectView.prototype._set_data = function(data) {
-      var angle, angles, obj;
+      var angle, angles, i, obj, _i, _ref1, _results;
 
       this.data = data;
       this.x = this.glyph_props.v_select('x', data);
@@ -34457,7 +36263,7 @@ window.setup_ipython = function (ws_url) {
         }
         return _results;
       }).call(this);
-      return this.angle = (function() {
+      this.angle = (function() {
         var _i, _len, _results;
 
         _results = [];
@@ -34467,20 +36273,47 @@ window.setup_ipython = function (ws_url) {
         }
         return _results;
       })();
+      this.selected_mask = new Array(data.length - 1);
+      _results = [];
+      for (i = _i = 0, _ref1 = this.selected_mask.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        _results.push(this.selected_mask[i] = false);
+      }
+      return _results;
     };
 
-    RectView.prototype._render = function() {
-      var ctx, _ref1;
+    RectView.prototype._map_data = function() {
+      var _ref1;
 
       _ref1 = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref1[0], this.sy = _ref1[1];
       this.sw = this.distance(this.data, 'x', 'width', 'center');
-      this.sh = this.distance(this.data, 'y', 'height', 'center');
+      return this.sh = this.distance(this.data, 'y', 'height', 'center');
+    };
+
+    RectView.prototype._render = function() {
+      var ctx, idx, props, selected, _i, _len;
+
+      this._map_data();
       ctx = this.plot_view.ctx;
+      selected = this.mget_obj('data_source').get('selected');
+      for (_i = 0, _len = selected.length; _i < _len; _i++) {
+        idx = selected[_i];
+        this.selected_mask[idx] = true;
+      }
       ctx.save();
       if (this.glyph_props.fast_path) {
         this._fast_path(ctx);
       } else {
-        this._full_path(ctx);
+        if (selected && selected.length && this.nonselection_glyphprops) {
+          if (this.selection_glyphprops) {
+            props = this.selection_glyphprops;
+          } else {
+            props = this.glyph_props;
+          }
+          this._full_path(ctx, props, 'selected');
+          this._full_path(ctx, this.nonselection_glyphprops, 'unselected');
+        } else {
+          this._full_path(ctx);
+        }
       }
       return ctx.restore();
     };
@@ -34528,12 +36361,58 @@ window.setup_ipython = function (ws_url) {
       }
     };
 
-    RectView.prototype._full_path = function(ctx) {
+    RectView.prototype.draw_legend = function(ctx, x1, x2, y1, y2) {
+      var border, data_h, data_w, fill_props, glyph_props, glyph_settings, h, line_props, reference_point, w, x, y;
+
+      glyph_props = this.glyph_props;
+      line_props = glyph_props.line_properties;
+      fill_props = glyph_props.fill_properties;
+      ctx.save();
+      reference_point = this.get_reference_point();
+      if (reference_point != null) {
+        glyph_settings = reference_point;
+        data_w = this.distance([reference_point], 'x', 'width', 'center')[0];
+        data_h = this.distance([reference_point], 'y', 'height', 'center')[0];
+      } else {
+        glyph_settings = glyph_props;
+      }
+      border = line_props.select(line_props.line_width_name, glyph_settings);
+      ctx.beginPath();
+      w = Math.abs(x2 - x1);
+      h = Math.abs(y2 - y1);
+      w = w - 2 * border;
+      h = h - 2 * border;
+      if (data_w != null) {
+        w = data_w > w ? w : data_w;
+      }
+      if (data_h != null) {
+        h = data_h > h ? h : data_h;
+      }
+      x = (x1 + x2) / 2 - (w / 2);
+      y = (y1 + y2) / 2 - (h / 2);
+      ctx.rect(x, y, w, h);
+      fill_props.set(ctx, glyph_settings);
+      ctx.fill();
+      line_props.set(ctx, glyph_settings);
+      ctx.stroke();
+      return ctx.restore();
+    };
+
+    RectView.prototype._full_path = function(ctx, glyph_props, use_selection) {
       var i, _i, _ref1, _results;
 
+      if (!glyph_props) {
+        glyph_props = this.glyph_props;
+      }
       _results = [];
       for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
         if (isNaN(this.sx[i] + this.sy[i] + this.sw[i] + this.sh[i] + this.angle[i])) {
+          continue;
+        }
+        if (use_selection === 'selected' && !this.selected_mask[i]) {
+          continue;
+        }
+        if (use_selection === 'unselected' && this.selected_mask[i]) {
           continue;
         }
         ctx.translate(this.sx[i], this.sy[i]);
@@ -34541,17 +36420,41 @@ window.setup_ipython = function (ws_url) {
         ctx.beginPath();
         ctx.rect(-this.sw[i] / 2, -this.sh[i] / 2, this.sw[i], this.sh[i]);
         if (this.do_fill) {
-          this.glyph_props.fill_properties.set(ctx, this.data[i]);
+          glyph_props.fill_properties.set(ctx, this.data[i]);
           ctx.fill();
         }
         if (this.do_stroke) {
-          this.glyph_props.line_properties.set(ctx, this.data[i]);
+          glyph_props.line_properties.set(ctx, this.data[i]);
           ctx.stroke();
         }
         ctx.rotate(-this.angle[i]);
         _results.push(ctx.translate(-this.sx[i], -this.sy[i]));
       }
       return _results;
+    };
+
+    RectView.prototype.select = function(xscreenbounds, yscreenbounds) {
+      var i, selected, _i, _ref1;
+
+      xscreenbounds = [this.plot_view.view_state.sx_to_device(xscreenbounds[0]), this.plot_view.view_state.sx_to_device(xscreenbounds[1])];
+      yscreenbounds = [this.plot_view.view_state.sy_to_device(yscreenbounds[0]), this.plot_view.view_state.sy_to_device(yscreenbounds[1])];
+      xscreenbounds = [_.min(xscreenbounds), _.max(xscreenbounds)];
+      yscreenbounds = [_.min(yscreenbounds), _.max(yscreenbounds)];
+      selected = [];
+      for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        if (xscreenbounds) {
+          if (this.sx[i] < xscreenbounds[0] || this.sx[i] > xscreenbounds[1]) {
+            continue;
+          }
+        }
+        if (yscreenbounds) {
+          if (this.sy[i] < yscreenbounds[0] || this.sy[i] > yscreenbounds[1]) {
+            continue;
+          }
+        }
+        selected.push(i);
+      }
+      return selected;
     };
 
     return RectView;
@@ -34637,15 +36540,13 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "renderers/glyphs": function(exports, require, module) {(function() {
-  var annular_wedge, annulus, arc, area, bezier, circle, image, image_rgba, image_uri, line, oval, quad, quadcurve, ray, rect, segment, text, wedge;
+  var annular_wedge, annulus, arc, bezier, circle, image, image_rgba, image_uri, line, multi_line, oval, patch, patches, quad, quadcurve, ray, rect, segment, square, text, wedge;
 
   annular_wedge = require("./glyph/annular_wedge");
 
   annulus = require("./glyph/annulus");
 
   arc = require("./glyph/arc");
-
-  area = require("./glyph/area");
 
   bezier = require("./glyph/bezier");
 
@@ -34659,7 +36560,13 @@ window.setup_ipython = function (ws_url) {
 
   line = require("./glyph/line");
 
+  multi_line = require("./glyph/multi_line");
+
   oval = require("./glyph/oval");
+
+  patch = require("./glyph/patch");
+
+  patches = require("./glyph/patches");
 
   quad = require("./glyph/quad");
 
@@ -34668,6 +36575,8 @@ window.setup_ipython = function (ws_url) {
   ray = require("./glyph/ray");
 
   rect = require("./glyph/rect");
+
+  square = require("./glyph/square");
 
   segment = require("./glyph/segment");
 
@@ -34681,8 +36590,6 @@ window.setup_ipython = function (ws_url) {
 
   exports.arc = arc.Arc;
 
-  exports.area = area.Area;
-
   exports.bezier = bezier.Bezier;
 
   exports.circle = circle.Circle;
@@ -34695,13 +36602,21 @@ window.setup_ipython = function (ws_url) {
 
   exports.line = line.Line;
 
+  exports.multi_line = multi_line.MultiLine;
+
   exports.oval = oval.Oval;
+
+  exports.patch = patch.Patch;
+
+  exports.patches = patches.Patches;
 
   exports.quad = quad.Quad;
 
   exports.quadcurve = quadcurve.Quadcurve;
 
   exports.ray = ray.Ray;
+
+  exports.square = square.Square;
 
   exports.rect = rect.Rect;
 
@@ -34755,7 +36670,11 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "renderers/annotations": function(exports, require, module) {(function() {
+  var legend;
 
+  legend = require("./annotation/legend");
+
+  exports.legend = legend.Legend;
 
 }).call(this);
 }, "renderers/guides": function(exports, require, module) {(function() {
@@ -34771,7 +36690,7 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "renderers/guide/axis": function(exports, require, module) {(function() {
-  var HasParent, LinearAxes, LinearAxis, LinearAxisView, PlotWidget, base, line_properties, properties, safebind, signum, text_properties, ticking, _ref, _ref1, _ref2,
+  var HasParent, LinearAxes, LinearAxis, LinearAxisView, PlotWidget, base, line_properties, properties, safebind, signum, text_properties, ticking, _align_lookup, _angle_lookup, _baseline_lookup, _ref, _ref1, _ref2,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -34801,6 +36720,87 @@ window.setup_ipython = function (ws_url) {
     };
   };
 
+  _angle_lookup = {
+    top: {
+      parallel: 0,
+      normal: -Math.PI / 2,
+      horizontal: 0,
+      vertical: -Math.PI / 2
+    },
+    bottom: {
+      parallel: 0,
+      normal: Math.PI / 2,
+      horizontal: 0,
+      vertical: Math.PI / 2
+    },
+    left: {
+      parallel: -Math.PI / 2,
+      normal: 0,
+      horizontal: 0,
+      vertical: -Math.PI / 2
+    },
+    right: {
+      parallel: Math.PI / 2,
+      normal: 0,
+      horizontal: 0,
+      vertical: Math.PI / 2
+    }
+  };
+
+  _baseline_lookup = {
+    top: {
+      parallel: 'alphabetic',
+      normal: 'middle',
+      horizontal: 'alphabetic',
+      vertical: 'middle'
+    },
+    bottom: {
+      parallel: 'hanging',
+      normal: 'middle',
+      horizontal: 'hanging',
+      vertical: 'middle'
+    },
+    left: {
+      parallel: 'alphabetic',
+      normal: 'middle',
+      horizontal: 'middle',
+      vertical: 'alphabetic'
+    },
+    right: {
+      parallel: 'alphabetic',
+      normal: 'middle',
+      horizontal: 'middle',
+      vertical: 'alphabetic'
+    }
+  };
+
+  _align_lookup = {
+    top: {
+      parallel: 'center',
+      normal: 'left',
+      horizontal: 'center',
+      vertical: 'left'
+    },
+    bottom: {
+      parallel: 'center',
+      normal: 'left',
+      horizontal: 'center',
+      vertical: 'right'
+    },
+    left: {
+      parallel: 'center',
+      normal: 'right',
+      horizontal: 'right',
+      vertical: 'center'
+    },
+    right: {
+      parallel: 'center',
+      normal: 'left',
+      horizontal: 'left',
+      vertical: 'center'
+    }
+  };
+
   LinearAxisView = (function(_super) {
     __extends(LinearAxisView, _super);
 
@@ -34816,7 +36816,8 @@ window.setup_ipython = function (ws_url) {
       guidespec = this.mget('guidespec');
       this.rule_props = new line_properties(this, guidespec, 'axis_');
       this.major_tick_props = new line_properties(this, guidespec, 'major_tick_');
-      return this.major_label_props = new text_properties(this, guidespec, 'major_label_');
+      this.major_label_props = new text_properties(this, guidespec, 'major_label_');
+      return this.axis_label_props = new text_properties(this, guidespec, 'axis_label_');
     };
 
     LinearAxisView.prototype.render = function() {
@@ -34827,11 +36828,16 @@ window.setup_ipython = function (ws_url) {
       this._draw_rule(ctx);
       this._draw_major_ticks(ctx);
       this._draw_major_labels(ctx);
+      this._draw_axis_label(ctx);
       return ctx.restore();
     };
 
     LinearAxisView.prototype.bind_bokeh_events = function() {
       return safebind(this, this.model, 'change', this.request_render);
+    };
+
+    LinearAxisView.prototype.padding_request = function() {
+      return this._padding_request();
     };
 
     LinearAxisView.prototype._draw_rule = function(ctx) {
@@ -34866,19 +36872,198 @@ window.setup_ipython = function (ws_url) {
     };
 
     LinearAxisView.prototype._draw_major_labels = function(ctx) {
-      var coords, dim, formatter, i, labels, nx, ny, standoff, sx, sy, x, y, _i, _ref1, _ref2, _ref3, _ref4;
+      var angle, coords, dim, formatter, i, labels, nx, ny, orient, side, standoff, sx, sy, x, y, _i, _ref1, _ref2, _ref3, _ref4;
 
       _ref1 = coords = this.mget('major_coords'), x = _ref1[0], y = _ref1[1];
       _ref2 = this.plot_view.map_to_screen(x, "data", y, "data"), sx = _ref2[0], sy = _ref2[1];
       _ref3 = this.mget('normals'), nx = _ref3[0], ny = _ref3[1];
-      standoff = this.mget('major_label_standoff');
-      this.major_label_props.set(ctx, this);
       dim = this.mget('guidespec').dimension;
+      side = this.mget('side');
+      orient = this.mget('major_label_orientation');
+      if (_.isString(orient)) {
+        angle = _angle_lookup[side][orient];
+      } else {
+        angle = -orient;
+      }
+      standoff = this._tick_extent() + this.mget('major_label_standoff');
       formatter = new ticking.BasicTickFormatter();
       labels = formatter.format(coords[dim]);
+      this.major_label_props.set(ctx, this);
+      this._apply_location_heuristics(ctx, side, orient);
       for (i = _i = 0, _ref4 = sx.length - 1; 0 <= _ref4 ? _i <= _ref4 : _i >= _ref4; i = 0 <= _ref4 ? ++_i : --_i) {
-        ctx.fillText(labels[i], sx[i] + nx * standoff, sy[i] + ny * standoff);
+        if (angle) {
+          ctx.translate(sx[i] + nx * standoff, sy[i] + ny * standoff);
+          ctx.rotate(angle);
+          ctx.fillText(labels[i], 0, 0);
+          ctx.rotate(-angle);
+          ctx.translate(-sx[i] - nx * standoff, -sy[i] - ny * standoff);
+        } else {
+          ctx.fillText(labels[i], sx[i] + nx * standoff, sy[i] + ny * standoff);
+        }
       }
+    };
+
+    LinearAxisView.prototype._draw_axis_label = function(ctx) {
+      var angle, label, nx, ny, orient, side, standoff, sx, sy, x, y, _ref1, _ref2, _ref3;
+
+      label = this.mget('axis_label');
+      if (label == null) {
+        return;
+      }
+      _ref1 = this.mget('rule_coords'), x = _ref1[0], y = _ref1[1];
+      _ref2 = this.plot_view.map_to_screen(x, "data", y, "data"), sx = _ref2[0], sy = _ref2[1];
+      _ref3 = this.mget('normals'), nx = _ref3[0], ny = _ref3[1];
+      side = this.mget('side');
+      orient = 'parallel';
+      angle = _angle_lookup[side][orient];
+      standoff = this._tick_extent() + this._tick_label_extent() + this.mget('axis_label_standoff');
+      sx = (sx[0] + sx[sx.length - 1]) / 2;
+      sy = (sy[0] + sy[sy.length - 1]) / 2;
+      this.axis_label_props.set(ctx, this);
+      this._apply_location_heuristics(ctx, side, orient);
+      if (angle) {
+        ctx.translate(sx + nx * standoff, sy + ny * standoff);
+        ctx.rotate(angle);
+        ctx.fillText(label, 0, 0);
+        ctx.rotate(-angle);
+        ctx.translate(-sx - nx * standoff, -sy - ny * standoff);
+      } else {
+        ctx.fillText(label, sx + nx * standoff, sy + ny * standoff);
+      }
+    };
+
+    LinearAxisView.prototype._apply_location_heuristics = function(ctx, side, orient) {
+      var align, baseline;
+
+      if (_.isString(orient)) {
+        baseline = _baseline_lookup[side][orient];
+        align = _align_lookup[side][orient];
+      } else if (orient === 0) {
+        baseline = _baseline_lookup[side][orient];
+        align = _align_lookup[side][orient];
+      } else if (orient < 0) {
+        baseline = 'middle';
+        if (side === 'top') {
+          align = 'right';
+        } else if (side === 'bottom') {
+          align = 'left';
+        } else if (side === 'left') {
+          align = 'right';
+        } else if (side === 'right') {
+          align = 'left';
+        }
+      } else if (orient > 0) {
+        baseline = 'middle';
+        if (side === 'top') {
+          align = 'left';
+        } else if (side === 'bottom') {
+          align = 'right';
+        } else if (side === 'left') {
+          align = 'right';
+        } else if (side === 'right') {
+          align = 'left';
+        }
+      }
+      ctx.textBaseline = baseline;
+      return ctx.textAlign = align;
+    };
+
+    LinearAxisView.prototype._tick_extent = function() {
+      return this.mget('major_tick_out');
+    };
+
+    LinearAxisView.prototype._tick_label_extent = function() {
+      var angle, c, coords, dim, extent, factor, formatter, h, i, labels, orient, rounding, s, side, val, w, _i, _j, _ref1, _ref2;
+
+      extent = 0;
+      dim = this.mget('guidespec').dimension;
+      coords = this.mget('major_coords');
+      side = this.mget('side');
+      orient = this.mget('major_label_orientation');
+      formatter = new ticking.BasicTickFormatter();
+      labels = formatter.format(coords[dim]);
+      this.major_label_props.set(this.plot_view.ctx, this);
+      if (_.isString(orient)) {
+        factor = 1;
+        angle = _angle_lookup[side][orient];
+      } else {
+        factor = 2;
+        angle = -orient;
+      }
+      angle = Math.abs(angle);
+      c = Math.cos(angle);
+      s = Math.sin(angle);
+      if (side === "top" || side === "bottom") {
+        for (i = _i = 0, _ref1 = labels.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+          if (labels[i] == null) {
+            continue;
+          }
+          w = this.plot_view.ctx.measureText(labels[i]).width * 1.3;
+          h = this.plot_view.ctx.measureText(labels[i]).ascent;
+          val = w * s + (h / factor) * c;
+          if (val > extent) {
+            extent = val;
+          }
+        }
+      } else {
+        for (i = _j = 0, _ref2 = labels.length - 1; 0 <= _ref2 ? _j <= _ref2 : _j >= _ref2; i = 0 <= _ref2 ? ++_j : --_j) {
+          if (labels[i] == null) {
+            continue;
+          }
+          w = this.plot_view.ctx.measureText(labels[i]).width * 1.3;
+          h = this.plot_view.ctx.measureText(labels[i]).ascent;
+          val = w * c + (h / factor) * s;
+          if (val > extent) {
+            extent = val;
+          }
+        }
+      }
+      if (extent > 0) {
+        extent += this.mget('major_label_standoff');
+      }
+      rounding = this.mget('rounding_value');
+      return (Math.floor(extent / rounding) + 1) * rounding;
+    };
+
+    LinearAxisView.prototype._axis_label_extent = function() {
+      var angle, c, extent, h, orient, s, side, w;
+
+      extent = 0;
+      side = this.mget('side');
+      orient = 'parallel';
+      this.major_label_props.set(this.plot_view.ctx, this);
+      angle = Math.abs(_angle_lookup[side][orient]);
+      c = Math.cos(angle);
+      s = Math.sin(angle);
+      if (this.mget('axis_label')) {
+        extent += this.mget('axis_label_standoff');
+        this.axis_label_props.set(this.plot_view.ctx, this);
+        w = this.plot_view.ctx.measureText(this.mget('axis_label')).width;
+        h = this.plot_view.ctx.measureText(this.mget('axis_label')).ascent;
+        if (side === "top" || side === "bottom") {
+          extent += w * s + h * c;
+        } else {
+          extent += w * c + h * s;
+        }
+      }
+      return extent;
+    };
+
+    LinearAxisView.prototype._padding_request = function() {
+      var loc, padding, req, side, _ref1;
+
+      req = {};
+      side = this.mget('side');
+      loc = (_ref1 = this.mget('guidespec').location) != null ? _ref1 : 'min';
+      if (!_.isString(loc)) {
+        return req;
+      }
+      padding = 0;
+      padding += this._tick_extent();
+      padding += this._tick_label_extent();
+      padding += this._axis_label_extent();
+      req[side] = padding;
+      return req;
     };
 
     return LinearAxisView;
@@ -34907,7 +37092,10 @@ window.setup_ipython = function (ws_url) {
       this.register_property('major_coords', this._major_coords, false);
       this.add_dependencies('major_coords', this, ['bounds', 'dimension', 'location']);
       this.register_property('normals', this._normals, false);
-      return this.add_dependencies('normals', this, ['bounds', 'dimension', 'location']);
+      this.add_dependencies('normals', this, ['bounds', 'dimension', 'location']);
+      this.register_property('side', this._side, false);
+      this.add_dependencies('side', this, ['normals']);
+      return this.register_property('padding_request', this._padding_request, false);
     };
 
     LinearAxis.prototype._bounds = function() {
@@ -34938,7 +37126,7 @@ window.setup_ipython = function (ws_url) {
     };
 
     LinearAxis.prototype._rule_coords = function() {
-      var coords, cross_range, end, i, j, loc, range, ranges, start, xs, ys, _ref2;
+      var coords, cross_range, end, i, j, loc, range, ranges, start, xs, ys, _ref2, _ref3;
 
       i = this.get('guidespec').dimension;
       j = (i + 1) % 2;
@@ -34949,7 +37137,7 @@ window.setup_ipython = function (ws_url) {
       xs = new Array(2);
       ys = new Array(2);
       coords = [xs, ys];
-      loc = this.get('guidespec').location;
+      loc = (_ref3 = this.get('guidespec').location) != null ? _ref3 : 'min';
       if (_.isString(loc)) {
         if (loc === 'left' || loc === 'bottom') {
           loc = 'start';
@@ -34966,7 +37154,7 @@ window.setup_ipython = function (ws_url) {
     };
 
     LinearAxis.prototype._major_coords = function() {
-      var coords, cross_range, end, i, ii, interval, j, loc, range, ranges, start, ticks, tmp, xs, ys, _i, _ref2, _ref3;
+      var coords, cross_range, end, i, ii, interval, j, loc, range, ranges, start, ticks, tmp, xs, ys, _i, _ref2, _ref3, _ref4;
 
       i = this.get('guidespec').dimension;
       j = (i + 1) % 2;
@@ -34979,7 +37167,7 @@ window.setup_ipython = function (ws_url) {
       start = tmp;
       interval = ticking.auto_interval(start, end);
       ticks = ticking.auto_ticks(null, null, start, end, interval);
-      loc = this.get('guidespec').location;
+      loc = (_ref3 = this.get('guidespec').location) != null ? _ref3 : 'min';
       if (_.isString(loc)) {
         if (loc === 'left' || loc === 'bottom') {
           loc = 'start';
@@ -34991,7 +37179,7 @@ window.setup_ipython = function (ws_url) {
       xs = [];
       ys = [];
       coords = [xs, ys];
-      for (ii = _i = 0, _ref3 = ticks.length - 1; 0 <= _ref3 ? _i <= _ref3 : _i >= _ref3; ii = 0 <= _ref3 ? ++_i : --_i) {
+      for (ii = _i = 0, _ref4 = ticks.length - 1; 0 <= _ref4 ? _i <= _ref4 : _i >= _ref4; ii = 0 <= _ref4 ? ++_i : --_i) {
         coords[i].push(ticks[ii]);
         coords[j].push(loc);
       }
@@ -34999,7 +37187,7 @@ window.setup_ipython = function (ws_url) {
     };
 
     LinearAxis.prototype._normals = function() {
-      var cend, cross_range, cstart, end, i, j, loc, normals, range, ranges, start, _ref2;
+      var cend, cross_range, cstart, end, i, j, loc, normals, range, ranges, start, _ref2, _ref3;
 
       i = this.get('guidespec').dimension;
       j = (i + 1) % 2;
@@ -35007,7 +37195,7 @@ window.setup_ipython = function (ws_url) {
       range = ranges[i];
       cross_range = ranges[j];
       _ref2 = this.get('bounds'), start = _ref2[0], end = _ref2[1];
-      loc = this.get('guidespec').location;
+      loc = (_ref3 = this.get('guidespec').location) != null ? _ref3 : 'min';
       cstart = cross_range.get('start');
       cend = cross_range.get('end');
       normals = [0, 0];
@@ -35040,6 +37228,22 @@ window.setup_ipython = function (ws_url) {
       return normals;
     };
 
+    LinearAxis.prototype._side = function() {
+      var n, side;
+
+      n = this.get('normals');
+      if (n[1] === -1) {
+        side = 'top';
+      } else if (n[1] === 1) {
+        side = 'bottom';
+      } else if (n[0] === -1) {
+        side = 'left';
+      } else if (n[0] === 1) {
+        side = 'right';
+      }
+      return side;
+    };
+
     return LinearAxis;
 
   })(HasParent);
@@ -35058,7 +37262,7 @@ window.setup_ipython = function (ws_url) {
     axis_line_dash: [],
     axis_line_dash_offset: 0,
     major_tick_in: 2,
-    major_tick_out: 4,
+    major_tick_out: 6,
     major_tick_line_color: 'black',
     major_tick_line_width: 1,
     major_tick_line_alpha: 1.0,
@@ -35066,14 +37270,25 @@ window.setup_ipython = function (ws_url) {
     major_tick_line_cap: 'butt',
     major_tick_line_dash: [],
     major_tick_line_dash_offset: 0,
-    major_label_standoff: 15,
+    major_label_standoff: 5,
+    major_label_orientation: "horizontal",
     major_label_text_font: "helvetica",
     major_label_text_font_size: "10pt",
     major_label_text_font_style: "normal",
     major_label_text_color: "#444444",
     major_label_text_alpha: 1.0,
     major_label_text_align: "center",
-    major_label_text_baseline: "middle"
+    major_label_text_baseline: "alphabetic",
+    axis_label: "",
+    axis_label_standoff: 5,
+    axis_label_text_font: "helvetica",
+    axis_label_text_font_size: "16pt",
+    axis_label_text_font_style: "normal",
+    axis_label_text_color: "#444444",
+    axis_label_text_alpha: 1.0,
+    axis_label_text_align: "center",
+    axis_label_text_baseline: "alphabetic",
+    rounding_value: 20
   });
 
   LinearAxes = (function(_super) {
@@ -35406,7 +37621,7 @@ window.setup_ipython = function (ws_url) {
       default_value = styleprovider.mget(attrname);
       default_units = (_ref = styleprovider.mget(attrname + "_units")) != null ? _ref : 'data';
       if (attrname + '_units' in glyphspec) {
-        default_units = glyphspec[attrname + 'units'];
+        default_units = glyphspec[attrname + '_units'];
       }
       if (!(attrname in glyphspec)) {
         if (_.isArray(default_value)) {
@@ -35511,13 +37726,13 @@ window.setup_ipython = function (ws_url) {
           return obj[this[attrname].field];
         }
       }
-      if (obj[attrname]) {
+      if (obj[attrname] != null) {
         return obj[attrname];
       }
-      if (this[attrname]["default"] != null) {
+      if ((this[attrname] != null) && 'default' in this[attrname]) {
         return this[attrname]["default"];
       } else {
-        return console.log("selection for attribute '" + attrname + " failed on object: " + obj);
+        return console.log("selection for attribute '" + attrname + "' failed on object: " + obj);
       }
     };
 
@@ -35525,22 +37740,19 @@ window.setup_ipython = function (ws_url) {
       var i, obj, result, _i, _ref;
 
       if (!(attrname in this)) {
-        console.log("requested unknown property '" + attrname + " on objects");
         return;
       }
       result = new Array(objs.length);
       for (i = _i = 0, _ref = objs.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
         obj = objs[i];
-        if (this[attrname].field != null) {
-          if (this[attrname].field in obj) {
-            result[i] = obj[this[attrname].field];
-          }
-        } else if (obj[attrname]) {
+        if ((this[attrname].field != null) && (this[attrname].field in obj)) {
+          result[i] = obj[this[attrname].field];
+        } else if (obj[attrname] != null) {
           result[i] = obj[attrname];
         } else if (this[attrname]["default"] != null) {
           result[i] = this[attrname]["default"];
         } else {
-          console.log("vector selection for attribute '" + attrname + " failed on object: " + obj);
+          console.log("vector selection for attribute '" + attrname + "' failed on object: " + obj);
           return;
         }
       }
@@ -35632,16 +37844,23 @@ window.setup_ipython = function (ws_url) {
       this.color(styleprovider, glyphspec, this.text_color_name);
       this.number(styleprovider, glyphspec, this.text_alpha_name);
       this["enum"](styleprovider, glyphspec, this.text_align_name, "left right center");
-      this["enum"](styleprovider, glyphspec, this.text_baseline_name, "top middle bottom");
+      this["enum"](styleprovider, glyphspec, this.text_baseline_name, "top middle bottom alphabetic hanging");
     }
 
-    text_properties.prototype.set = function(ctx, obj) {
-      var font, font_size, font_style;
+    text_properties.prototype.font = function(obj, font_size) {
+      var font, font_style;
 
+      if (font_size == null) {
+        font_size = this.select(this.text_font_size_name, obj);
+      }
       font = this.select(this.text_font_name, obj);
-      font_size = this.select(this.text_font_size_name, obj);
       font_style = this.select(this.text_font_style_name, obj);
-      ctx.font = font_style + " " + font_size + " " + font;
+      font = font_style + " " + font_size + " " + font;
+      return font;
+    };
+
+    text_properties.prototype.set = function(ctx, obj) {
+      ctx.font = this.font(obj);
       ctx.fillStyle = this.select(this.text_color_name, obj);
       ctx.globalAlpha = this.select(this.text_alpha_name, obj);
       ctx.textAlign = this.select(this.text_align_name, obj);
@@ -35732,7 +37951,7 @@ window.setup_ipython = function (ws_url) {
 
 }).call(this);
 }, "base": function(exports, require, module) {(function() {
-  var Collections, Config, HasParent, HasProperties, WebSocketWrapper, build_views, load_models, locations, safebind, submodels, _ref, _ref1,
+  var Collections, Config, HasParent, HasProperties, WebSocketWrapper, build_views, load_models, locations, mod_cache, safebind, submodels, _ref, _ref1,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -36327,10 +38546,13 @@ window.setup_ipython = function (ws_url) {
     PandasPivotTable: ['./pandas/pandas', 'pandaspivottables'],
     PandasPlotSource: ['./pandas/pandas', 'pandasplotsources'],
     LinearAxis: ['./renderers/guide/axis', 'linearaxes'],
-    Rule: ['./renderers/guide/rule', 'rules']
+    Rule: ['./renderers/guide/rule', 'rules'],
+    Legend: ['./renderers/annotation_renderer', 'annotationrenderers']
   };
 
   exports.locations = locations;
+
+  mod_cache = {};
 
   Collections = function(typename) {
     var collection, modulename, _ref2;
@@ -36339,7 +38561,45 @@ window.setup_ipython = function (ws_url) {
       throw "./base: Unknown Collection " + typename;
     }
     _ref2 = locations[typename], modulename = _ref2[0], collection = _ref2[1];
-    return require(modulename)[collection];
+    if (mod_cache[modulename] == null) {
+      console.log("calling require", modulename);
+      mod_cache[modulename] = require(modulename);
+    }
+    return mod_cache[modulename][collection];
+  };
+
+  Collections.bulksave = function(models) {
+    var doc, jsondata, m, url, xhr;
+
+    doc = models[0].get('doc');
+    jsondata = (function() {
+      var _i, _len, _results;
+
+      _results = [];
+      for (_i = 0, _len = models.length; _i < _len; _i++) {
+        m = models[_i];
+        _results.push({
+          type: m.type,
+          attributes: _.clone(m.attributes)
+        });
+      }
+      return _results;
+    })();
+    jsondata = JSON.stringify(jsondata);
+    url = Config.prefix + "/bokeh/bb/" + doc + "/bulkupsert";
+    xhr = $.ajax({
+      type: 'POST',
+      url: url,
+      contentType: "application/json",
+      data: jsondata,
+      header: {
+        client: "javascript"
+      }
+    });
+    xhr.done(function(data) {
+      return load_models(data.modelspecs);
+    });
+    return xhr;
   };
 
   Collections.bulksave = function(models) {

@@ -7685,3 +7685,9 @@ body {
 .bokehdatatable .table-bordered td {
   border-left: 1px solid #b1b7c0 !important;
 }
+div.prompt {
+  width: inherit;
+}
+div.cell {
+  padding: 0;
+}
