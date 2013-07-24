@@ -139,8 +139,8 @@ class CDXApp extends Backbone.View
         model : activeplot
         canvas_height : newwidth
         canvas_width : newheight
-        outer_width : newwidth
-        outer_height : newheight
+        outer_height : newwidth
+        outer_width : newheight
       )
       @activeplotview = view
       @$plotholder.html('').append(view.$el)
