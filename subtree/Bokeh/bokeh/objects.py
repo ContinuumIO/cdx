@@ -7,9 +7,10 @@ notebook.
 from uuid import uuid4
 from functools import wraps
 import urlparse
-from bokeh.properties import (HasProps, MetaHasProps, 
-        Any, Dict, Enum, Float, Instance, Int, List, String,
-        Color, Pattern, Percent, Size)
+from bokeh.properties import (HasProps, MetaHasProps, Any, Dict, Enum,
+        Either, Float, Instance, Int, List, String, Color, Pattern, Percent,
+        Size, LineProps, FillProps, TextProps, Include)
+
 import logging
 logger = logging.getLogger(__file__)
 class Viewable(MetaHasProps):
@@ -186,13 +187,12 @@ class PlotObject(HasProps):
         which are handled in finalize
         """
         if 'id' not in attrs:
-            import pdb;pdb.set_trace()
+            raise RuntimeError("Unable to find 'id' attribute in JSON: %r" % attrs)
         _id = attrs.pop('id')
         
         if not instance:
             instance = cls(id=_id, _block_events=True)
-        if not instance:
-            import pdb;pdb.set_trace()
+
         ref_props = {}
         for p in instance.properties_with_refs():
             if p in attrs:
@@ -229,8 +229,25 @@ class PlotObject(HasProps):
         **withvalues** is True, then returns attributes with values as a 
         dict.  Otherwise, returns a list of attribute names.
         """
-        props = self.properties()
-        props.remove("session")        
+        props = self.changed_vars()
+        #print "Object:", type(self)
+        #print "\tOld:", sorted(self.properties())
+        #print "\tNew:", sorted(props)
+        if "session" in props:
+            props.remove("session")
+        if withvalues:
+            return dict((k,getattr(self,k)) for k in props)
+        else:
+            return props
+
+    def old_vm_props(self, withvalues=False):
+        """ Returns the ViewModel-related properties of this object.  If
+        **withvalues** is True, then returns attributes with values as a 
+        dict.  Otherwise, returns a list of attribute names.
+        """
+        props = set(self.properties())
+        if "session" in props:
+            props.remove("session")
         if withvalues:
             return dict((k,getattr(self,k)) for k in props)
         else:
@@ -319,10 +336,30 @@ class ColumnDataSource(DataSource):
     cont_ranges = Dict()
     discrete_ranges = Dict()
 
+    def add(self, data, name=None):
+        """ Appends the data to the list of columns.  Returns the name
+        that was inserted.
+        """
+        if name is None:
+            n = len(self.data)
+            while "Series %d"%n in self.data:
+                n += 1
+            name = "Series %d"%n
+        self.column_names.append(name)
+        self.data[name] = data
+        return name
+
+    def remove(self, name):
+        try:
+            self.column_names.remove(name)
+            del self.data[name]
+        except (ValueError, KeyError):
+            warnings.warn("Unable to find column '%s' in datasource" % name)
+
+
 class ObjectArrayDataSource(DataSource):
     # List of tuples of values 
     data = List()
-
 
     # Maps field/column name to a DataRange or FactorRange object. If the
     # field is not in the dict, then a range is created automatically.
@@ -365,14 +402,15 @@ class DataRange1d(DataRange):
     """ Represents a range in a scalar dimension """
     sources = List(ColumnsRef, has_ref=True)
     rangepadding = Float(0.1)
-    start = Float()
-    end = Float()
+    start = Float
+    end = Float
+
 
 class FactorRange(DataRange):
     """ Represents a range in a categorical dimension """
     sources = List(ColumnsRef, has_ref=True)
-    values = List()
-    columns = List()
+    values = List
+    columns = List
 
 class GlyphRenderer(PlotObject):
     
@@ -473,14 +511,6 @@ def script_inject_escaped(sess, modelid, typename):
         modelid = modelid,
         modeltype = typename,
         script_url = sess.root_url + "/bokeh/embed.js")
-    f_dict = dict(
-        docid = pc.docid,
-        ws_conn_string = pc.ws_conn_string,
-        docapikey = pc.apikey,
-        root_url = pc.root_url,
-        modelid = modelid,
-        modeltype = typename,
-        script_url = pc.root_url + "/bokeh/embed.js")
 
     e_str = '''&lt; script src="%(script_url)s" bokeh_plottype="serverconn"
 bokeh_docid="%(docid)s" bokeh_ws_conn_string="%(ws_conn_string)s"
@@ -520,8 +550,8 @@ class Plot(PlotObject):
     #
     # annotation = List
 
-    height = Int(400)
-    width = Int(400)
+    height = Int(800)
+    width = Int(600)
 
     background_fill = Color("white")
     border_fill = Color("white")
@@ -529,10 +559,11 @@ class Plot(PlotObject):
     canvas_height = Int(400)
     outer_width = Int(400)
     outer_height = Int(400)
-    border_top = Int(50)
-    border_bottom = Int(50)
-    border_left = Int(50)
-    border_right = Int(50)
+    min_border_top = Int(50)
+    min_border_bottom = Int(50)
+    min_border_left = Int(50)
+    min_border_right = Int(50)
+    min_border = Int(50)
 
     def script_inject(self):
         return script_inject(
@@ -545,6 +576,21 @@ class Plot(PlotObject):
             self._session,
             self._id,
             self.__view_model__)
+
+    def vm_props(self, *args, **kw):
+        # FIXME: We need to duplicate the height and width into canvas and
+        # outer height/width.  This is a quick fix for the gorpiness, but this
+        # needs to be fixed more structurally on the JS side, and then this
+        # should be revisited on the Python side.
+        if "canvas_width" not in self._changed_vars:
+            self.canvas_width = self.width
+        if "outer_width" not in self._changed_vars:
+            self.outer_width = self.width
+        if "canvas_height" not in self._changed_vars:
+            self.canvas_height = self.height
+        if "outer_height" not in self._changed_vars:
+            self.outer_height = self.height
+        return super(Plot, self).vm_props(*args, **kw)
 
 
 class GridPlot(PlotObject):
@@ -567,10 +613,14 @@ class GuideRenderer(PlotObject):
     
     def vm_serialize(self):
         props = self.vm_props(withvalues=True)
+        guide_props = {}
+        for name in ("dimension", "location", "bounds"):
+            if name in props:
+                guide_props[name] = props.pop(name)
         del props["plot"]
-        return {"id" : self._id,
-                "plot" : self.plot,
-                "guidespec" : props}
+        props.update({"id" : self._id, "plot" : self.plot,
+                        "guidespec" : guide_props})
+        return props
     
     @classmethod
     def load_json(cls, attrs, instance=None):
@@ -586,6 +636,20 @@ class GuideRenderer(PlotObject):
                   
 class LinearAxis(GuideRenderer):
     type = String("linear_axis")
+    axis_label = String
+    axis_label_standoff = Int
+    axis_label_props = Include(TextProps, prefix="axis_label")
+
+    major_label_standoff = Int
+    major_label_orientation = Either(Enum("horizontal", "vertical"), Int)
+    major_label_props = Include(TextProps, prefix="major_label")
+
+    # Line props
+    axis_props = Include(LineProps, prefix="axis")
+    tick_props = Include(LineProps, prefix="major_tick")
+    
+    major_tick_in = Int
+    major_tick_out = Int
 
 class Rule(GuideRenderer):
     """ 1D Grid component """
@@ -606,8 +670,23 @@ class PreviewSaveTool(PlotObject):
     dimensions = List   # valid values: "x", "y"
     dataranges = List(has_ref=True)
 
+class ResizeTool(PlotObject):
+    plot = Instance(Plot)
+
 class SelectionTool(PlotObject):
     renderers = List(has_ref=True)
 
 class BoxSelectionOverlay(PlotObject):
     tool = Instance(has_ref=True)
+
+class Legend(PlotObject):
+    plot = Instance(Plot, has_ref=True)
+    annotationspec = Dict(has_ref=True)
+    
+    def vm_serialize(self):
+        #ensure that the type of the annotation spec is set
+        result = super(Legend, self).vm_serialize()
+        result['annotationspec']['type'] = 'legend'
+        return result
+
+    

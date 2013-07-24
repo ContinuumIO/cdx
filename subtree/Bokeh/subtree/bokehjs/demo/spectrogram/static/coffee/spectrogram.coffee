@@ -204,8 +204,8 @@ class SpectrogramPlot
     @yrange = Collections('Range1d').create({start: 0, end: MAX_FREQ})
 
     @model = Collections('Plot').create(
-      x_range: @xrange
-      y_range: @yrange
+      x_range: @xrange.ref()
+      y_range: @yrange.ref()
       border_fill: "#fff"
       canvas_width: options.width + options.border + 80
       canvas_height: options.height + 2*options.border
@@ -214,6 +214,7 @@ class SpectrogramPlot
       border: options.border
       border_left: 80
       tools: []
+      title: ""
     )
 
     xaxis = Collections('GuideRenderer').create(
@@ -223,7 +224,7 @@ class SpectrogramPlot
         location: 'min'
         bounds: 'auto'
       }
-      parent: @model
+      plot: @model.ref()
     )
 
     yaxis = Collections('GuideRenderer').create(
@@ -234,7 +235,7 @@ class SpectrogramPlot
         bounds: 'auto'
       }
       major_label_standoff: 40
-      parent: @model
+      plot: @model.ref()
     )
 
     glyph = Collections('GlyphRenderer').create({
@@ -303,8 +304,8 @@ class RadialHistogramPlot
     @range = Collections('Range1d').create({start: -20, end: 20})
 
     @model = Collections('Plot').create(
-      x_range: @range
-      y_range: @range
+      x_range: @range.ref()
+      y_range: @range.ref()
       border_fill: "#fff"
       canvas_width:  options.width
       canvas_height: options.height
@@ -312,6 +313,7 @@ class RadialHistogramPlot
       outer_height:  options.height
       border: 0
       tools: []
+      title: ""
     )
 
     glyph = Collections('GlyphRenderer').create({
@@ -379,21 +381,22 @@ class RadialHistogramPlot
 class SimpleIndexPlot
   constructor: (options) ->
     @source = Collections('ColumnDataSource').create(
-      data: {idx: [[]], ys: [[]]}
+      data: {idx: [], ys: []}
     )
 
     @xrange = Collections('Range1d').create({start: options.x0, end: options.x1})
     @yrange = Collections('Range1d').create({start: options.y0, end: options.y1})
 
     @model = Collections('Plot').create(
-      x_range: @xrange
-      y_range: @yrange
+      x_range: @xrange.ref()
+      y_range: @yrange.ref()
       border_fill: "#fff"
       canvas_width:  options.width  + 2*options.border
       canvas_height: options.height + 2*options.border
       outer_width:   options.width  + 2*options.border
       outer_height:  options.height + 2*options.border
       tools: []
+      title: ""
     )
 
     xaxis = Collections('GuideRenderer').create(
@@ -403,7 +406,7 @@ class SimpleIndexPlot
         location: 'min'
         bounds: 'auto'
       }
-      parent: @model
+      plot: @model.ref()
     )
 
     yaxis = Collections('GuideRenderer').create(
@@ -413,22 +416,22 @@ class SimpleIndexPlot
         location: 'min'
         bounds: 'auto'
       }
-      parent: @model
+      plot: @model.ref()
     )
 
     glyph = Collections('GlyphRenderer').create({
-      data_source: @source
-      xdata_range: @xrange
-      ydata_range: @yrange
+      data_source: @source.ref()
+      xdata_range: @xrange.ref()
+      ydata_range: @yrange.ref()
       glyphspec: {
         type: 'line'
         line_color: 'darkblue'
-        xs: 'idx'
-        ys: 'ys'
+        x: 'idx'
+        y: 'ys'
       }
     })
 
-    @model.add_renderers([glyph, xaxis, yaxis])
+    @model.add_renderers([glyph.ref(), xaxis.ref(), yaxis.ref()])
     @view = new @model.default_view(model: @model)
 
   update: (ys) ->
@@ -437,7 +440,7 @@ class SimpleIndexPlot
       for i in [0..@idx.length-1]
         @idx[i] = @xrange.get('start') + (i/@idx.length)*@xrange.get('end')
 
-    @source.set('data', {idx: [@idx], ys: [ys]})
+    @source.set('data', {idx: @idx, ys: ys})
     @source.trigger('change', @source, {})
 
   set_xrange: (x0, x1) ->
