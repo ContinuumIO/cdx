@@ -8,6 +8,7 @@ import json
 import logging
 import urlparse
 import uuid
+import warnings
 
 import requests
 
@@ -60,9 +61,10 @@ class Session(object):
         """
         for obj in objects:
             if obj is None:
-                import pdb;pdb.set_trace()
-            obj.session = self
-            self._models[obj._id] = obj
+                warnings.warn("Null object passed to Session.add()")
+            else:
+                obj.session = self
+                self._models[obj._id] = obj
             
     def view(self):
         """ Triggers the OS to open a web browser pointing to the file
@@ -80,6 +82,9 @@ class BaseHTMLSession(Session):
 
     # The base local directory for all CSS and JS
     server_static_dir = join(abspath(split(__file__)[0]), "server", "static")
+
+    # The base dir for all HTML templates
+    template_dir = join(abspath(split(__file__)[0]), "templates")
 
     # The base URL for all CSS and JS
     static_url = bokeh_url
@@ -101,6 +106,51 @@ class BaseHTMLSession(Session):
         or URIs depending on the type of session.
         """
         raise NotImplementedError
+
+    @property
+    def bokehjs_dir(self):
+        return getattr(self, "_bokehjs_dir", 
+                join(self.server_static_dir, "vendor/bokehjs"))
+
+    @bokehjs_dir.setter
+    def bokehjs_dir(self, val):
+        self._bokehjs_dir = val
+
+    def _inline_scripts(self, paths):
+        # Copied from dump.py, which itself was from wakariserver
+        if len(paths) == 0:
+            return ""
+        strings = []
+        for script in paths:
+            f_name = abspath(join(self.server_static_dir, script))
+            strings.append("""
+              // BEGIN %s
+            """ % f_name + open(f_name).read() + \
+            """
+              // END %s
+            """ % f_name)
+        return "".join(strings)
+
+    def _inline_css(self, paths):
+        # Copied from dump.py, which itself was from wakariserver
+        if len(paths) == 0:
+            return ""
+        strings = []
+        for css_path in paths:
+            f_name = join(self.server_static_dir, css_path)
+            strings.append("""
+              /* BEGIN %s */
+            """ % f_name + open(f_name).read().decode("utf-8") + \
+            """
+              /* END %s */
+            """ % f_name)
+        return "".join(strings)
+
+    def _load_template(self, filename):
+        import jinja2
+        with open(join(self.template_dir, filename)) as f:
+            return jinja2.Template(f.read())
+    
 
     #------------------------------------------------------------------------
     # Serialization 
@@ -171,55 +221,54 @@ class HTMLFileSession(BaseHTMLSession):
     plot and includes all the associated JS and CSS for the plot.
     """
 
+    title = "Bokeh Plot"
 
     # The root directory for the CSS files
     css_files = ["css/bokeh.css", "css/continuum.css",
                  "vendor/bootstrap/css/bootstrap.css"]
 
     # TODO: Why is this not in bokehjs_dir, but rather outside of it?
-    js_files = ["../../js/application.js"]
+    js_files = ["js/application.js"]
 
     # Template files used to generate the HTML
-    template_dir = join(abspath(split(__file__)[0]), "templates")
     js_template = "plots.js"
     div_template = "plots.html"     # template for just the plot <div>
     html_template = "base.html"     # template for the entire HTML file
+    inline_js = True
+    inline_css = True
 
-    def __init__(self, filename="bokehplot.html", plot=None):
+    # Used to compute the relative paths to JS and CSS if they are not
+    # inlined into the output
+    rootdir = abspath(split(__file__)[0])
+
+    def __init__(self, filename="bokehplot.html", plot=None, title=None):
         self.filename = filename
+        if title is not None:
+            self.title = title
         super(HTMLFileSession, self).__init__(plot=plot)
-    
-    @property
-    def bokehjs_dir(self):
-        return getattr(self, "_bokehjs_dir", 
-                join(BaseHTMLSession.server_static_dir, "vendor/bokehjs"))
-
-    @bokehjs_dir.setter
-    def bokehjs_dir(self, val):
-        self._bokehjs_dir = val
-
+        self.plotcontext = PlotContext()
+        
+    # FIXME: move this to css_paths, js_paths to base class?
     def css_paths(self, as_url=False):
         return [join(self.bokehjs_dir, d) for d in self.css_files]
     
     def js_paths(self, as_url=False, unified=True, min=True):
-        return [join(self.bokehjs_dir, d) for d in self.js_files]
-
-    def _load_template(self, filename):
-        import jinja2
-        with open(join(self.template_dir, filename)) as f:
-            return jinja2.Template(f.read())
+        # TODO: Handle unified and minified options
+        return [join(self.server_static_dir, d) for d in self.js_files]
     
-    def dumps(self, js="inline", css="inline", 
-                rootdir=abspath(split(__file__)[0])):
+    def dumps(self, js=None, css=None, rootdir=None):
         """ Returns the HTML contents as a string 
         
-        **js** and **css** can be "inline" or "relative". In the latter case,
+        **js** and **css** can be "inline" or "relative", and they default
+        to the values of self.inline_js and self.inline_css. 
+        
+        If these are set to be "relative" (or self.inline_js/css are False),
         **rootdir** can be specified to indicate the base directory from which
-        the path to the various static files should be computed.
+        the path to the various static files should be computed.  **rootdir**
+        defaults to the value of self.rootdir.
         """
         # FIXME: Handle this more intelligently
-        the_plot = [m for m in self._models.itervalues() if isinstance(m, Plot)][0]
-        plot_ref = self.get_ref(the_plot)
+        pc_ref = self.get_ref(self.plotcontext)
         elementid = str(uuid.uuid4())
 
         # Manually convert our top-level models into dicts, before handing
@@ -235,75 +284,55 @@ class HTMLFileSession(BaseHTMLSession):
 
         js = self._load_template(self.js_template).render(
                     elementid = elementid,
-                    modelid = plot_ref["id"],
-                    modeltype = plot_ref["type"],
+                    modelid = pc_ref["id"],
+                    modeltype = pc_ref["type"],
                     all_models = self.serialize(models),
                 )
         div = self._load_template(self.div_template).render(
                     elementid = elementid
                 )
-        
-        if js == "inline":
+
+        if rootdir is None:
+            rootdir = self.rootdir
+
+        if js == "inline" or self.inline_js:
+            # TODO: Are the UTF-8 decodes really necessary?
             rawjs = self._inline_scripts(self.js_paths()).decode("utf-8")
             jsfiles = []
         else:
             rawjs = None
             jsfiles = [os.path.relpath(p,rootdir) for p in self.js_paths()]
         
-        if css == "inline":
+        if css == "inline" or self.inline_css:
+            # TODO: Are the UTF-8 decodes really necessary?
             rawcss = self._inline_css(self.css_paths()).decode("utf-8")
             cssfiles = []
         else:
             rawcss = None
             cssfiles = [os.path.relpath(p,rootdir) for p in self.css_paths()]
-
+            
+        plot_div = self._load_template(self.div_template).render(
+            elementid=elementid
+            )
         html = self._load_template(self.html_template).render(
                     js_snippets = [js],
                     html_snippets = [div],
-                    # TODO: Are the UTF-8 decodes really necessary?
                     rawjs = rawjs, rawcss = rawcss,
-                    jsfiles = jsfiles, cssfiles = cssfiles)
+                    jsfiles = jsfiles, cssfiles = cssfiles,
+                    title = self.title)
         return html
 
-    def _inline_scripts(self, paths):
-        # Copied from dump.py, which itself was from wakariserver
-        if len(paths) == 0:
-            return ""
-        strings = []
-        for script in paths:
-            f_name = join(self.server_static_dir, script)
-            strings.append("""
-              // BEGIN %s
-            """ % f_name + open(f_name).read() + \
-            """
-              // END %s
-            """ % f_name)
-        return "".join(strings)
-
-    def _inline_css(self, paths):
-        # Copied from dump.py, which itself was from wakariserver
-        if len(paths) == 0:
-            return ""
-        strings = []
-        for css_path in paths:
-            f_name = join(self.server_static_dir, css_path)
-            strings.append("""
-              /* BEGIN %s */
-            """ % f_name + open(f_name).read().decode("utf-8") + \
-            """
-              /* END %s */
-            """ % f_name)
-        return "".join(strings)
-
-
-    def save(self, filename=None, js="inline", css="inline",
-                rootdir=abspath(split(__file__)[0])):
+    def save(self, filename=None, js=None, css=None, rootdir=None):
         """ Saves the file contents.  Uses self.filename if **filename**
         is not provided.  Overwrites the contents.
 
-        **js** and **css** can be "inline" or "relative". In the latter case,
+        **js** and **css** can be "inline" or "relative", and they default
+        to the values of self.inline_js and self.inline_css. 
+        
+        If these are set to be "relative" (or self.inline_js/css are False),
         **rootdir** can be specified to indicate the base directory from which
-        the path to the various static files should be computed.
+        the path to the various static files should be computed.  **rootdir**
+        defaults to the value of self.rootdir.
         """
         s = self.dumps(js, css, rootdir)
         if filename is None:
@@ -520,8 +549,8 @@ class PlotServerSession(BaseHTMLSession):
             self.clear_callback_queue(models)
         elif events is 'existing':
             non_created = [x for x in models if x not in created]
-            self.execute_callback_queue(non_created)
-            self.clear_callback_queue(created)
+            self.execute_callback_queue(models=non_created)
+            self.clear_callback_queue(models=created)
         self.enable_callbacks(models)
         return models
 
@@ -617,8 +646,8 @@ class PlotServerSession(BaseHTMLSession):
         """
         typename = ref["type"]
         ref_id = ref["id"]
-        url = utils.urljoin(self.base_url, self.docid + "/" + ref["type"] +\
-                            "/" + ref["id"] + "/")
+        url = utils.urljoin(self.base_url, self.docid + "/" + typename +\
+                            "/" + ref_id + "/")
         attr = protocol.deserialize_json(self.http_session.get(url).content)
         if not asdict:
             return self.load_attrs(typename, [attr])[0]
@@ -639,8 +668,8 @@ class PlotServerSession(BaseHTMLSession):
             m = self._models[data['id']]
             m._callbacks = {}
             for attrname, callbacks in data['callbacks'].iteritems():
-                obj = self._models[callback['obj']['id']]
-                callbackname = callback['callbackname']
+                obj = self._models[callbacks['obj']['id']]
+                callbackname = callbacks['callbackname']
                 m.on_change(attrname, obj, callbackname)
                     
     def load_all_callbacks(self, get_json=False):
@@ -681,19 +710,19 @@ class PlotServerSession(BaseHTMLSession):
         if models is None:
             models = self._models.itervalues()
         
-        for m in self._models.itervalues():
+        for m in models:
             m._block_callbacks = False
             
     def clear_callback_queue(self, models=None):
         if models is None:
             models = self._models.itervalues()
-        for m in self._models.itervalues():
+        for m in models:
             del m._callback_queue[:]
             
     def execute_callback_queue(self, models=None):
         if models is None:
             models = self._models.itervalues()
-        for m in self._models.itervalues():
+        for m in models:
             for cb in m._callback_queue:
                 m._trigger(*cb)
                 
@@ -711,65 +740,37 @@ class PlotServerSession(BaseHTMLSession):
         raise NotImplementedError
 
 
-
-class NotebookSession(HTMLFileSession):
-    """ Produces inline HTML suitable for placing into an IPython Notebook.
-    """
-
+class NotebookSessionMixin(object):
     # Most of these were formerly defined in dump.py, which was ported over
     # from Wakari.
-    notebookscript_paths = ["js/bokehnotebook.js"]
+    css_files = ["css/bokeh.css", "css/continuum.css",
+                 "vendor/bootstrap/css/bootstrap.css"]
+
+    js_files = ["js/bokehnotebook.js"]
+
+    js_template = "plots.js"
+    div_template = "plots.html"
     html_template = "basediv.html"     # template for the entire HTML file
-    def __init__(self, plot=None):
-        HTMLFileSession.__init__(self, filename=None, plot=plot)
-
-    def ws_conn_string(self):
-        split = urlparse.urlsplit(self.root_url)
-        #how to fix this in bokeh and wakari?
-        if split.scheme == 'http':
-            return "ws://%s/bokeh/sub" % split.netloc
-        else:
-            return "wss://%s/bokeh/sub" % split.netloc
-   
-    def notebook_connect(self):
-        import IPython.core.displaypub as displaypub
-        js = self._load_template('connect.js').render(
-            username=self.username,
-            root_url = self.root_url,
-            docid=self.docid,
-            docapikey=self.apikey,
-            ws_conn_string=self.ws_conn_string()
-            )
-        msg = """ <p>Connection Information for this %s document, only share with people you trust </p> """  % self.docname
-
-        script_paths = self.js_paths()
-        css_paths = self.css_paths()
-        html = self._load_template("basediv.html").render(
-            rawjs=self._inline_scripts(script_paths).decode('utf8'),
-            rawcss=self._inline_css(css_paths).decode('utf8'),
-            js_snippets=[js],
-            html_snippets=[msg])
-        displaypub.publish_display_data('bokeh', {'text/html': html})
-        return None
- 
-    def notebooksources(self):
-        import IPython.core.displaypub as displaypub        
-        script_paths = NotebookSession.notebookscript_paths
-        css_paths = self.css_paths()
-        html = self._load_template("basediv.html").render(
-            rawjs=self._inline_scripts(script_paths).decode('utf8'),
-            rawcss=self._inline_css(css_paths).decode('utf8'),
-            js_snippets=[],
-            html_snippets=["<p>Bokeh Sources</p>"])
-        displaypub.publish_display_data('bokeh', {'text/html': html})
-        return None
+    
+    def css_paths(self, as_url=False):
+        # TODO: Fix the duplication of this method from HTMLFileSession.
+        # Perhaps move this into BaseHTMLSession.. but a lot of other
+        # things would need to move as well.
+        return [join(self.bokehjs_dir, d) for d in self.css_files]
+     
+    def js_paths(self):
+        # For notebook session, we rely on a unified bokehJS file,
+        # that is not located in the BokehJS subtree
+        return [join(self.server_static_dir, d) for d in self.js_files]
 
     def dumps(self, objects):
         """ Returns the HTML contents as a string
         FIXME : signature different than other dumps
         FIXME: should consolidate code between this one and that one.
         """
-        the_plot = objects[0]
+        if len(objects) == 0:
+            objects = self._models.values()
+        the_plot = [m for m in objects if isinstance(m, Plot)][0]
         plot_ref = self.get_ref(the_plot)
         elementid = str(uuid.uuid4())
 
@@ -790,12 +791,14 @@ class NotebookSession(HTMLFileSession):
                     modeltype = plot_ref["type"],
                     all_models = self.serialize(models),
                 )
-        div = self._load_template(self.div_template).render(
-                    elementid = elementid
-                )
+        plot_div = self._load_template(self.div_template).render(
+            elementid=elementid
+            )
         html = self._load_template(self.html_template).render(
-                    js_snippets = [js],
-                    html_snippets = [div])
+                                           html_snippets=[plot_div],
+                                           elementid = elementid,
+                                           js_snippets = [js],
+                                           )
         return html.encode("utf-8")
 
     def show(self, *objects):
@@ -812,11 +815,69 @@ class NotebookSession(HTMLFileSession):
         html = self.dumps(objects)
         return HTML(html)
 
-class WakariSession(PlotServerSession):
-    """ Suitable for running on the Wakari.io service.  Includes default
-    paths and plot data server configurations which are appropriate for
-    a user account on Wakari.
+
+class NotebookSession(NotebookSessionMixin, HTMLFileSession):
+    """ Produces inline HTML suitable for placing into an IPython Notebook.
     """
+
+    def __init__(self, plot=None):
+        HTMLFileSession.__init__(self, filename=None, plot=plot)
+        self.plotcontext = PlotContext()
+        
+    def notebooksources(self):
+        import IPython.core.displaypub as displaypub        
+        # Normally this would call self.js_paths() to build a list of
+        # scripts or get a reference to the unified/minified JS file,
+        # but our static JS build process produces a single unified
+        # bokehJS file for inclusion in the notebook.
+        js_paths = self.js_files
+        css_paths = self.css_paths()
+        html = self._load_template(self.html_template).render(
+            rawjs=self._inline_scripts(js_paths).decode('utf8'),
+            rawcss=self._inline_css(css_paths).decode('utf8'),
+            js_snippets=[],
+            html_snippets=["<p>Configuring embedded BokehJS mode.</p>"])
+        displaypub.publish_display_data('bokeh', {'text/html': html})
+        return None
+
+
+class NotebookServerSession(NotebookSessionMixin, PlotServerSession):
+    """ An IPython Notebook session that is connected to a plot server.
+    """
+    def ws_conn_string(self):
+        split = urlparse.urlsplit(self.root_url)
+        #how to fix this in bokeh and wakari?
+        if split.scheme == 'http':
+            return "ws://%s/bokeh/sub" % split.netloc
+        else:
+            return "wss://%s/bokeh/sub" % split.netloc
+   
+    def notebook_connect(self):
+        if self.docname is None:
+            raise RuntimeError("usedoc() must be called before notebook_connect()")
+        import IPython.core.displaypub as displaypub
+        js = self._load_template('connect.js').render(
+            username=self.username,
+            root_url = self.root_url,
+            docid=self.docid,
+            docapikey=self.apikey,
+            ws_conn_string=self.ws_conn_string()
+            )
+        msg = """<p>Connecting notebook to document "%s" at server %s</p>""" % \
+                (self.docname, self.root_url)
+
+        js_paths = self.js_files
+        #script_paths = self.js_paths()
+        css_paths = self.css_paths()
+        html = self._load_template("basediv.html").render(
+            rawjs=self._inline_scripts(js_paths).decode('utf8'),
+            rawcss=self._inline_css(css_paths).decode('utf8'),
+            js_snippets=[js],
+            html_snippets=[msg])
+        displaypub.publish_display_data('bokeh', {'text/html': html})
+        return None
+
+
 
 
 

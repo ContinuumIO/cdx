@@ -41,8 +41,8 @@ glyph_renderer = GlyphRenderer(
 
 plot = Plot(x_range=xdr, y_range=ydr, data_sources=[source],
         border= 80)
-xaxis = LinearAxis(plot=plot, dimension=0)
-yaxis = LinearAxis(plot=plot, dimension=1)
+xaxis = LinearAxis(plot=plot, dimension=0, location="min")
+yaxis = LinearAxis(plot=plot, dimension=1, location="min")
 
 pantool = PanTool(dataranges = [xdr, ydr], dimensions=["width","height"])
 zoomtool = ZoomTool(dataranges=[xdr,ydr], dimensions=("width","height"))
@@ -50,8 +50,13 @@ zoomtool = ZoomTool(dataranges=[xdr,ydr], dimensions=("width","height"))
 plot.renderers.append(glyph_renderer)
 plot.tools = [pantool,zoomtool]
 
-sess = session.HTMLFileSession("glyph1.html")
-sess.server_static_dir="../bokeh/server"
+sess = session.HTMLFileSession("circle.html")
 sess.add(plot, glyph_renderer, xaxis, yaxis, source, xdr, ydr, pantool, zoomtool)
+sess.plotcontext.children.append(plot)
 sess.save(js="relative", css="relative", rootdir=os.path.abspath("."))
-
+print "Wrote circle.html"
+try:
+    import webbrowser
+    webbrowser.open("file://" + os.path.abspath("circle.html"))
+except:
+    pass
