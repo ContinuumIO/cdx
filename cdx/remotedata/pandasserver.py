@@ -135,7 +135,6 @@ def searchapi(varname):
 def set_selection(varname):
     raw_selected = compute_selection(varname)
     selections[varname] = raw_selected
-    print selections[varname]
     return make_json(protocol.serialize_json(selections[varname]))
 
 @app.route("/array/<varname>/select", methods=["POST"])
@@ -143,7 +142,6 @@ def select(varname):
     raw_selected = compute_selection(varname)
     selections[varname] = np.union1d(raw_selected,
                                      selections.get(varname, [])).tolist()
-    print selections[varname]
     return make_json(protocol.serialize_json(selections[varname]))    
 
 @app.route("/array/<varname>/deselect", methods=["POST"])
@@ -151,7 +149,6 @@ def deselect(varname):
     raw_selected = compute_selection(varname)
     selections[varname] = np.setdiff1d(selections.get(varname, []),
                                        raw_selected).tolist()
-    print selections[varname]
     return make_json(protocol.serialize_json(selections[varname]))    
 
 

@@ -105,6 +105,8 @@ class CDXSession(PlotServerSession):
             self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
+        self.plotcontext.children = [self.cdx]
+        self.plotcontext._dirty = True
         stored = self.store_all()
         return stored
     
@@ -113,7 +115,7 @@ class CDXSession(PlotServerSession):
         y_range = Range1d()
         plot = GMapPlot(
             x_range=x_range, y_range=y_range,
-            center_lat=latitude, center_lng=longitude, zoom_level=17,
+            center_lat=latitude, center_lng=longitude, zoom_level=zoom,
             data_sources=[],
             canvas_width=600, canvas_height=600, 
             outer_width=600, outer_height=600
