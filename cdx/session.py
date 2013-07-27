@@ -4,7 +4,9 @@ from objects import CDX, Namespace
 from bokeh.objects import (
     Plot, DataRange1d, LinearAxis, Rule,
     ColumnDataSource, GlyphRenderer, ObjectArrayDataSource,
-    PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay)
+    PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay,
+    GMapPlot
+    )
 from bokeh.glyphs import Circle
 from bokeh.pandasobjects import PandasPlotSource, IPythonRemoteData
 import os
@@ -94,6 +96,22 @@ class CDXSession(PlotServerSession):
         plot = plotting.scatter(xname, yname, source=plot_source, title=title,
                                 tools="pan,zoom,select"
                                 )
+        self.cdx.plotlist.children.insert(0, plot)
+        self.cdx.activeplot = plot
+        self.cdx.plotlist._dirty = True
+        stored = self.store_all()
+        return stored
+    
+    def map(self, latitude=35.349, longitude=-116.595, zoom=17):
+        plot = GMapPlot(
+            center_lat=latitude, center_lng=longitude, zoom_level=17,
+            data_sources=[],
+            canvas_width=600, canvas_height=600, 
+            outer_width=600, outer_height=600
+            )
+        xgrid = Rule(plot=plot, dimension=0)
+        ygrid = Rule(plot=plot, dimension=1)
+        self.add(plot, xgrid, ygrid)
         self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
