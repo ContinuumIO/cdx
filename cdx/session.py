@@ -2,6 +2,7 @@ import pandas as pd
 from bokeh.session import PlotServerSession, PlotList
 from objects import CDX, Namespace
 from bokeh.objects import (
+    Range1d,
     Plot, DataRange1d, LinearAxis, Rule,
     ColumnDataSource, GlyphRenderer, ObjectArrayDataSource,
     PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay,
@@ -23,7 +24,11 @@ class CDXSession(PlotServerSession):
         plotting._config["output_url"] = self.root_url
         plotting._config["output_type"] = "server"
         plotting._config["output_file"] = None
+        plotting.hold(True)
         
+    def figure(self):
+        plotting.figure()
+
     def load_doc(self, docid):
         super(CDXSession, self).load_doc(docid)
         cdx = self.load_type('CDX')
@@ -96,26 +101,32 @@ class CDXSession(PlotServerSession):
         plot = plotting.scatter(xname, yname, source=plot_source, title=title,
                                 tools="pan,zoom,select"
                                 )
-        self.cdx.plotlist.children.insert(0, plot)
+        if plot not in self.cdx.plotlist.children:
+            self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
         stored = self.store_all()
         return stored
     
     def map(self, latitude=35.349, longitude=-116.595, zoom=17):
+        x_range = Range1d()
+        y_range = Range1d()
         plot = GMapPlot(
+            x_range=x_range, y_range=y_range,
             center_lat=latitude, center_lng=longitude, zoom_level=17,
             data_sources=[],
             canvas_width=600, canvas_height=600, 
             outer_width=600, outer_height=600
             )
+        plotting._config["curplot"] = plot
         xgrid = Rule(plot=plot, dimension=0)
         ygrid = Rule(plot=plot, dimension=1)
         tool = PanTool(plot=plot)
         plot.tools.append(tool)
-        self.add(plot, xgrid, ygrid, tool)
+        self.add(plot, xgrid, ygrid, tool, x_range, y_range)
         self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
         stored = self.store_all()
+        print stored
         return stored
