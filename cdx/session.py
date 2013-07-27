@@ -6,7 +6,7 @@ from bokeh.objects import (
     Plot, DataRange1d, LinearAxis, Rule,
     ColumnDataSource, GlyphRenderer, ObjectArrayDataSource,
     PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay,
-    GMapPlot
+    GMapPlot, DataSlider
     )
 from bokeh.glyphs import Circle
 from bokeh.pandasobjects import PandasPlotSource, IPythonRemoteData
@@ -94,7 +94,7 @@ class CDXSession(PlotServerSession):
         return plot_source
             
     def plot(self, xname, yname, varname, load=True, plot=None,
-             alpha=1.0, nonselection_alpha=0.1
+             alpha=1.0, nonselection_alpha=0.1, slider=None
              ):
         if load:
             self.load_all()
@@ -107,6 +107,12 @@ class CDXSession(PlotServerSession):
                                 line_alpha=alpha,
                                 nonselection_alpha=nonselection_alpha,
                                 )
+        if slider:
+            slider = DataSlider(plot=plot, data_source=plot_source, 
+                                field=slider)
+            self.add(slider)
+            plot.tools.append(slider)
+            plot._dirty = True
         if plot not in self.cdx.plotlist.children:
             self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
