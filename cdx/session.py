@@ -128,12 +128,18 @@ class CDXSession(PlotServerSession):
             canvas_width=600, canvas_height=600, 
             outer_width=600, outer_height=600
             )
-        plotting._config["curplot"] = plot
+        
+        select_tool = SelectionTool()
+        overlay = BoxSelectionOverlay(tool=select_tool)
+        plot.renderers.append(overlay)
+        plot.tools.append(select_tool)
+
         xgrid = Rule(plot=plot, dimension=0)
         ygrid = Rule(plot=plot, dimension=1)
         tool = PanTool(plot=plot)
         plot.tools.append(tool)
-        self.add(plot, xgrid, ygrid, tool, x_range, y_range)
+        self.add(plot, xgrid, ygrid, tool, x_range, y_range, 
+                 select_tool, overlay)
         self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
