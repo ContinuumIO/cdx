@@ -111,7 +111,9 @@ class CDXSession(PlotServerSession):
             )
         xgrid = Rule(plot=plot, dimension=0)
         ygrid = Rule(plot=plot, dimension=1)
-        self.add(plot, xgrid, ygrid)
+        tool = PanTool(plot=plot)
+        plot.tools.append(tool)
+        self.add(plot, xgrid, ygrid, tool)
         self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
