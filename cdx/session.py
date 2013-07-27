@@ -24,7 +24,7 @@ class CDXSession(PlotServerSession):
         plotting._config["output_url"] = self.root_url
         plotting._config["output_type"] = "server"
         plotting._config["output_file"] = None
-        plotting.hold(True)
+        plotting.hold(False)
         
     def figure(self):
         plotting.figure()
@@ -93,13 +93,19 @@ class CDXSession(PlotServerSession):
         self.add(plot_source)
         return plot_source
             
-    def plot(self, xname, yname, varname, load=True):
+    def plot(self, xname, yname, varname, load=True, plot=None,
+             alpha=1.0, nonselection_alpha=0.1
+             ):
         if load:
             self.load_all()
         plot_source = self._get_plotsource(varname)
         title = "%s %s vs %s" % (varname, xname, yname)        
         plot = plotting.scatter(xname, yname, source=plot_source, title=title,
-                                tools="pan,zoom,select"
+                                tools="pan,zoom,select",
+                                plot=plot,
+                                fill_alpha=alpha,
+                                line_alpha=alpha,
+                                nonselection_alpha=nonselection_alpha,
                                 )
         if plot not in self.cdx.plotlist.children:
             self.cdx.plotlist.children.insert(0, plot)
@@ -110,7 +116,9 @@ class CDXSession(PlotServerSession):
         stored = self.store_all()
         return stored
     
-    def map(self, latitude=35.349, longitude=-116.595, zoom=17):
+    def map(self, latitude=35.349, longitude=-116.595, zoom=17, load=True):
+        if load:
+            self.load_all()
         x_range = Range1d()
         y_range = Range1d()
         plot = GMapPlot(
