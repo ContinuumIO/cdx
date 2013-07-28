@@ -122,7 +122,8 @@ class CDXSession(PlotServerSession):
         stored = self.store_all()
         return stored
     
-    def map(self, latitude=35.349, longitude=-116.595, zoom=17, load=True):
+    def map(self, latitude=35.349, longitude=-116.595, zoom=17, load=True,
+            title = "Map"):
         if load:
             self.load_all()
         x_range = Range1d()
@@ -131,8 +132,9 @@ class CDXSession(PlotServerSession):
             x_range=x_range, y_range=y_range,
             center_lat=latitude, center_lng=longitude, zoom_level=zoom,
             data_sources=[],
-            canvas_width=600, canvas_height=600, 
-            outer_width=600, outer_height=600
+            canvas_width=600, canvas_height=600,
+            outer_width=600, outer_height=600,
+            title = title
             )
         
         select_tool = SelectionTool()
@@ -142,9 +144,10 @@ class CDXSession(PlotServerSession):
 
         xgrid = Rule(plot=plot, dimension=0)
         ygrid = Rule(plot=plot, dimension=1)
-        tool = PanTool(plot=plot)
-        plot.tools.append(tool)
-        self.add(plot, xgrid, ygrid, tool, x_range, y_range, 
+        pantool = PanTool(plot=plot)
+        zoomtool = ZoomTool(plot=plot)
+        plot.tools.extend([pantool, zoomtool])
+        self.add(plot, xgrid, ygrid, pantool, zoomtool, x_range, y_range, 
                  select_tool, overlay)
         self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot
