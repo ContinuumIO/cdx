@@ -1,3 +1,7 @@
+Currently the single cell notebook inside CDX only works with IPython < 1.0.  We recommend using this with Anaconda 1.6
+
+we'll port this to 1.0 soon.
+
 cdx
 ===
 
