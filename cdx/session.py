@@ -6,7 +6,7 @@ from bokeh.objects import (
     Plot, DataRange1d, LinearAxis, Rule,
     ColumnDataSource, GlyphRenderer, ObjectArrayDataSource,
     PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay,
-    GMapPlot, DataSlider
+    #GMapPlot, DataSlider
     )
 from bokeh.glyphs import Circle
 from bokeh.pandasobjects import PandasPlotSource, IPythonRemoteData
@@ -93,20 +93,26 @@ class CDXSession(PlotServerSession):
         self.add(plot_source)
         return plot_source
             
-    def plot(self, xname, yname, varname, load=True, plot=None,
-             alpha=1.0, nonselection_alpha=0.1, slider=None
-             ):
+    def plot(self, xname, yname, varname, type="scatter", load=True, plot=None,
+             alpha=1.0, nonselection_alpha=0.1, slider=None,
+             **kwargs):
         if load:
             self.load_all()
         plot_source = self._get_plotsource(varname)
-        title = "%s %s vs %s" % (varname, xname, yname)        
-        plot = plotting.scatter(xname, yname, source=plot_source, title=title,
-                                tools="pan,zoom,select",
-                                plot=plot,
-                                fill_alpha=alpha,
-                                line_alpha=alpha,
-                                nonselection_alpha=nonselection_alpha,
-                                )
+        title = "%s %s vs %s" % (varname, xname, yname)
+        kwargs['fill_alpha'] = alpha
+        kwargs['line_alpha'] = alpha
+        kwargs['nonselection_alpha'] = nonselection_alpha
+        if 'tools' not in kwargs:
+            kwargs['tools'] = 'pan,zoom,select'
+        if type == "scatter":
+            plotfunc = plotting.scatter
+        elif type == "line":
+            plotfunc = plotting.line
+        else:
+            raise RuntimeError("Unknown plot function type")
+        plot = plotfunc(xname, yname, source=plot_source, title=title,
+                        plot=plot, **kwargs)
         if slider:
             slider = DataSlider(plot=plot, data_source=plot_source, 
                                 field=slider)
