@@ -8,7 +8,7 @@ else:
     shutil.copy("hembuild/application.js",
                 "cdx/static/js/application.js")
     shutil.copy("hembuild/application.css",
-                "cdx/static/css/application.js")
+                "cdx/static/css/application.css")
     
 from distutils.core import setup
 import os
