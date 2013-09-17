@@ -3,7 +3,7 @@ from numpy import pi, arange, sin, cos
 import numpy as np
 import os.path
 
-from bokeh.objects import (Plot, DataRange1d, Range1d, LinearAxis, Rule,
+from bokeh.objects import (Plot, DataRange1d, Range1d, LinearAxis, Grid,
         ColumnDataSource, GlyphRenderer, ObjectArrayDataSource, PanTool,
         ZoomTool)
 from bokeh.glyphs import Line
@@ -35,18 +35,24 @@ plot = Plot(x_range=xdr, y_range=ydr, data_sources=[source],
         border= 80)
 xaxis = LinearAxis(plot=plot, dimension=0)
 yaxis = LinearAxis(plot=plot, dimension=1)
-xgrid = Rule(plot=plot, dimension=0)
-ygrid = Rule(plot=plot, dimension=1)
+xgrid = Grid(plot=plot, dimension=0)
+ygrid = Grid(plot=plot, dimension=1)
 
 plot.renderers.append(glyph_renderer)
 plot.tools = [pantool,zoomtool]
 
-import sys
+import requests, sys
 demo_name = "line"
 if len(sys.argv) > 1 and sys.argv[1] == "server":
-    sess = session.PlotServerSession(username="defaultuser",
-            serverloc="http://localhost:5006", userapikey="nokey")
-    sess.use_doc(demo_name)
+    try:
+        sess = session.PlotServerSession(username="defaultuser",
+                serverloc="http://localhost:5006", userapikey="nokey")
+        sess.use_doc(demo_name)
+    except requests.exceptions.ConnectionError as e:
+        print e
+        print "\nThe 'server' version of this example requires the plot server.  Please make sure plot server is running, via 'python runserver.py' in the bokeh root directory.\n"
+        sys.exit()
+        
     sess.add(plot, glyph_renderer, xaxis, yaxis, xgrid, ygrid, source, xdr, ydr, pantool, zoomtool)
     sess.plotcontext.children.append(plot)
     sess.plotcontext._dirty = True

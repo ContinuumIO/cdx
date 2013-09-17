@@ -9431,6 +9431,2133 @@ function handler(event) {
 
 })(jQuery);
 
+/*! jQuery UI - v1.10.3 - 2013-08-21
+* http://jqueryui.com
+* Includes: jquery.ui.core.js, jquery.ui.widget.js, jquery.ui.mouse.js, jquery.ui.position.js, jquery.ui.slider.js
+* Copyright 2013 jQuery Foundation and other contributors Licensed MIT */
+
+(function( $, undefined ) {
+
+var uuid = 0,
+	runiqueId = /^ui-id-\d+$/;
+
+// $.ui might exist from components with no dependencies, e.g., $.ui.position
+$.ui = $.ui || {};
+
+$.extend( $.ui, {
+	version: "1.10.3",
+
+	keyCode: {
+		BACKSPACE: 8,
+		COMMA: 188,
+		DELETE: 46,
+		DOWN: 40,
+		END: 35,
+		ENTER: 13,
+		ESCAPE: 27,
+		HOME: 36,
+		LEFT: 37,
+		NUMPAD_ADD: 107,
+		NUMPAD_DECIMAL: 110,
+		NUMPAD_DIVIDE: 111,
+		NUMPAD_ENTER: 108,
+		NUMPAD_MULTIPLY: 106,
+		NUMPAD_SUBTRACT: 109,
+		PAGE_DOWN: 34,
+		PAGE_UP: 33,
+		PERIOD: 190,
+		RIGHT: 39,
+		SPACE: 32,
+		TAB: 9,
+		UP: 38
+	}
+});
+
+// plugins
+$.fn.extend({
+	focus: (function( orig ) {
+		return function( delay, fn ) {
+			return typeof delay === "number" ?
+				this.each(function() {
+					var elem = this;
+					setTimeout(function() {
+						$( elem ).focus();
+						if ( fn ) {
+							fn.call( elem );
+						}
+					}, delay );
+				}) :
+				orig.apply( this, arguments );
+		};
+	})( $.fn.focus ),
+
+	scrollParent: function() {
+		var scrollParent;
+		if (($.ui.ie && (/(static|relative)/).test(this.css("position"))) || (/absolute/).test(this.css("position"))) {
+			scrollParent = this.parents().filter(function() {
+				return (/(relative|absolute|fixed)/).test($.css(this,"position")) && (/(auto|scroll)/).test($.css(this,"overflow")+$.css(this,"overflow-y")+$.css(this,"overflow-x"));
+			}).eq(0);
+		} else {
+			scrollParent = this.parents().filter(function() {
+				return (/(auto|scroll)/).test($.css(this,"overflow")+$.css(this,"overflow-y")+$.css(this,"overflow-x"));
+			}).eq(0);
+		}
+
+		return (/fixed/).test(this.css("position")) || !scrollParent.length ? $(document) : scrollParent;
+	},
+
+	zIndex: function( zIndex ) {
+		if ( zIndex !== undefined ) {
+			return this.css( "zIndex", zIndex );
+		}
+
+		if ( this.length ) {
+			var elem = $( this[ 0 ] ), position, value;
+			while ( elem.length && elem[ 0 ] !== document ) {
+				// Ignore z-index if position is set to a value where z-index is ignored by the browser
+				// This makes behavior of this function consistent across browsers
+				// WebKit always returns auto if the element is positioned
+				position = elem.css( "position" );
+				if ( position === "absolute" || position === "relative" || position === "fixed" ) {
+					// IE returns 0 when zIndex is not specified
+					// other browsers return a string
+					// we ignore the case of nested elements with an explicit value of 0
+					// <div style="z-index: -10;"><div style="z-index: 0;"></div></div>
+					value = parseInt( elem.css( "zIndex" ), 10 );
+					if ( !isNaN( value ) && value !== 0 ) {
+						return value;
+					}
+				}
+				elem = elem.parent();
+			}
+		}
+
+		return 0;
+	},
+
+	uniqueId: function() {
+		return this.each(function() {
+			if ( !this.id ) {
+				this.id = "ui-id-" + (++uuid);
+			}
+		});
+	},
+
+	removeUniqueId: function() {
+		return this.each(function() {
+			if ( runiqueId.test( this.id ) ) {
+				$( this ).removeAttr( "id" );
+			}
+		});
+	}
+});
+
+// selectors
+function focusable( element, isTabIndexNotNaN ) {
+	var map, mapName, img,
+		nodeName = element.nodeName.toLowerCase();
+	if ( "area" === nodeName ) {
+		map = element.parentNode;
+		mapName = map.name;
+		if ( !element.href || !mapName || map.nodeName.toLowerCase() !== "map" ) {
+			return false;
+		}
+		img = $( "img[usemap=#" + mapName + "]" )[0];
+		return !!img && visible( img );
+	}
+	return ( /input|select|textarea|button|object/.test( nodeName ) ?
+		!element.disabled :
+		"a" === nodeName ?
+			element.href || isTabIndexNotNaN :
+			isTabIndexNotNaN) &&
+		// the element and all of its ancestors must be visible
+		visible( element );
+}
+
+function visible( element ) {
+	return $.expr.filters.visible( element ) &&
+		!$( element ).parents().addBack().filter(function() {
+			return $.css( this, "visibility" ) === "hidden";
+		}).length;
+}
+
+$.extend( $.expr[ ":" ], {
+	data: $.expr.createPseudo ?
+		$.expr.createPseudo(function( dataName ) {
+			return function( elem ) {
+				return !!$.data( elem, dataName );
+			};
+		}) :
+		// support: jQuery <1.8
+		function( elem, i, match ) {
+			return !!$.data( elem, match[ 3 ] );
+		},
+
+	focusable: function( element ) {
+		return focusable( element, !isNaN( $.attr( element, "tabindex" ) ) );
+	},
+
+	tabbable: function( element ) {
+		var tabIndex = $.attr( element, "tabindex" ),
+			isTabIndexNaN = isNaN( tabIndex );
+		return ( isTabIndexNaN || tabIndex >= 0 ) && focusable( element, !isTabIndexNaN );
+	}
+});
+
+// support: jQuery <1.8
+if ( !$( "<a>" ).outerWidth( 1 ).jquery ) {
+	$.each( [ "Width", "Height" ], function( i, name ) {
+		var side = name === "Width" ? [ "Left", "Right" ] : [ "Top", "Bottom" ],
+			type = name.toLowerCase(),
+			orig = {
+				innerWidth: $.fn.innerWidth,
+				innerHeight: $.fn.innerHeight,
+				outerWidth: $.fn.outerWidth,
+				outerHeight: $.fn.outerHeight
+			};
+
+		function reduce( elem, size, border, margin ) {
+			$.each( side, function() {
+				size -= parseFloat( $.css( elem, "padding" + this ) ) || 0;
+				if ( border ) {
+					size -= parseFloat( $.css( elem, "border" + this + "Width" ) ) || 0;
+				}
+				if ( margin ) {
+					size -= parseFloat( $.css( elem, "margin" + this ) ) || 0;
+				}
+			});
+			return size;
+		}
+
+		$.fn[ "inner" + name ] = function( size ) {
+			if ( size === undefined ) {
+				return orig[ "inner" + name ].call( this );
+			}
+
+			return this.each(function() {
+				$( this ).css( type, reduce( this, size ) + "px" );
+			});
+		};
+
+		$.fn[ "outer" + name] = function( size, margin ) {
+			if ( typeof size !== "number" ) {
+				return orig[ "outer" + name ].call( this, size );
+			}
+
+			return this.each(function() {
+				$( this).css( type, reduce( this, size, true, margin ) + "px" );
+			});
+		};
+	});
+}
+
+// support: jQuery <1.8
+if ( !$.fn.addBack ) {
+	$.fn.addBack = function( selector ) {
+		return this.add( selector == null ?
+			this.prevObject : this.prevObject.filter( selector )
+		);
+	};
+}
+
+// support: jQuery 1.6.1, 1.6.2 (http://bugs.jquery.com/ticket/9413)
+if ( $( "<a>" ).data( "a-b", "a" ).removeData( "a-b" ).data( "a-b" ) ) {
+	$.fn.removeData = (function( removeData ) {
+		return function( key ) {
+			if ( arguments.length ) {
+				return removeData.call( this, $.camelCase( key ) );
+			} else {
+				return removeData.call( this );
+			}
+		};
+	})( $.fn.removeData );
+}
+
+
+
+
+
+// deprecated
+$.ui.ie = !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() );
+
+$.support.selectstart = "onselectstart" in document.createElement( "div" );
+$.fn.extend({
+	disableSelection: function() {
+		return this.bind( ( $.support.selectstart ? "selectstart" : "mousedown" ) +
+			".ui-disableSelection", function( event ) {
+				event.preventDefault();
+			});
+	},
+
+	enableSelection: function() {
+		return this.unbind( ".ui-disableSelection" );
+	}
+});
+
+$.extend( $.ui, {
+	// $.ui.plugin is deprecated. Use $.widget() extensions instead.
+	plugin: {
+		add: function( module, option, set ) {
+			var i,
+				proto = $.ui[ module ].prototype;
+			for ( i in set ) {
+				proto.plugins[ i ] = proto.plugins[ i ] || [];
+				proto.plugins[ i ].push( [ option, set[ i ] ] );
+			}
+		},
+		call: function( instance, name, args ) {
+			var i,
+				set = instance.plugins[ name ];
+			if ( !set || !instance.element[ 0 ].parentNode || instance.element[ 0 ].parentNode.nodeType === 11 ) {
+				return;
+			}
+
+			for ( i = 0; i < set.length; i++ ) {
+				if ( instance.options[ set[ i ][ 0 ] ] ) {
+					set[ i ][ 1 ].apply( instance.element, args );
+				}
+			}
+		}
+	},
+
+	// only used by resizable
+	hasScroll: function( el, a ) {
+
+		//If overflow is hidden, the element might have extra content, but the user wants to hide it
+		if ( $( el ).css( "overflow" ) === "hidden") {
+			return false;
+		}
+
+		var scroll = ( a && a === "left" ) ? "scrollLeft" : "scrollTop",
+			has = false;
+
+		if ( el[ scroll ] > 0 ) {
+			return true;
+		}
+
+		// TODO: determine which cases actually cause this to happen
+		// if the element doesn't have the scroll set, see if it's possible to
+		// set the scroll
+		el[ scroll ] = 1;
+		has = ( el[ scroll ] > 0 );
+		el[ scroll ] = 0;
+		return has;
+	}
+});
+
+})( jQuery );
+(function( $, undefined ) {
+
+var uuid = 0,
+	slice = Array.prototype.slice,
+	_cleanData = $.cleanData;
+$.cleanData = function( elems ) {
+	for ( var i = 0, elem; (elem = elems[i]) != null; i++ ) {
+		try {
+			$( elem ).triggerHandler( "remove" );
+		// http://bugs.jquery.com/ticket/8235
+		} catch( e ) {}
+	}
+	_cleanData( elems );
+};
+
+$.widget = function( name, base, prototype ) {
+	var fullName, existingConstructor, constructor, basePrototype,
+		// proxiedPrototype allows the provided prototype to remain unmodified
+		// so that it can be used as a mixin for multiple widgets (#8876)
+		proxiedPrototype = {},
+		namespace = name.split( "." )[ 0 ];
+
+	name = name.split( "." )[ 1 ];
+	fullName = namespace + "-" + name;
+
+	if ( !prototype ) {
+		prototype = base;
+		base = $.Widget;
+	}
+
+	// create selector for plugin
+	$.expr[ ":" ][ fullName.toLowerCase() ] = function( elem ) {
+		return !!$.data( elem, fullName );
+	};
+
+	$[ namespace ] = $[ namespace ] || {};
+	existingConstructor = $[ namespace ][ name ];
+	constructor = $[ namespace ][ name ] = function( options, element ) {
+		// allow instantiation without "new" keyword
+		if ( !this._createWidget ) {
+			return new constructor( options, element );
+		}
+
+		// allow instantiation without initializing for simple inheritance
+		// must use "new" keyword (the code above always passes args)
+		if ( arguments.length ) {
+			this._createWidget( options, element );
+		}
+	};
+	// extend with the existing constructor to carry over any static properties
+	$.extend( constructor, existingConstructor, {
+		version: prototype.version,
+		// copy the object used to create the prototype in case we need to
+		// redefine the widget later
+		_proto: $.extend( {}, prototype ),
+		// track widgets that inherit from this widget in case this widget is
+		// redefined after a widget inherits from it
+		_childConstructors: []
+	});
+
+	basePrototype = new base();
+	// we need to make the options hash a property directly on the new instance
+	// otherwise we'll modify the options hash on the prototype that we're
+	// inheriting from
+	basePrototype.options = $.widget.extend( {}, basePrototype.options );
+	$.each( prototype, function( prop, value ) {
+		if ( !$.isFunction( value ) ) {
+			proxiedPrototype[ prop ] = value;
+			return;
+		}
+		proxiedPrototype[ prop ] = (function() {
+			var _super = function() {
+					return base.prototype[ prop ].apply( this, arguments );
+				},
+				_superApply = function( args ) {
+					return base.prototype[ prop ].apply( this, args );
+				};
+			return function() {
+				var __super = this._super,
+					__superApply = this._superApply,
+					returnValue;
+
+				this._super = _super;
+				this._superApply = _superApply;
+
+				returnValue = value.apply( this, arguments );
+
+				this._super = __super;
+				this._superApply = __superApply;
+
+				return returnValue;
+			};
+		})();
+	});
+	constructor.prototype = $.widget.extend( basePrototype, {
+		// TODO: remove support for widgetEventPrefix
+		// always use the name + a colon as the prefix, e.g., draggable:start
+		// don't prefix for widgets that aren't DOM-based
+		widgetEventPrefix: existingConstructor ? basePrototype.widgetEventPrefix : name
+	}, proxiedPrototype, {
+		constructor: constructor,
+		namespace: namespace,
+		widgetName: name,
+		widgetFullName: fullName
+	});
+
+	// If this widget is being redefined then we need to find all widgets that
+	// are inheriting from it and redefine all of them so that they inherit from
+	// the new version of this widget. We're essentially trying to replace one
+	// level in the prototype chain.
+	if ( existingConstructor ) {
+		$.each( existingConstructor._childConstructors, function( i, child ) {
+			var childPrototype = child.prototype;
+
+			// redefine the child widget using the same prototype that was
+			// originally used, but inherit from the new version of the base
+			$.widget( childPrototype.namespace + "." + childPrototype.widgetName, constructor, child._proto );
+		});
+		// remove the list of existing child constructors from the old constructor
+		// so the old child constructors can be garbage collected
+		delete existingConstructor._childConstructors;
+	} else {
+		base._childConstructors.push( constructor );
+	}
+
+	$.widget.bridge( name, constructor );
+};
+
+$.widget.extend = function( target ) {
+	var input = slice.call( arguments, 1 ),
+		inputIndex = 0,
+		inputLength = input.length,
+		key,
+		value;
+	for ( ; inputIndex < inputLength; inputIndex++ ) {
+		for ( key in input[ inputIndex ] ) {
+			value = input[ inputIndex ][ key ];
+			if ( input[ inputIndex ].hasOwnProperty( key ) && value !== undefined ) {
+				// Clone objects
+				if ( $.isPlainObject( value ) ) {
+					target[ key ] = $.isPlainObject( target[ key ] ) ?
+						$.widget.extend( {}, target[ key ], value ) :
+						// Don't extend strings, arrays, etc. with objects
+						$.widget.extend( {}, value );
+				// Copy everything else by reference
+				} else {
+					target[ key ] = value;
+				}
+			}
+		}
+	}
+	return target;
+};
+
+$.widget.bridge = function( name, object ) {
+	var fullName = object.prototype.widgetFullName || name;
+	$.fn[ name ] = function( options ) {
+		var isMethodCall = typeof options === "string",
+			args = slice.call( arguments, 1 ),
+			returnValue = this;
+
+		// allow multiple hashes to be passed on init
+		options = !isMethodCall && args.length ?
+			$.widget.extend.apply( null, [ options ].concat(args) ) :
+			options;
+
+		if ( isMethodCall ) {
+			this.each(function() {
+				var methodValue,
+					instance = $.data( this, fullName );
+				if ( !instance ) {
+					return $.error( "cannot call methods on " + name + " prior to initialization; " +
+						"attempted to call method '" + options + "'" );
+				}
+				if ( !$.isFunction( instance[options] ) || options.charAt( 0 ) === "_" ) {
+					return $.error( "no such method '" + options + "' for " + name + " widget instance" );
+				}
+				methodValue = instance[ options ].apply( instance, args );
+				if ( methodValue !== instance && methodValue !== undefined ) {
+					returnValue = methodValue && methodValue.jquery ?
+						returnValue.pushStack( methodValue.get() ) :
+						methodValue;
+					return false;
+				}
+			});
+		} else {
+			this.each(function() {
+				var instance = $.data( this, fullName );
+				if ( instance ) {
+					instance.option( options || {} )._init();
+				} else {
+					$.data( this, fullName, new object( options, this ) );
+				}
+			});
+		}
+
+		return returnValue;
+	};
+};
+
+$.Widget = function( /* options, element */ ) {};
+$.Widget._childConstructors = [];
+
+$.Widget.prototype = {
+	widgetName: "widget",
+	widgetEventPrefix: "",
+	defaultElement: "<div>",
+	options: {
+		disabled: false,
+
+		// callbacks
+		create: null
+	},
+	_createWidget: function( options, element ) {
+		element = $( element || this.defaultElement || this )[ 0 ];
+		this.element = $( element );
+		this.uuid = uuid++;
+		this.eventNamespace = "." + this.widgetName + this.uuid;
+		this.options = $.widget.extend( {},
+			this.options,
+			this._getCreateOptions(),
+			options );
+
+		this.bindings = $();
+		this.hoverable = $();
+		this.focusable = $();
+
+		if ( element !== this ) {
+			$.data( element, this.widgetFullName, this );
+			this._on( true, this.element, {
+				remove: function( event ) {
+					if ( event.target === element ) {
+						this.destroy();
+					}
+				}
+			});
+			this.document = $( element.style ?
+				// element within the document
+				element.ownerDocument :
+				// element is window or document
+				element.document || element );
+			this.window = $( this.document[0].defaultView || this.document[0].parentWindow );
+		}
+
+		this._create();
+		this._trigger( "create", null, this._getCreateEventData() );
+		this._init();
+	},
+	_getCreateOptions: $.noop,
+	_getCreateEventData: $.noop,
+	_create: $.noop,
+	_init: $.noop,
+
+	destroy: function() {
+		this._destroy();
+		// we can probably remove the unbind calls in 2.0
+		// all event bindings should go through this._on()
+		this.element
+			.unbind( this.eventNamespace )
+			// 1.9 BC for #7810
+			// TODO remove dual storage
+			.removeData( this.widgetName )
+			.removeData( this.widgetFullName )
+			// support: jquery <1.6.3
+			// http://bugs.jquery.com/ticket/9413
+			.removeData( $.camelCase( this.widgetFullName ) );
+		this.widget()
+			.unbind( this.eventNamespace )
+			.removeAttr( "aria-disabled" )
+			.removeClass(
+				this.widgetFullName + "-disabled " +
+				"ui-state-disabled" );
+
+		// clean up events and states
+		this.bindings.unbind( this.eventNamespace );
+		this.hoverable.removeClass( "ui-state-hover" );
+		this.focusable.removeClass( "ui-state-focus" );
+	},
+	_destroy: $.noop,
+
+	widget: function() {
+		return this.element;
+	},
+
+	option: function( key, value ) {
+		var options = key,
+			parts,
+			curOption,
+			i;
+
+		if ( arguments.length === 0 ) {
+			// don't return a reference to the internal hash
+			return $.widget.extend( {}, this.options );
+		}
+
+		if ( typeof key === "string" ) {
+			// handle nested keys, e.g., "foo.bar" => { foo: { bar: ___ } }
+			options = {};
+			parts = key.split( "." );
+			key = parts.shift();
+			if ( parts.length ) {
+				curOption = options[ key ] = $.widget.extend( {}, this.options[ key ] );
+				for ( i = 0; i < parts.length - 1; i++ ) {
+					curOption[ parts[ i ] ] = curOption[ parts[ i ] ] || {};
+					curOption = curOption[ parts[ i ] ];
+				}
+				key = parts.pop();
+				if ( value === undefined ) {
+					return curOption[ key ] === undefined ? null : curOption[ key ];
+				}
+				curOption[ key ] = value;
+			} else {
+				if ( value === undefined ) {
+					return this.options[ key ] === undefined ? null : this.options[ key ];
+				}
+				options[ key ] = value;
+			}
+		}
+
+		this._setOptions( options );
+
+		return this;
+	},
+	_setOptions: function( options ) {
+		var key;
+
+		for ( key in options ) {
+			this._setOption( key, options[ key ] );
+		}
+
+		return this;
+	},
+	_setOption: function( key, value ) {
+		this.options[ key ] = value;
+
+		if ( key === "disabled" ) {
+			this.widget()
+				.toggleClass( this.widgetFullName + "-disabled ui-state-disabled", !!value )
+				.attr( "aria-disabled", value );
+			this.hoverable.removeClass( "ui-state-hover" );
+			this.focusable.removeClass( "ui-state-focus" );
+		}
+
+		return this;
+	},
+
+	enable: function() {
+		return this._setOption( "disabled", false );
+	},
+	disable: function() {
+		return this._setOption( "disabled", true );
+	},
+
+	_on: function( suppressDisabledCheck, element, handlers ) {
+		var delegateElement,
+			instance = this;
+
+		// no suppressDisabledCheck flag, shuffle arguments
+		if ( typeof suppressDisabledCheck !== "boolean" ) {
+			handlers = element;
+			element = suppressDisabledCheck;
+			suppressDisabledCheck = false;
+		}
+
+		// no element argument, shuffle and use this.element
+		if ( !handlers ) {
+			handlers = element;
+			element = this.element;
+			delegateElement = this.widget();
+		} else {
+			// accept selectors, DOM elements
+			element = delegateElement = $( element );
+			this.bindings = this.bindings.add( element );
+		}
+
+		$.each( handlers, function( event, handler ) {
+			function handlerProxy() {
+				// allow widgets to customize the disabled handling
+				// - disabled as an array instead of boolean
+				// - disabled class as method for disabling individual parts
+				if ( !suppressDisabledCheck &&
+						( instance.options.disabled === true ||
+							$( this ).hasClass( "ui-state-disabled" ) ) ) {
+					return;
+				}
+				return ( typeof handler === "string" ? instance[ handler ] : handler )
+					.apply( instance, arguments );
+			}
+
+			// copy the guid so direct unbinding works
+			if ( typeof handler !== "string" ) {
+				handlerProxy.guid = handler.guid =
+					handler.guid || handlerProxy.guid || $.guid++;
+			}
+
+			var match = event.match( /^(\w+)\s*(.*)$/ ),
+				eventName = match[1] + instance.eventNamespace,
+				selector = match[2];
+			if ( selector ) {
+				delegateElement.delegate( selector, eventName, handlerProxy );
+			} else {
+				element.bind( eventName, handlerProxy );
+			}
+		});
+	},
+
+	_off: function( element, eventName ) {
+		eventName = (eventName || "").split( " " ).join( this.eventNamespace + " " ) + this.eventNamespace;
+		element.unbind( eventName ).undelegate( eventName );
+	},
+
+	_delay: function( handler, delay ) {
+		function handlerProxy() {
+			return ( typeof handler === "string" ? instance[ handler ] : handler )
+				.apply( instance, arguments );
+		}
+		var instance = this;
+		return setTimeout( handlerProxy, delay || 0 );
+	},
+
+	_hoverable: function( element ) {
+		this.hoverable = this.hoverable.add( element );
+		this._on( element, {
+			mouseenter: function( event ) {
+				$( event.currentTarget ).addClass( "ui-state-hover" );
+			},
+			mouseleave: function( event ) {
+				$( event.currentTarget ).removeClass( "ui-state-hover" );
+			}
+		});
+	},
+
+	_focusable: function( element ) {
+		this.focusable = this.focusable.add( element );
+		this._on( element, {
+			focusin: function( event ) {
+				$( event.currentTarget ).addClass( "ui-state-focus" );
+			},
+			focusout: function( event ) {
+				$( event.currentTarget ).removeClass( "ui-state-focus" );
+			}
+		});
+	},
+
+	_trigger: function( type, event, data ) {
+		var prop, orig,
+			callback = this.options[ type ];
+
+		data = data || {};
+		event = $.Event( event );
+		event.type = ( type === this.widgetEventPrefix ?
+			type :
+			this.widgetEventPrefix + type ).toLowerCase();
+		// the original event may come from any element
+		// so we need to reset the target on the new event
+		event.target = this.element[ 0 ];
+
+		// copy original event properties over to the new event
+		orig = event.originalEvent;
+		if ( orig ) {
+			for ( prop in orig ) {
+				if ( !( prop in event ) ) {
+					event[ prop ] = orig[ prop ];
+				}
+			}
+		}
+
+		this.element.trigger( event, data );
+		return !( $.isFunction( callback ) &&
+			callback.apply( this.element[0], [ event ].concat( data ) ) === false ||
+			event.isDefaultPrevented() );
+	}
+};
+
+$.each( { show: "fadeIn", hide: "fadeOut" }, function( method, defaultEffect ) {
+	$.Widget.prototype[ "_" + method ] = function( element, options, callback ) {
+		if ( typeof options === "string" ) {
+			options = { effect: options };
+		}
+		var hasOptions,
+			effectName = !options ?
+				method :
+				options === true || typeof options === "number" ?
+					defaultEffect :
+					options.effect || defaultEffect;
+		options = options || {};
+		if ( typeof options === "number" ) {
+			options = { duration: options };
+		}
+		hasOptions = !$.isEmptyObject( options );
+		options.complete = callback;
+		if ( options.delay ) {
+			element.delay( options.delay );
+		}
+		if ( hasOptions && $.effects && $.effects.effect[ effectName ] ) {
+			element[ method ]( options );
+		} else if ( effectName !== method && element[ effectName ] ) {
+			element[ effectName ]( options.duration, options.easing, callback );
+		} else {
+			element.queue(function( next ) {
+				$( this )[ method ]();
+				if ( callback ) {
+					callback.call( element[ 0 ] );
+				}
+				next();
+			});
+		}
+	};
+});
+
+})( jQuery );
+(function( $, undefined ) {
+
+var mouseHandled = false;
+$( document ).mouseup( function() {
+	mouseHandled = false;
+});
+
+$.widget("ui.mouse", {
+	version: "1.10.3",
+	options: {
+		cancel: "input,textarea,button,select,option",
+		distance: 1,
+		delay: 0
+	},
+	_mouseInit: function() {
+		var that = this;
+
+		this.element
+			.bind("mousedown."+this.widgetName, function(event) {
+				return that._mouseDown(event);
+			})
+			.bind("click."+this.widgetName, function(event) {
+				if (true === $.data(event.target, that.widgetName + ".preventClickEvent")) {
+					$.removeData(event.target, that.widgetName + ".preventClickEvent");
+					event.stopImmediatePropagation();
+					return false;
+				}
+			});
+
+		this.started = false;
+	},
+
+	// TODO: make sure destroying one instance of mouse doesn't mess with
+	// other instances of mouse
+	_mouseDestroy: function() {
+		this.element.unbind("."+this.widgetName);
+		if ( this._mouseMoveDelegate ) {
+			$(document)
+				.unbind("mousemove."+this.widgetName, this._mouseMoveDelegate)
+				.unbind("mouseup."+this.widgetName, this._mouseUpDelegate);
+		}
+	},
+
+	_mouseDown: function(event) {
+		// don't let more than one widget handle mouseStart
+		if( mouseHandled ) { return; }
+
+		// we may have missed mouseup (out of window)
+		(this._mouseStarted && this._mouseUp(event));
+
+		this._mouseDownEvent = event;
+
+		var that = this,
+			btnIsLeft = (event.which === 1),
+			// event.target.nodeName works around a bug in IE 8 with
+			// disabled inputs (#7620)
+			elIsCancel = (typeof this.options.cancel === "string" && event.target.nodeName ? $(event.target).closest(this.options.cancel).length : false);
+		if (!btnIsLeft || elIsCancel || !this._mouseCapture(event)) {
+			return true;
+		}
+
+		this.mouseDelayMet = !this.options.delay;
+		if (!this.mouseDelayMet) {
+			this._mouseDelayTimer = setTimeout(function() {
+				that.mouseDelayMet = true;
+			}, this.options.delay);
+		}
+
+		if (this._mouseDistanceMet(event) && this._mouseDelayMet(event)) {
+			this._mouseStarted = (this._mouseStart(event) !== false);
+			if (!this._mouseStarted) {
+				event.preventDefault();
+				return true;
+			}
+		}
+
+		// Click event may never have fired (Gecko & Opera)
+		if (true === $.data(event.target, this.widgetName + ".preventClickEvent")) {
+			$.removeData(event.target, this.widgetName + ".preventClickEvent");
+		}
+
+		// these delegates are required to keep context
+		this._mouseMoveDelegate = function(event) {
+			return that._mouseMove(event);
+		};
+		this._mouseUpDelegate = function(event) {
+			return that._mouseUp(event);
+		};
+		$(document)
+			.bind("mousemove."+this.widgetName, this._mouseMoveDelegate)
+			.bind("mouseup."+this.widgetName, this._mouseUpDelegate);
+
+		event.preventDefault();
+
+		mouseHandled = true;
+		return true;
+	},
+
+	_mouseMove: function(event) {
+		// IE mouseup check - mouseup happened when mouse was out of window
+		if ($.ui.ie && ( !document.documentMode || document.documentMode < 9 ) && !event.button) {
+			return this._mouseUp(event);
+		}
+
+		if (this._mouseStarted) {
+			this._mouseDrag(event);
+			return event.preventDefault();
+		}
+
+		if (this._mouseDistanceMet(event) && this._mouseDelayMet(event)) {
+			this._mouseStarted =
+				(this._mouseStart(this._mouseDownEvent, event) !== false);
+			(this._mouseStarted ? this._mouseDrag(event) : this._mouseUp(event));
+		}
+
+		return !this._mouseStarted;
+	},
+
+	_mouseUp: function(event) {
+		$(document)
+			.unbind("mousemove."+this.widgetName, this._mouseMoveDelegate)
+			.unbind("mouseup."+this.widgetName, this._mouseUpDelegate);
+
+		if (this._mouseStarted) {
+			this._mouseStarted = false;
+
+			if (event.target === this._mouseDownEvent.target) {
+				$.data(event.target, this.widgetName + ".preventClickEvent", true);
+			}
+
+			this._mouseStop(event);
+		}
+
+		return false;
+	},
+
+	_mouseDistanceMet: function(event) {
+		return (Math.max(
+				Math.abs(this._mouseDownEvent.pageX - event.pageX),
+				Math.abs(this._mouseDownEvent.pageY - event.pageY)
+			) >= this.options.distance
+		);
+	},
+
+	_mouseDelayMet: function(/* event */) {
+		return this.mouseDelayMet;
+	},
+
+	// These are placeholder methods, to be overriden by extending plugin
+	_mouseStart: function(/* event */) {},
+	_mouseDrag: function(/* event */) {},
+	_mouseStop: function(/* event */) {},
+	_mouseCapture: function(/* event */) { return true; }
+});
+
+})(jQuery);
+(function( $, undefined ) {
+
+$.ui = $.ui || {};
+
+var cachedScrollbarWidth,
+	max = Math.max,
+	abs = Math.abs,
+	round = Math.round,
+	rhorizontal = /left|center|right/,
+	rvertical = /top|center|bottom/,
+	roffset = /[\+\-]\d+(\.[\d]+)?%?/,
+	rposition = /^\w+/,
+	rpercent = /%$/,
+	_position = $.fn.position;
+
+function getOffsets( offsets, width, height ) {
+	return [
+		parseFloat( offsets[ 0 ] ) * ( rpercent.test( offsets[ 0 ] ) ? width / 100 : 1 ),
+		parseFloat( offsets[ 1 ] ) * ( rpercent.test( offsets[ 1 ] ) ? height / 100 : 1 )
+	];
+}
+
+function parseCss( element, property ) {
+	return parseInt( $.css( element, property ), 10 ) || 0;
+}
+
+function getDimensions( elem ) {
+	var raw = elem[0];
+	if ( raw.nodeType === 9 ) {
+		return {
+			width: elem.width(),
+			height: elem.height(),
+			offset: { top: 0, left: 0 }
+		};
+	}
+	if ( $.isWindow( raw ) ) {
+		return {
+			width: elem.width(),
+			height: elem.height(),
+			offset: { top: elem.scrollTop(), left: elem.scrollLeft() }
+		};
+	}
+	if ( raw.preventDefault ) {
+		return {
+			width: 0,
+			height: 0,
+			offset: { top: raw.pageY, left: raw.pageX }
+		};
+	}
+	return {
+		width: elem.outerWidth(),
+		height: elem.outerHeight(),
+		offset: elem.offset()
+	};
+}
+
+$.position = {
+	scrollbarWidth: function() {
+		if ( cachedScrollbarWidth !== undefined ) {
+			return cachedScrollbarWidth;
+		}
+		var w1, w2,
+			div = $( "<div style='display:block;width:50px;height:50px;overflow:hidden;'><div style='height:100px;width:auto;'></div></div>" ),
+			innerDiv = div.children()[0];
+
+		$( "body" ).append( div );
+		w1 = innerDiv.offsetWidth;
+		div.css( "overflow", "scroll" );
+
+		w2 = innerDiv.offsetWidth;
+
+		if ( w1 === w2 ) {
+			w2 = div[0].clientWidth;
+		}
+
+		div.remove();
+
+		return (cachedScrollbarWidth = w1 - w2);
+	},
+	getScrollInfo: function( within ) {
+		var overflowX = within.isWindow ? "" : within.element.css( "overflow-x" ),
+			overflowY = within.isWindow ? "" : within.element.css( "overflow-y" ),
+			hasOverflowX = overflowX === "scroll" ||
+				( overflowX === "auto" && within.width < within.element[0].scrollWidth ),
+			hasOverflowY = overflowY === "scroll" ||
+				( overflowY === "auto" && within.height < within.element[0].scrollHeight );
+		return {
+			width: hasOverflowY ? $.position.scrollbarWidth() : 0,
+			height: hasOverflowX ? $.position.scrollbarWidth() : 0
+		};
+	},
+	getWithinInfo: function( element ) {
+		var withinElement = $( element || window ),
+			isWindow = $.isWindow( withinElement[0] );
+		return {
+			element: withinElement,
+			isWindow: isWindow,
+			offset: withinElement.offset() || { left: 0, top: 0 },
+			scrollLeft: withinElement.scrollLeft(),
+			scrollTop: withinElement.scrollTop(),
+			width: isWindow ? withinElement.width() : withinElement.outerWidth(),
+			height: isWindow ? withinElement.height() : withinElement.outerHeight()
+		};
+	}
+};
+
+$.fn.position = function( options ) {
+	if ( !options || !options.of ) {
+		return _position.apply( this, arguments );
+	}
+
+	// make a copy, we don't want to modify arguments
+	options = $.extend( {}, options );
+
+	var atOffset, targetWidth, targetHeight, targetOffset, basePosition, dimensions,
+		target = $( options.of ),
+		within = $.position.getWithinInfo( options.within ),
+		scrollInfo = $.position.getScrollInfo( within ),
+		collision = ( options.collision || "flip" ).split( " " ),
+		offsets = {};
+
+	dimensions = getDimensions( target );
+	if ( target[0].preventDefault ) {
+		// force left top to allow flipping
+		options.at = "left top";
+	}
+	targetWidth = dimensions.width;
+	targetHeight = dimensions.height;
+	targetOffset = dimensions.offset;
+	// clone to reuse original targetOffset later
+	basePosition = $.extend( {}, targetOffset );
+
+	// force my and at to have valid horizontal and vertical positions
+	// if a value is missing or invalid, it will be converted to center
+	$.each( [ "my", "at" ], function() {
+		var pos = ( options[ this ] || "" ).split( " " ),
+			horizontalOffset,
+			verticalOffset;
+
+		if ( pos.length === 1) {
+			pos = rhorizontal.test( pos[ 0 ] ) ?
+				pos.concat( [ "center" ] ) :
+				rvertical.test( pos[ 0 ] ) ?
+					[ "center" ].concat( pos ) :
+					[ "center", "center" ];
+		}
+		pos[ 0 ] = rhorizontal.test( pos[ 0 ] ) ? pos[ 0 ] : "center";
+		pos[ 1 ] = rvertical.test( pos[ 1 ] ) ? pos[ 1 ] : "center";
+
+		// calculate offsets
+		horizontalOffset = roffset.exec( pos[ 0 ] );
+		verticalOffset = roffset.exec( pos[ 1 ] );
+		offsets[ this ] = [
+			horizontalOffset ? horizontalOffset[ 0 ] : 0,
+			verticalOffset ? verticalOffset[ 0 ] : 0
+		];
+
+		// reduce to just the positions without the offsets
+		options[ this ] = [
+			rposition.exec( pos[ 0 ] )[ 0 ],
+			rposition.exec( pos[ 1 ] )[ 0 ]
+		];
+	});
+
+	// normalize collision option
+	if ( collision.length === 1 ) {
+		collision[ 1 ] = collision[ 0 ];
+	}
+
+	if ( options.at[ 0 ] === "right" ) {
+		basePosition.left += targetWidth;
+	} else if ( options.at[ 0 ] === "center" ) {
+		basePosition.left += targetWidth / 2;
+	}
+
+	if ( options.at[ 1 ] === "bottom" ) {
+		basePosition.top += targetHeight;
+	} else if ( options.at[ 1 ] === "center" ) {
+		basePosition.top += targetHeight / 2;
+	}
+
+	atOffset = getOffsets( offsets.at, targetWidth, targetHeight );
+	basePosition.left += atOffset[ 0 ];
+	basePosition.top += atOffset[ 1 ];
+
+	return this.each(function() {
+		var collisionPosition, using,
+			elem = $( this ),
+			elemWidth = elem.outerWidth(),
+			elemHeight = elem.outerHeight(),
+			marginLeft = parseCss( this, "marginLeft" ),
+			marginTop = parseCss( this, "marginTop" ),
+			collisionWidth = elemWidth + marginLeft + parseCss( this, "marginRight" ) + scrollInfo.width,
+			collisionHeight = elemHeight + marginTop + parseCss( this, "marginBottom" ) + scrollInfo.height,
+			position = $.extend( {}, basePosition ),
+			myOffset = getOffsets( offsets.my, elem.outerWidth(), elem.outerHeight() );
+
+		if ( options.my[ 0 ] === "right" ) {
+			position.left -= elemWidth;
+		} else if ( options.my[ 0 ] === "center" ) {
+			position.left -= elemWidth / 2;
+		}
+
+		if ( options.my[ 1 ] === "bottom" ) {
+			position.top -= elemHeight;
+		} else if ( options.my[ 1 ] === "center" ) {
+			position.top -= elemHeight / 2;
+		}
+
+		position.left += myOffset[ 0 ];
+		position.top += myOffset[ 1 ];
+
+		// if the browser doesn't support fractions, then round for consistent results
+		if ( !$.support.offsetFractions ) {
+			position.left = round( position.left );
+			position.top = round( position.top );
+		}
+
+		collisionPosition = {
+			marginLeft: marginLeft,
+			marginTop: marginTop
+		};
+
+		$.each( [ "left", "top" ], function( i, dir ) {
+			if ( $.ui.position[ collision[ i ] ] ) {
+				$.ui.position[ collision[ i ] ][ dir ]( position, {
+					targetWidth: targetWidth,
+					targetHeight: targetHeight,
+					elemWidth: elemWidth,
+					elemHeight: elemHeight,
+					collisionPosition: collisionPosition,
+					collisionWidth: collisionWidth,
+					collisionHeight: collisionHeight,
+					offset: [ atOffset[ 0 ] + myOffset[ 0 ], atOffset [ 1 ] + myOffset[ 1 ] ],
+					my: options.my,
+					at: options.at,
+					within: within,
+					elem : elem
+				});
+			}
+		});
+
+		if ( options.using ) {
+			// adds feedback as second argument to using callback, if present
+			using = function( props ) {
+				var left = targetOffset.left - position.left,
+					right = left + targetWidth - elemWidth,
+					top = targetOffset.top - position.top,
+					bottom = top + targetHeight - elemHeight,
+					feedback = {
+						target: {
+							element: target,
+							left: targetOffset.left,
+							top: targetOffset.top,
+							width: targetWidth,
+							height: targetHeight
+						},
+						element: {
+							element: elem,
+							left: position.left,
+							top: position.top,
+							width: elemWidth,
+							height: elemHeight
+						},
+						horizontal: right < 0 ? "left" : left > 0 ? "right" : "center",
+						vertical: bottom < 0 ? "top" : top > 0 ? "bottom" : "middle"
+					};
+				if ( targetWidth < elemWidth && abs( left + right ) < targetWidth ) {
+					feedback.horizontal = "center";
+				}
+				if ( targetHeight < elemHeight && abs( top + bottom ) < targetHeight ) {
+					feedback.vertical = "middle";
+				}
+				if ( max( abs( left ), abs( right ) ) > max( abs( top ), abs( bottom ) ) ) {
+					feedback.important = "horizontal";
+				} else {
+					feedback.important = "vertical";
+				}
+				options.using.call( this, props, feedback );
+			};
+		}
+
+		elem.offset( $.extend( position, { using: using } ) );
+	});
+};
+
+$.ui.position = {
+	fit: {
+		left: function( position, data ) {
+			var within = data.within,
+				withinOffset = within.isWindow ? within.scrollLeft : within.offset.left,
+				outerWidth = within.width,
+				collisionPosLeft = position.left - data.collisionPosition.marginLeft,
+				overLeft = withinOffset - collisionPosLeft,
+				overRight = collisionPosLeft + data.collisionWidth - outerWidth - withinOffset,
+				newOverRight;
+
+			// element is wider than within
+			if ( data.collisionWidth > outerWidth ) {
+				// element is initially over the left side of within
+				if ( overLeft > 0 && overRight <= 0 ) {
+					newOverRight = position.left + overLeft + data.collisionWidth - outerWidth - withinOffset;
+					position.left += overLeft - newOverRight;
+				// element is initially over right side of within
+				} else if ( overRight > 0 && overLeft <= 0 ) {
+					position.left = withinOffset;
+				// element is initially over both left and right sides of within
+				} else {
+					if ( overLeft > overRight ) {
+						position.left = withinOffset + outerWidth - data.collisionWidth;
+					} else {
+						position.left = withinOffset;
+					}
+				}
+			// too far left -> align with left edge
+			} else if ( overLeft > 0 ) {
+				position.left += overLeft;
+			// too far right -> align with right edge
+			} else if ( overRight > 0 ) {
+				position.left -= overRight;
+			// adjust based on position and margin
+			} else {
+				position.left = max( position.left - collisionPosLeft, position.left );
+			}
+		},
+		top: function( position, data ) {
+			var within = data.within,
+				withinOffset = within.isWindow ? within.scrollTop : within.offset.top,
+				outerHeight = data.within.height,
+				collisionPosTop = position.top - data.collisionPosition.marginTop,
+				overTop = withinOffset - collisionPosTop,
+				overBottom = collisionPosTop + data.collisionHeight - outerHeight - withinOffset,
+				newOverBottom;
+
+			// element is taller than within
+			if ( data.collisionHeight > outerHeight ) {
+				// element is initially over the top of within
+				if ( overTop > 0 && overBottom <= 0 ) {
+					newOverBottom = position.top + overTop + data.collisionHeight - outerHeight - withinOffset;
+					position.top += overTop - newOverBottom;
+				// element is initially over bottom of within
+				} else if ( overBottom > 0 && overTop <= 0 ) {
+					position.top = withinOffset;
+				// element is initially over both top and bottom of within
+				} else {
+					if ( overTop > overBottom ) {
+						position.top = withinOffset + outerHeight - data.collisionHeight;
+					} else {
+						position.top = withinOffset;
+					}
+				}
+			// too far up -> align with top
+			} else if ( overTop > 0 ) {
+				position.top += overTop;
+			// too far down -> align with bottom edge
+			} else if ( overBottom > 0 ) {
+				position.top -= overBottom;
+			// adjust based on position and margin
+			} else {
+				position.top = max( position.top - collisionPosTop, position.top );
+			}
+		}
+	},
+	flip: {
+		left: function( position, data ) {
+			var within = data.within,
+				withinOffset = within.offset.left + within.scrollLeft,
+				outerWidth = within.width,
+				offsetLeft = within.isWindow ? within.scrollLeft : within.offset.left,
+				collisionPosLeft = position.left - data.collisionPosition.marginLeft,
+				overLeft = collisionPosLeft - offsetLeft,
+				overRight = collisionPosLeft + data.collisionWidth - outerWidth - offsetLeft,
+				myOffset = data.my[ 0 ] === "left" ?
+					-data.elemWidth :
+					data.my[ 0 ] === "right" ?
+						data.elemWidth :
+						0,
+				atOffset = data.at[ 0 ] === "left" ?
+					data.targetWidth :
+					data.at[ 0 ] === "right" ?
+						-data.targetWidth :
+						0,
+				offset = -2 * data.offset[ 0 ],
+				newOverRight,
+				newOverLeft;
+
+			if ( overLeft < 0 ) {
+				newOverRight = position.left + myOffset + atOffset + offset + data.collisionWidth - outerWidth - withinOffset;
+				if ( newOverRight < 0 || newOverRight < abs( overLeft ) ) {
+					position.left += myOffset + atOffset + offset;
+				}
+			}
+			else if ( overRight > 0 ) {
+				newOverLeft = position.left - data.collisionPosition.marginLeft + myOffset + atOffset + offset - offsetLeft;
+				if ( newOverLeft > 0 || abs( newOverLeft ) < overRight ) {
+					position.left += myOffset + atOffset + offset;
+				}
+			}
+		},
+		top: function( position, data ) {
+			var within = data.within,
+				withinOffset = within.offset.top + within.scrollTop,
+				outerHeight = within.height,
+				offsetTop = within.isWindow ? within.scrollTop : within.offset.top,
+				collisionPosTop = position.top - data.collisionPosition.marginTop,
+				overTop = collisionPosTop - offsetTop,
+				overBottom = collisionPosTop + data.collisionHeight - outerHeight - offsetTop,
+				top = data.my[ 1 ] === "top",
+				myOffset = top ?
+					-data.elemHeight :
+					data.my[ 1 ] === "bottom" ?
+						data.elemHeight :
+						0,
+				atOffset = data.at[ 1 ] === "top" ?
+					data.targetHeight :
+					data.at[ 1 ] === "bottom" ?
+						-data.targetHeight :
+						0,
+				offset = -2 * data.offset[ 1 ],
+				newOverTop,
+				newOverBottom;
+			if ( overTop < 0 ) {
+				newOverBottom = position.top + myOffset + atOffset + offset + data.collisionHeight - outerHeight - withinOffset;
+				if ( ( position.top + myOffset + atOffset + offset) > overTop && ( newOverBottom < 0 || newOverBottom < abs( overTop ) ) ) {
+					position.top += myOffset + atOffset + offset;
+				}
+			}
+			else if ( overBottom > 0 ) {
+				newOverTop = position.top -  data.collisionPosition.marginTop + myOffset + atOffset + offset - offsetTop;
+				if ( ( position.top + myOffset + atOffset + offset) > overBottom && ( newOverTop > 0 || abs( newOverTop ) < overBottom ) ) {
+					position.top += myOffset + atOffset + offset;
+				}
+			}
+		}
+	},
+	flipfit: {
+		left: function() {
+			$.ui.position.flip.left.apply( this, arguments );
+			$.ui.position.fit.left.apply( this, arguments );
+		},
+		top: function() {
+			$.ui.position.flip.top.apply( this, arguments );
+			$.ui.position.fit.top.apply( this, arguments );
+		}
+	}
+};
+
+// fraction support test
+(function () {
+	var testElement, testElementParent, testElementStyle, offsetLeft, i,
+		body = document.getElementsByTagName( "body" )[ 0 ],
+		div = document.createElement( "div" );
+
+	//Create a "fake body" for testing based on method used in jQuery.support
+	testElement = document.createElement( body ? "div" : "body" );
+	testElementStyle = {
+		visibility: "hidden",
+		width: 0,
+		height: 0,
+		border: 0,
+		margin: 0,
+		background: "none"
+	};
+	if ( body ) {
+		$.extend( testElementStyle, {
+			position: "absolute",
+			left: "-1000px",
+			top: "-1000px"
+		});
+	}
+	for ( i in testElementStyle ) {
+		testElement.style[ i ] = testElementStyle[ i ];
+	}
+	testElement.appendChild( div );
+	testElementParent = body || document.documentElement;
+	testElementParent.insertBefore( testElement, testElementParent.firstChild );
+
+	div.style.cssText = "position: absolute; left: 10.7432222px;";
+
+	offsetLeft = $( div ).offset().left;
+	$.support.offsetFractions = offsetLeft > 10 && offsetLeft < 11;
+
+	testElement.innerHTML = "";
+	testElementParent.removeChild( testElement );
+})();
+
+}( jQuery ) );
+(function( $, undefined ) {
+
+// number of pages in a slider
+// (how many times can you page up/down to go through the whole range)
+var numPages = 5;
+
+$.widget( "ui.slider", $.ui.mouse, {
+	version: "1.10.3",
+	widgetEventPrefix: "slide",
+
+	options: {
+		animate: false,
+		distance: 0,
+		max: 100,
+		min: 0,
+		orientation: "horizontal",
+		range: false,
+		step: 1,
+		value: 0,
+		values: null,
+
+		// callbacks
+		change: null,
+		slide: null,
+		start: null,
+		stop: null
+	},
+
+	_create: function() {
+		this._keySliding = false;
+		this._mouseSliding = false;
+		this._animateOff = true;
+		this._handleIndex = null;
+		this._detectOrientation();
+		this._mouseInit();
+
+		this.element
+			.addClass( "ui-slider" +
+				" ui-slider-" + this.orientation +
+				" ui-widget" +
+				" ui-widget-content" +
+				" ui-corner-all");
+
+		this._refresh();
+		this._setOption( "disabled", this.options.disabled );
+
+		this._animateOff = false;
+	},
+
+	_refresh: function() {
+		this._createRange();
+		this._createHandles();
+		this._setupEvents();
+		this._refreshValue();
+	},
+
+	_createHandles: function() {
+		var i, handleCount,
+			options = this.options,
+			existingHandles = this.element.find( ".ui-slider-handle" ).addClass( "ui-state-default ui-corner-all" ),
+			handle = "<a class='ui-slider-handle ui-state-default ui-corner-all' href='#'></a>",
+			handles = [];
+
+		handleCount = ( options.values && options.values.length ) || 1;
+
+		if ( existingHandles.length > handleCount ) {
+			existingHandles.slice( handleCount ).remove();
+			existingHandles = existingHandles.slice( 0, handleCount );
+		}
+
+		for ( i = existingHandles.length; i < handleCount; i++ ) {
+			handles.push( handle );
+		}
+
+		this.handles = existingHandles.add( $( handles.join( "" ) ).appendTo( this.element ) );
+
+		this.handle = this.handles.eq( 0 );
+
+		this.handles.each(function( i ) {
+			$( this ).data( "ui-slider-handle-index", i );
+		});
+	},
+
+	_createRange: function() {
+		var options = this.options,
+			classes = "";
+
+		if ( options.range ) {
+			if ( options.range === true ) {
+				if ( !options.values ) {
+					options.values = [ this._valueMin(), this._valueMin() ];
+				} else if ( options.values.length && options.values.length !== 2 ) {
+					options.values = [ options.values[0], options.values[0] ];
+				} else if ( $.isArray( options.values ) ) {
+					options.values = options.values.slice(0);
+				}
+			}
+
+			if ( !this.range || !this.range.length ) {
+				this.range = $( "<div></div>" )
+					.appendTo( this.element );
+
+				classes = "ui-slider-range" +
+				// note: this isn't the most fittingly semantic framework class for this element,
+				// but worked best visually with a variety of themes
+				" ui-widget-header ui-corner-all";
+			} else {
+				this.range.removeClass( "ui-slider-range-min ui-slider-range-max" )
+					// Handle range switching from true to min/max
+					.css({
+						"left": "",
+						"bottom": ""
+					});
+			}
+
+			this.range.addClass( classes +
+				( ( options.range === "min" || options.range === "max" ) ? " ui-slider-range-" + options.range : "" ) );
+		} else {
+			this.range = $([]);
+		}
+	},
+
+	_setupEvents: function() {
+		var elements = this.handles.add( this.range ).filter( "a" );
+		this._off( elements );
+		this._on( elements, this._handleEvents );
+		this._hoverable( elements );
+		this._focusable( elements );
+	},
+
+	_destroy: function() {
+		this.handles.remove();
+		this.range.remove();
+
+		this.element
+			.removeClass( "ui-slider" +
+				" ui-slider-horizontal" +
+				" ui-slider-vertical" +
+				" ui-widget" +
+				" ui-widget-content" +
+				" ui-corner-all" );
+
+		this._mouseDestroy();
+	},
+
+	_mouseCapture: function( event ) {
+		var position, normValue, distance, closestHandle, index, allowed, offset, mouseOverHandle,
+			that = this,
+			o = this.options;
+
+		if ( o.disabled ) {
+			return false;
+		}
+
+		this.elementSize = {
+			width: this.element.outerWidth(),
+			height: this.element.outerHeight()
+		};
+		this.elementOffset = this.element.offset();
+
+		position = { x: event.pageX, y: event.pageY };
+		normValue = this._normValueFromMouse( position );
+		distance = this._valueMax() - this._valueMin() + 1;
+		this.handles.each(function( i ) {
+			var thisDistance = Math.abs( normValue - that.values(i) );
+			if (( distance > thisDistance ) ||
+				( distance === thisDistance &&
+					(i === that._lastChangedValue || that.values(i) === o.min ))) {
+				distance = thisDistance;
+				closestHandle = $( this );
+				index = i;
+			}
+		});
+
+		allowed = this._start( event, index );
+		if ( allowed === false ) {
+			return false;
+		}
+		this._mouseSliding = true;
+
+		this._handleIndex = index;
+
+		closestHandle
+			.addClass( "ui-state-active" )
+			.focus();
+
+		offset = closestHandle.offset();
+		mouseOverHandle = !$( event.target ).parents().addBack().is( ".ui-slider-handle" );
+		this._clickOffset = mouseOverHandle ? { left: 0, top: 0 } : {
+			left: event.pageX - offset.left - ( closestHandle.width() / 2 ),
+			top: event.pageY - offset.top -
+				( closestHandle.height() / 2 ) -
+				( parseInt( closestHandle.css("borderTopWidth"), 10 ) || 0 ) -
+				( parseInt( closestHandle.css("borderBottomWidth"), 10 ) || 0) +
+				( parseInt( closestHandle.css("marginTop"), 10 ) || 0)
+		};
+
+		if ( !this.handles.hasClass( "ui-state-hover" ) ) {
+			this._slide( event, index, normValue );
+		}
+		this._animateOff = true;
+		return true;
+	},
+
+	_mouseStart: function() {
+		return true;
+	},
+
+	_mouseDrag: function( event ) {
+		var position = { x: event.pageX, y: event.pageY },
+			normValue = this._normValueFromMouse( position );
+
+		this._slide( event, this._handleIndex, normValue );
+
+		return false;
+	},
+
+	_mouseStop: function( event ) {
+		this.handles.removeClass( "ui-state-active" );
+		this._mouseSliding = false;
+
+		this._stop( event, this._handleIndex );
+		this._change( event, this._handleIndex );
+
+		this._handleIndex = null;
+		this._clickOffset = null;
+		this._animateOff = false;
+
+		return false;
+	},
+
+	_detectOrientation: function() {
+		this.orientation = ( this.options.orientation === "vertical" ) ? "vertical" : "horizontal";
+	},
+
+	_normValueFromMouse: function( position ) {
+		var pixelTotal,
+			pixelMouse,
+			percentMouse,
+			valueTotal,
+			valueMouse;
+
+		if ( this.orientation === "horizontal" ) {
+			pixelTotal = this.elementSize.width;
+			pixelMouse = position.x - this.elementOffset.left - ( this._clickOffset ? this._clickOffset.left : 0 );
+		} else {
+			pixelTotal = this.elementSize.height;
+			pixelMouse = position.y - this.elementOffset.top - ( this._clickOffset ? this._clickOffset.top : 0 );
+		}
+
+		percentMouse = ( pixelMouse / pixelTotal );
+		if ( percentMouse > 1 ) {
+			percentMouse = 1;
+		}
+		if ( percentMouse < 0 ) {
+			percentMouse = 0;
+		}
+		if ( this.orientation === "vertical" ) {
+			percentMouse = 1 - percentMouse;
+		}
+
+		valueTotal = this._valueMax() - this._valueMin();
+		valueMouse = this._valueMin() + percentMouse * valueTotal;
+
+		return this._trimAlignValue( valueMouse );
+	},
+
+	_start: function( event, index ) {
+		var uiHash = {
+			handle: this.handles[ index ],
+			value: this.value()
+		};
+		if ( this.options.values && this.options.values.length ) {
+			uiHash.value = this.values( index );
+			uiHash.values = this.values();
+		}
+		return this._trigger( "start", event, uiHash );
+	},
+
+	_slide: function( event, index, newVal ) {
+		var otherVal,
+			newValues,
+			allowed;
+
+		if ( this.options.values && this.options.values.length ) {
+			otherVal = this.values( index ? 0 : 1 );
+
+			if ( ( this.options.values.length === 2 && this.options.range === true ) &&
+					( ( index === 0 && newVal > otherVal) || ( index === 1 && newVal < otherVal ) )
+				) {
+				newVal = otherVal;
+			}
+
+			if ( newVal !== this.values( index ) ) {
+				newValues = this.values();
+				newValues[ index ] = newVal;
+				// A slide can be canceled by returning false from the slide callback
+				allowed = this._trigger( "slide", event, {
+					handle: this.handles[ index ],
+					value: newVal,
+					values: newValues
+				} );
+				otherVal = this.values( index ? 0 : 1 );
+				if ( allowed !== false ) {
+					this.values( index, newVal, true );
+				}
+			}
+		} else {
+			if ( newVal !== this.value() ) {
+				// A slide can be canceled by returning false from the slide callback
+				allowed = this._trigger( "slide", event, {
+					handle: this.handles[ index ],
+					value: newVal
+				} );
+				if ( allowed !== false ) {
+					this.value( newVal );
+				}
+			}
+		}
+	},
+
+	_stop: function( event, index ) {
+		var uiHash = {
+			handle: this.handles[ index ],
+			value: this.value()
+		};
+		if ( this.options.values && this.options.values.length ) {
+			uiHash.value = this.values( index );
+			uiHash.values = this.values();
+		}
+
+		this._trigger( "stop", event, uiHash );
+	},
+
+	_change: function( event, index ) {
+		if ( !this._keySliding && !this._mouseSliding ) {
+			var uiHash = {
+				handle: this.handles[ index ],
+				value: this.value()
+			};
+			if ( this.options.values && this.options.values.length ) {
+				uiHash.value = this.values( index );
+				uiHash.values = this.values();
+			}
+
+			//store the last changed value index for reference when handles overlap
+			this._lastChangedValue = index;
+
+			this._trigger( "change", event, uiHash );
+		}
+	},
+
+	value: function( newValue ) {
+		if ( arguments.length ) {
+			this.options.value = this._trimAlignValue( newValue );
+			this._refreshValue();
+			this._change( null, 0 );
+			return;
+		}
+
+		return this._value();
+	},
+
+	values: function( index, newValue ) {
+		var vals,
+			newValues,
+			i;
+
+		if ( arguments.length > 1 ) {
+			this.options.values[ index ] = this._trimAlignValue( newValue );
+			this._refreshValue();
+			this._change( null, index );
+			return;
+		}
+
+		if ( arguments.length ) {
+			if ( $.isArray( arguments[ 0 ] ) ) {
+				vals = this.options.values;
+				newValues = arguments[ 0 ];
+				for ( i = 0; i < vals.length; i += 1 ) {
+					vals[ i ] = this._trimAlignValue( newValues[ i ] );
+					this._change( null, i );
+				}
+				this._refreshValue();
+			} else {
+				if ( this.options.values && this.options.values.length ) {
+					return this._values( index );
+				} else {
+					return this.value();
+				}
+			}
+		} else {
+			return this._values();
+		}
+	},
+
+	_setOption: function( key, value ) {
+		var i,
+			valsLength = 0;
+
+		if ( key === "range" && this.options.range === true ) {
+			if ( value === "min" ) {
+				this.options.value = this._values( 0 );
+				this.options.values = null;
+			} else if ( value === "max" ) {
+				this.options.value = this._values( this.options.values.length-1 );
+				this.options.values = null;
+			}
+		}
+
+		if ( $.isArray( this.options.values ) ) {
+			valsLength = this.options.values.length;
+		}
+
+		$.Widget.prototype._setOption.apply( this, arguments );
+
+		switch ( key ) {
+			case "orientation":
+				this._detectOrientation();
+				this.element
+					.removeClass( "ui-slider-horizontal ui-slider-vertical" )
+					.addClass( "ui-slider-" + this.orientation );
+				this._refreshValue();
+				break;
+			case "value":
+				this._animateOff = true;
+				this._refreshValue();
+				this._change( null, 0 );
+				this._animateOff = false;
+				break;
+			case "values":
+				this._animateOff = true;
+				this._refreshValue();
+				for ( i = 0; i < valsLength; i += 1 ) {
+					this._change( null, i );
+				}
+				this._animateOff = false;
+				break;
+			case "min":
+			case "max":
+				this._animateOff = true;
+				this._refreshValue();
+				this._animateOff = false;
+				break;
+			case "range":
+				this._animateOff = true;
+				this._refresh();
+				this._animateOff = false;
+				break;
+		}
+	},
+
+	//internal value getter
+	// _value() returns value trimmed by min and max, aligned by step
+	_value: function() {
+		var val = this.options.value;
+		val = this._trimAlignValue( val );
+
+		return val;
+	},
+
+	//internal values getter
+	// _values() returns array of values trimmed by min and max, aligned by step
+	// _values( index ) returns single value trimmed by min and max, aligned by step
+	_values: function( index ) {
+		var val,
+			vals,
+			i;
+
+		if ( arguments.length ) {
+			val = this.options.values[ index ];
+			val = this._trimAlignValue( val );
+
+			return val;
+		} else if ( this.options.values && this.options.values.length ) {
+			// .slice() creates a copy of the array
+			// this copy gets trimmed by min and max and then returned
+			vals = this.options.values.slice();
+			for ( i = 0; i < vals.length; i+= 1) {
+				vals[ i ] = this._trimAlignValue( vals[ i ] );
+			}
+
+			return vals;
+		} else {
+			return [];
+		}
+	},
+
+	// returns the step-aligned value that val is closest to, between (inclusive) min and max
+	_trimAlignValue: function( val ) {
+		if ( val <= this._valueMin() ) {
+			return this._valueMin();
+		}
+		if ( val >= this._valueMax() ) {
+			return this._valueMax();
+		}
+		var step = ( this.options.step > 0 ) ? this.options.step : 1,
+			valModStep = (val - this._valueMin()) % step,
+			alignValue = val - valModStep;
+
+		if ( Math.abs(valModStep) * 2 >= step ) {
+			alignValue += ( valModStep > 0 ) ? step : ( -step );
+		}
+
+		// Since JavaScript has problems with large floats, round
+		// the final value to 5 digits after the decimal point (see #4124)
+		return parseFloat( alignValue.toFixed(5) );
+	},
+
+	_valueMin: function() {
+		return this.options.min;
+	},
+
+	_valueMax: function() {
+		return this.options.max;
+	},
+
+	_refreshValue: function() {
+		var lastValPercent, valPercent, value, valueMin, valueMax,
+			oRange = this.options.range,
+			o = this.options,
+			that = this,
+			animate = ( !this._animateOff ) ? o.animate : false,
+			_set = {};
+
+		if ( this.options.values && this.options.values.length ) {
+			this.handles.each(function( i ) {
+				valPercent = ( that.values(i) - that._valueMin() ) / ( that._valueMax() - that._valueMin() ) * 100;
+				_set[ that.orientation === "horizontal" ? "left" : "bottom" ] = valPercent + "%";
+				$( this ).stop( 1, 1 )[ animate ? "animate" : "css" ]( _set, o.animate );
+				if ( that.options.range === true ) {
+					if ( that.orientation === "horizontal" ) {
+						if ( i === 0 ) {
+							that.range.stop( 1, 1 )[ animate ? "animate" : "css" ]( { left: valPercent + "%" }, o.animate );
+						}
+						if ( i === 1 ) {
+							that.range[ animate ? "animate" : "css" ]( { width: ( valPercent - lastValPercent ) + "%" }, { queue: false, duration: o.animate } );
+						}
+					} else {
+						if ( i === 0 ) {
+							that.range.stop( 1, 1 )[ animate ? "animate" : "css" ]( { bottom: ( valPercent ) + "%" }, o.animate );
+						}
+						if ( i === 1 ) {
+							that.range[ animate ? "animate" : "css" ]( { height: ( valPercent - lastValPercent ) + "%" }, { queue: false, duration: o.animate } );
+						}
+					}
+				}
+				lastValPercent = valPercent;
+			});
+		} else {
+			value = this.value();
+			valueMin = this._valueMin();
+			valueMax = this._valueMax();
+			valPercent = ( valueMax !== valueMin ) ?
+					( value - valueMin ) / ( valueMax - valueMin ) * 100 :
+					0;
+			_set[ this.orientation === "horizontal" ? "left" : "bottom" ] = valPercent + "%";
+			this.handle.stop( 1, 1 )[ animate ? "animate" : "css" ]( _set, o.animate );
+
+			if ( oRange === "min" && this.orientation === "horizontal" ) {
+				this.range.stop( 1, 1 )[ animate ? "animate" : "css" ]( { width: valPercent + "%" }, o.animate );
+			}
+			if ( oRange === "max" && this.orientation === "horizontal" ) {
+				this.range[ animate ? "animate" : "css" ]( { width: ( 100 - valPercent ) + "%" }, { queue: false, duration: o.animate } );
+			}
+			if ( oRange === "min" && this.orientation === "vertical" ) {
+				this.range.stop( 1, 1 )[ animate ? "animate" : "css" ]( { height: valPercent + "%" }, o.animate );
+			}
+			if ( oRange === "max" && this.orientation === "vertical" ) {
+				this.range[ animate ? "animate" : "css" ]( { height: ( 100 - valPercent ) + "%" }, { queue: false, duration: o.animate } );
+			}
+		}
+	},
+
+	_handleEvents: {
+		keydown: function( event ) {
+			/*jshint maxcomplexity:25*/
+			var allowed, curVal, newVal, step,
+				index = $( event.target ).data( "ui-slider-handle-index" );
+
+			switch ( event.keyCode ) {
+				case $.ui.keyCode.HOME:
+				case $.ui.keyCode.END:
+				case $.ui.keyCode.PAGE_UP:
+				case $.ui.keyCode.PAGE_DOWN:
+				case $.ui.keyCode.UP:
+				case $.ui.keyCode.RIGHT:
+				case $.ui.keyCode.DOWN:
+				case $.ui.keyCode.LEFT:
+					event.preventDefault();
+					if ( !this._keySliding ) {
+						this._keySliding = true;
+						$( event.target ).addClass( "ui-state-active" );
+						allowed = this._start( event, index );
+						if ( allowed === false ) {
+							return;
+						}
+					}
+					break;
+			}
+
+			step = this.options.step;
+			if ( this.options.values && this.options.values.length ) {
+				curVal = newVal = this.values( index );
+			} else {
+				curVal = newVal = this.value();
+			}
+
+			switch ( event.keyCode ) {
+				case $.ui.keyCode.HOME:
+					newVal = this._valueMin();
+					break;
+				case $.ui.keyCode.END:
+					newVal = this._valueMax();
+					break;
+				case $.ui.keyCode.PAGE_UP:
+					newVal = this._trimAlignValue( curVal + ( (this._valueMax() - this._valueMin()) / numPages ) );
+					break;
+				case $.ui.keyCode.PAGE_DOWN:
+					newVal = this._trimAlignValue( curVal - ( (this._valueMax() - this._valueMin()) / numPages ) );
+					break;
+				case $.ui.keyCode.UP:
+				case $.ui.keyCode.RIGHT:
+					if ( curVal === this._valueMax() ) {
+						return;
+					}
+					newVal = this._trimAlignValue( curVal + step );
+					break;
+				case $.ui.keyCode.DOWN:
+				case $.ui.keyCode.LEFT:
+					if ( curVal === this._valueMin() ) {
+						return;
+					}
+					newVal = this._trimAlignValue( curVal - step );
+					break;
+			}
+
+			this._slide( event, index, newVal );
+		},
+		click: function( event ) {
+			event.preventDefault();
+		},
+		keyup: function( event ) {
+			var index = $( event.target ).data( "ui-slider-handle-index" );
+
+			if ( this._keySliding ) {
+				this._keySliding = false;
+				this._stop( event, index );
+				this._change( event, index );
+				$( event.target ).removeClass( "ui-state-active" );
+			}
+		}
+	}
+
+});
+
+}(jQuery));
+
 //     Underscore.js 1.4.4
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
@@ -16383,6 +18510,7 @@ buckets.BSTree.prototype.createNode = function(element) {
 
 //customizations to libraries
 (function () {
+  "use strict";
 _.uniqueId = function (prefix) {
     //from ipython project
     // http://www.ietf.org/rfc/rfc4122.txt
@@ -16418,7 +18546,7 @@ _.setdefault = function(obj, key, value){
 
 
 (function(/*! Stitch !*/) {
-  if (!this.require) {
+  if (!this.rrequire) {
     var modules = {}, cache = {}, require = function(name, root) {
       var path = expand(root, name), indexPath = expand(path, './index'), module, fn;
       module   = cache[path] || cache[indexPath]
@@ -16458,17 +18586,17 @@ _.setdefault = function(obj, key, value){
     }, dirname = function(path) {
       return path.split('/').slice(0, -1).join('/');
     };
-    this.require = function(name) {
+    this.rrequire = function(name) {
       return require(name, '');
     }
-    this.require.define = function(bundle) {
+    this.rrequire.define = function(bundle) {
       for (var key in bundle)
         modules[key] = bundle[key];
     };
-    this.require.modules = modules;
-    this.require.cache   = cache;
+    this.rrequire.modules = modules;
+    this.rrequire.cache   = cache;
   }
-  return this.require.define;
+  return this.rrequire.define;
 }).call(this)({
   "embed_core": function(exports, require, module) {(function() {
   var addDirectPlot, addDirectPlotWrap, addPlot, addPlotWrap, base, find_injections, foundEls, injectCss, parse_el, plot_from_dict, search_and_plot, serverLoad, utility,
@@ -16552,6 +18680,7 @@ _.setdefault = function(obj, key, value){
 
   parse_el = function(el) {
     "this takes a bokeh embed script element and returns the relvant\nattributes through to a dictionary, ";
+
     var attr, attrs, bokehCount, bokehRe, info, _i, _len;
     attrs = el.attributes;
     bokehRe = /bokeh.*/;
@@ -16877,7 +19006,7 @@ _.setdefault = function(obj, key, value){
     __extends(DocView, _super);
 
     function DocView() {
-      DocView.__super__.constructor.apply(this, arguments);
+      return DocView.__super__.constructor.apply(this, arguments);
     }
 
     DocView.prototype.template = require("./wrappertemplate");
@@ -16940,7 +19069,7 @@ _.setdefault = function(obj, key, value){
     __extends(UserDocsView, _super);
 
     function UserDocsView() {
-      UserDocsView.__super__.constructor.apply(this, arguments);
+      return UserDocsView.__super__.constructor.apply(this, arguments);
     }
 
     UserDocsView.prototype.initialize = function(options) {
@@ -17013,7 +19142,7 @@ _.setdefault = function(obj, key, value){
     __extends(Doc, _super);
 
     function Doc() {
-      Doc.__super__.constructor.apply(this, arguments);
+      return Doc.__super__.constructor.apply(this, arguments);
     }
 
     Doc.prototype.default_view = DocView;
@@ -17068,7 +19197,7 @@ _.setdefault = function(obj, key, value){
     __extends(UserDocs, _super);
 
     function UserDocs() {
-      UserDocs.__super__.constructor.apply(this, arguments);
+      return UserDocs.__super__.constructor.apply(this, arguments);
     }
 
     UserDocs.prototype.model = Doc;
@@ -17309,6 +19438,7 @@ _.setdefault = function(obj, key, value){
 
     function WebSocketWrapper(ws_conn_string) {
       this.onmessage = __bind(this.onmessage, this);
+
       var _this = this;
       this.auth = {};
       this.ws_conn_string = ws_conn_string;
@@ -17397,10 +19527,13 @@ _.setdefault = function(obj, key, value){
 
     function HasProperties() {
       this.rpc = __bind(this.rpc, this);
+
       this.get_obj = __bind(this.get_obj, this);
+
       this.resolve_ref = __bind(this.resolve_ref, this);
+
       this.convert_to_ref = __bind(this.convert_to_ref, this);
-      HasProperties.__super__.constructor.apply(this, arguments);
+      return HasProperties.__super__.constructor.apply(this, arguments);
     }
 
     HasProperties.prototype.destroy = function(options) {
@@ -17698,7 +19831,7 @@ _.setdefault = function(obj, key, value){
     __extends(HasParent, _super);
 
     function HasParent() {
-      HasParent.__super__.constructor.apply(this, arguments);
+      return HasParent.__super__.constructor.apply(this, arguments);
     }
 
     HasParent.prototype.get_fallback = function(attr) {
@@ -17733,6 +19866,7 @@ _.setdefault = function(obj, key, value){
       view_types = [];
     }
     "use strict";
+
     created_views = [];
     try {
       newmodels = _.filter(view_models, function(x) {
@@ -17777,6 +19911,7 @@ _.setdefault = function(obj, key, value){
     ZoomTool: ['./tools/zoom_tool', 'zoomtools'],
     ResizeTool: ['./tools/resize_tool', 'resizetools'],
     SelectionTool: ['./tools/select_tool', 'selectiontools'],
+    DataRangeBoxSelectionTool: ['./tools/select_tool', 'datarangeboxselectiontools'],
     PreviewSaveTool: ['./tools/preview_save_tool', 'previewsavetools'],
     EmbedTool: ['./tools/preview_save_tool', 'embedtools'],
     BoxSelectionOverlay: ['./overlays/boxselectionoverlay', 'boxselectionoverlays'],
@@ -17786,7 +19921,8 @@ _.setdefault = function(obj, key, value){
     DataRange1d: ['./common/ranges', 'datarange1ds'],
     DataFactorRange: ['./common/ranges', 'datafactorranges'],
     Plot: ['./common/plot', 'plots'],
-    GridPlotContainer: ['./common/grid_plot', 'gridplotcontainers'],
+    GMapPlot: ['./common/gmap_plot', 'gmapplots'],
+    GridPlotContainer: ['./common/grid_plot', 'gridplots'],
     CDXPlotContext: ['./common/plot_context', 'plotcontexts'],
     PlotContext: ['./common/plot_context', 'plotcontexts'],
     PlotList: ['./common/plot_context', 'plotlists'],
@@ -17795,7 +19931,9 @@ _.setdefault = function(obj, key, value){
     PandasPivotTable: ['./pandas/pandas', 'pandaspivottables'],
     PandasPlotSource: ['./pandas/pandas', 'pandasplotsources'],
     LinearAxis: ['./renderers/guide/axis', 'linearaxes'],
-    Rule: ['./renderers/guide/rule', 'rules']
+    Rule: ['./renderers/guide/rule', 'rules'],
+    Legend: ['./renderers/annotation_renderer', 'annotationrenderers'],
+    DataSlider: ['./tools/slider', 'datasliders']
   };
 
   exports.locations = locations;
@@ -17808,43 +19946,11 @@ _.setdefault = function(obj, key, value){
       throw "./base: Unknown Collection " + typename;
     }
     _ref = locations[typename], modulename = _ref[0], collection = _ref[1];
-    if (mod_cache[modulename] == null) {
+    if (!(mod_cache[modulename] != null)) {
       console.log("calling require", modulename);
       mod_cache[modulename] = require(modulename);
     }
     return mod_cache[modulename][collection];
-  };
-
-  Collections.bulksave = function(models) {
-    var doc, jsondata, m, url, xhr;
-    doc = models[0].get('doc');
-    jsondata = (function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = models.length; _i < _len; _i++) {
-        m = models[_i];
-        _results.push({
-          type: m.type,
-          attributes: _.clone(m.attributes)
-        });
-      }
-      return _results;
-    })();
-    jsondata = JSON.stringify(jsondata);
-    url = Config.prefix + "/bokeh/bb/" + doc + "/bulkupsert";
-    xhr = $.ajax({
-      type: 'POST',
-      url: url,
-      contentType: "application/json",
-      data: jsondata,
-      header: {
-        client: "javascript"
-      }
-    });
-    xhr.done(function(data) {
-      return load_models(data.modelspecs);
-    });
-    return xhr;
   };
 
   Collections.bulksave = function(models) {
@@ -18039,7 +20145,7 @@ _.setdefault = function(obj, key, value){
     __extends(ContinuumView, _super);
 
     function ContinuumView() {
-      ContinuumView.__super__.constructor.apply(this, arguments);
+      return ContinuumView.__super__.constructor.apply(this, arguments);
     }
 
     ContinuumView.prototype.initialize = function(options) {
@@ -18107,7 +20213,7 @@ _.setdefault = function(obj, key, value){
     __extends(ObjectArrayDataSource, _super);
 
     function ObjectArrayDataSource() {
-      ObjectArrayDataSource.__super__.constructor.apply(this, arguments);
+      return ObjectArrayDataSource.__super__.constructor.apply(this, arguments);
     }
 
     ObjectArrayDataSource.prototype.type = 'ObjectArrayDataSource';
@@ -18234,7 +20340,7 @@ _.setdefault = function(obj, key, value){
     __extends(ObjectArrayDataSources, _super);
 
     function ObjectArrayDataSources() {
-      ObjectArrayDataSources.__super__.constructor.apply(this, arguments);
+      return ObjectArrayDataSources.__super__.constructor.apply(this, arguments);
     }
 
     ObjectArrayDataSources.prototype.model = ObjectArrayDataSource;
@@ -18248,7 +20354,7 @@ _.setdefault = function(obj, key, value){
     __extends(ColumnDataSource, _super);
 
     function ColumnDataSource() {
-      ColumnDataSource.__super__.constructor.apply(this, arguments);
+      return ColumnDataSource.__super__.constructor.apply(this, arguments);
     }
 
     ColumnDataSource.prototype.type = 'ColumnDataSource';
@@ -18288,7 +20394,7 @@ _.setdefault = function(obj, key, value){
     __extends(ColumnDataSources, _super);
 
     function ColumnDataSources() {
-      ColumnDataSources.__super__.constructor.apply(this, arguments);
+      return ColumnDataSources.__super__.constructor.apply(this, arguments);
     }
 
     ColumnDataSources.prototype.model = ColumnDataSource;
@@ -18304,6 +20410,549 @@ _.setdefault = function(obj, key, value){
   exports.ObjectArrayDataSource = ObjectArrayDataSource;
 
   exports.ColumnDataSource = ColumnDataSource;
+
+}).call(this);
+}, "common/gmap_plot": function(exports, require, module) {(function() {
+  var ActiveToolManager, Collections, ContinuumView, GMapPlot, GMapPlotView, GMapPlots, GridMapper, HasParent, LEVELS, LinearMapper, ViewState, base, build_views, properties, safebind, text_properties,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  base = require('../base');
+
+  Collections = base.Collections;
+
+  HasParent = base.HasParent;
+
+  safebind = base.safebind;
+
+  build_views = base.build_views;
+
+  properties = require('../renderers/properties');
+
+  text_properties = properties.text_properties;
+
+  ContinuumView = require('./continuum_view').ContinuumView;
+
+  LinearMapper = require('../mappers/1d/linear_mapper').LinearMapper;
+
+  GridMapper = require('../mappers/2d/grid_mapper').GridMapper;
+
+  ViewState = require('./view_state').ViewState;
+
+  ActiveToolManager = require("../tools/active_tool_manager").ActiveToolManager;
+
+  LEVELS = ['image', 'underlay', 'glyph', 'overlay', 'annotation', 'tool'];
+
+  GMapPlotView = (function(_super) {
+
+    __extends(GMapPlotView, _super);
+
+    function GMapPlotView() {
+      this.bounds_change = __bind(this.bounds_change, this);
+
+      this._mousemove = __bind(this._mousemove, this);
+
+      this._mousedown = __bind(this._mousedown, this);
+      return GMapPlotView.__super__.constructor.apply(this, arguments);
+    }
+
+    GMapPlotView.prototype.events = {
+      "mousemove .bokeh_canvas_wrapper": "_mousemove",
+      "mousedown .bokeh_canvas_wrapper": "_mousedown"
+    };
+
+    GMapPlotView.prototype.view_options = function() {
+      return _.extend({
+        plot_model: this.model,
+        plot_view: this
+      }, this.options);
+    };
+
+    GMapPlotView.prototype._mousedown = function(e) {
+      var f, _i, _len, _ref, _results;
+      _ref = this.mousedownCallbacks;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        f = _ref[_i];
+        _results.push(f(e, e.layerX, e.layerY));
+      }
+      return _results;
+    };
+
+    GMapPlotView.prototype._mousemove = function(e) {
+      var f, _i, _len, _ref, _results;
+      _ref = this.moveCallbacks;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        f = _ref[_i];
+        _results.push(f(e, e.layerX, e.layerY));
+      }
+      return _results;
+    };
+
+    GMapPlotView.prototype.pause = function() {
+      return this.is_paused = true;
+    };
+
+    GMapPlotView.prototype.unpause = function(render_canvas) {
+      if (render_canvas == null) {
+        render_canvas = false;
+      }
+      this.is_paused = false;
+      if (render_canvas) {
+        return this.request_render_canvas(true);
+      } else {
+        return this.request_render();
+      }
+    };
+
+    GMapPlotView.prototype.request_render = function() {
+      if (!this.is_paused) {
+        this.throttled_render();
+      }
+    };
+
+    GMapPlotView.prototype.request_render_canvas = function(full_render) {
+      if (!this.is_paused) {
+        this.throttled_render_canvas(full_render);
+      }
+    };
+
+    GMapPlotView.prototype.initialize = function(options) {
+      var level, tool, _i, _j, _len, _len1, _ref, _ref1, _ref10, _ref11, _ref12, _ref13, _ref14, _ref15, _ref16, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+      GMapPlotView.__super__.initialize.call(this, _.defaults(options, this.default_options));
+      this.throttled_render = _.throttle(this.render, 100);
+      this.throttled_render_canvas = _.throttle(this.render_canvas, 100);
+      this.title_props = new text_properties(this, {}, 'title_');
+      this.view_state = new ViewState({
+        canvas_width: (_ref = options.canvas_width) != null ? _ref : this.mget('canvas_width'),
+        canvas_height: (_ref1 = options.canvas_height) != null ? _ref1 : this.mget('canvas_height'),
+        x_offset: (_ref2 = options.x_offset) != null ? _ref2 : this.mget('x_offset'),
+        y_offset: (_ref3 = options.y_offset) != null ? _ref3 : this.mget('y_offset'),
+        outer_width: (_ref4 = options.outer_width) != null ? _ref4 : this.mget('outer_width'),
+        outer_height: (_ref5 = options.outer_height) != null ? _ref5 : this.mget('outer_height'),
+        min_border_top: (_ref6 = (_ref7 = options.min_border_top) != null ? _ref7 : this.mget('min_border_top')) != null ? _ref6 : this.mget('min_border'),
+        min_border_bottom: (_ref8 = (_ref9 = options.min_border_bottom) != null ? _ref9 : this.mget('min_border_bottom')) != null ? _ref8 : this.mget('min_border'),
+        min_border_left: (_ref10 = (_ref11 = options.min_border_left) != null ? _ref11 : this.mget('min_border_left')) != null ? _ref10 : this.mget('min_border'),
+        min_border_right: (_ref12 = (_ref13 = options.min_border_right) != null ? _ref13 : this.mget('min_border_right')) != null ? _ref12 : this.mget('min_border'),
+        requested_border_top: 0,
+        requested_border_bottom: 0,
+        requested_border_left: 0,
+        requested_border_right: 0
+      });
+      this.x_range = (_ref14 = options.x_range) != null ? _ref14 : this.mget_obj('x_range');
+      this.y_range = (_ref15 = options.y_range) != null ? _ref15 : this.mget_obj('y_range');
+      this.xmapper = new LinearMapper({
+        source_range: this.x_range,
+        target_range: this.view_state.get('inner_range_horizontal')
+      });
+      this.ymapper = new LinearMapper({
+        source_range: this.y_range,
+        target_range: this.view_state.get('inner_range_vertical')
+      });
+      this.mapper = new GridMapper({
+        domain_mapper: this.xmapper,
+        codomain_mapper: this.ymapper
+      });
+      _ref16 = this.mget_obj('tools');
+      for (_i = 0, _len = _ref16.length; _i < _len; _i++) {
+        tool = _ref16[_i];
+        if (tool.type === "PanTool" || tool.type === "ZoomTool") {
+          tool.set_obj('dataranges', [this.x_range, this.y_range]);
+          tool.set('dimensions', ['width', 'height']);
+        }
+      }
+      this.requested_padding = {
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0
+      };
+      this.old_mapper_state = {
+        x: null,
+        y: null
+      };
+      this.am_rendering = false;
+      this.renderers = {};
+      this.tools = {};
+      this.zoom_count = null;
+      this.eventSink = _.extend({}, Backbone.Events);
+      this.moveCallbacks = [];
+      this.mousedownCallbacks = [];
+      this.keydownCallbacks = [];
+      this.render_init();
+      this.render_canvas(false);
+      this.atm = new ActiveToolManager(this.eventSink);
+      this.levels = {};
+      for (_j = 0, _len1 = LEVELS.length; _j < _len1; _j++) {
+        level = LEVELS[_j];
+        this.levels[level] = {};
+      }
+      this.build_levels();
+      this.request_render();
+      this.atm.bind_bokeh_events();
+      this.bind_bokeh_events();
+      return this;
+    };
+
+    GMapPlotView.prototype.map_to_screen = function(x, x_units, y, y_units, units) {
+      var sx, sy, _ref;
+      if (x_units === 'screen') {
+        sx = x.slice(0);
+        sy = y.slice(0);
+      } else {
+        _ref = this.mapper.v_map_to_target(x, y), sx = _ref[0], sy = _ref[1];
+      }
+      sx = this.view_state.v_sx_to_device(sx);
+      sy = this.view_state.v_sy_to_device(sy);
+      return [sx, sy];
+    };
+
+    GMapPlotView.prototype.map_from_screen = function(sx, sy, units) {
+      var x, y, _ref;
+      sx = this.view_state.v_device_sx(sx.slice(0));
+      sy = this.view_state.v_device_sx(sy.slice(0));
+      if (units === 'screen') {
+        x = sx;
+        y = sy;
+      } else {
+        _ref = this.mapper.v_map_from_target(sx, sy), x = _ref[0], y = _ref[1];
+      }
+      return [x, y];
+    };
+
+    GMapPlotView.prototype.update_range = function(range_info) {
+      var center, ne_lat, ne_lng, sw_lat, sw_lng;
+      this.pause();
+      if (range_info.sdx != null) {
+        this.map.panBy(range_info.sdx, range_info.sdy);
+      } else {
+        sw_lng = Math.min(range_info.xr.start, range_info.xr.end);
+        ne_lng = Math.max(range_info.xr.start, range_info.xr.end);
+        sw_lat = Math.min(range_info.yr.start, range_info.yr.end);
+        ne_lat = Math.max(range_info.yr.start, range_info.yr.end);
+        center = new google.maps.LatLng((ne_lat + sw_lat) / 2, (ne_lng + sw_lng) / 2);
+        if (range_info.factor > 0) {
+          this.zoom_count += 1;
+          if (this.zoom_count === 10) {
+            this.map.setZoom(this.map.getZoom() + 1);
+            this.zoom_count = 0;
+          }
+        } else {
+          this.zoom_count -= 1;
+          if (this.zoom_count === -10) {
+            this.map.setCenter(center);
+            this.map.setZoom(this.map.getZoom() - 1);
+            this.map.setCenter(center);
+            this.zoom_count = 0;
+          }
+        }
+      }
+      return this.unpause();
+    };
+
+    GMapPlotView.prototype.build_tools = function() {
+      return build_views(this.tools, this.mget_obj('tools'), this.view_options());
+    };
+
+    GMapPlotView.prototype.build_views = function() {
+      return build_views(this.renderers, this.mget_obj('renderers'), this.view_options());
+    };
+
+    GMapPlotView.prototype.build_levels = function() {
+      var level, t, tools, v, views, _i, _j, _len, _len1;
+      views = this.build_views();
+      tools = this.build_tools();
+      for (_i = 0, _len = views.length; _i < _len; _i++) {
+        v = views[_i];
+        level = v.mget('level');
+        this.levels[level][v.model.id] = v;
+        v.bind_bokeh_events();
+      }
+      for (_j = 0, _len1 = tools.length; _j < _len1; _j++) {
+        t = tools[_j];
+        level = t.mget('level');
+        this.levels[level][t.model.id] = t;
+        t.bind_bokeh_events();
+      }
+      return this;
+    };
+
+    GMapPlotView.prototype.bind_bokeh_events = function() {
+      var _this = this;
+      safebind(this, this.view_state, 'change', function() {
+        _this.request_render_canvas();
+        return _this.request_render();
+      });
+      safebind(this, this.x_range, 'change', this.request_render);
+      safebind(this, this.y_range, 'change', this.request_render);
+      safebind(this, this.model, 'change:renderers', this.build_levels);
+      safebind(this, this.model, 'change:tool', this.build_levels);
+      safebind(this, this.model, 'change', this.request_render);
+      return safebind(this, this.model, 'destroy', function() {
+        return _this.remove();
+      });
+    };
+
+    GMapPlotView.prototype.render_init = function() {
+      this.$el.append($("<div class='button_bar btn-group'/>\n<div class='plotarea'>\n<div class='bokeh_canvas_wrapper'>\n  <div class=\"bokeh_gmap\"></div>\n  <canvas class='bokeh_canvas'></canvas>\n</div>\n</div>"));
+      this.button_bar = this.$el.find('.button_bar');
+      this.canvas_wrapper = this.$el.find('.bokeh_canvas_wrapper');
+      this.canvas = this.$el.find('canvas.bokeh_canvas');
+      return this.gmap_div = this.$el.find('.bokeh_gmap');
+    };
+
+    GMapPlotView.prototype.render_canvas = function(full_render) {
+      var build_map, ih, iw, left, oh, ow, top,
+        _this = this;
+      if (full_render == null) {
+        full_render = true;
+      }
+      oh = this.view_state.get('outer_height');
+      ow = this.view_state.get('outer_width');
+      iw = this.view_state.get('inner_width');
+      ih = this.view_state.get('inner_height');
+      top = this.view_state.get('border_top');
+      left = this.view_state.get('border_left');
+      this.button_bar.width("" + ow + "px");
+      this.canvas_wrapper.width("" + ow + "px").height("" + oh + "px");
+      this.canvas.attr('width', ow).attr('height', oh);
+      this.$el.attr("width", ow).attr('height', oh);
+      this.gmap_div.attr("style", "top: " + top + "px; left: " + left + "px; position: absolute");
+      this.gmap_div.width("" + iw + "px").height("" + ih + "px");
+      build_map = function() {
+        var map_options, mo;
+        mo = _this.mget('map_options');
+        map_options = {
+          center: new google.maps.LatLng(mo.lat, mo.lng),
+          zoom: mo.zoom,
+          disableDefaultUI: true,
+          mapTypeId: google.maps.MapTypeId.SATELLITE
+        };
+        _this.map = new google.maps.Map(_this.gmap_div[0], map_options);
+        return google.maps.event.addListener(_this.map, 'bounds_changed', _this.bounds_change);
+      };
+      _.defer(build_map);
+      this.ctx = this.canvas[0].getContext('2d');
+      if (full_render) {
+        return this.render();
+      }
+    };
+
+    GMapPlotView.prototype.bounds_change = function() {
+      var bds, ne, sw;
+      bds = this.map.getBounds();
+      ne = bds.getNorthEast();
+      sw = bds.getSouthWest();
+      this.x_range.set({
+        start: sw.lng(),
+        end: ne.lng(),
+        silent: true
+      });
+      return this.y_range.set({
+        start: sw.lat(),
+        end: ne.lat()
+      });
+    };
+
+    GMapPlotView.prototype.save_png = function() {
+      var data_uri;
+      this.render();
+      data_uri = this.canvas[0].toDataURL();
+      this.model.set('png', this.canvas[0].toDataURL());
+      return base.Collections.bulksave([this.model]);
+    };
+
+    GMapPlotView.prototype.render = function(force) {
+      var have_new_mapper_state, hpadding, ih, iw, k, left, level, oh, ow, pr, renderers, sx, sy, sym, th, title, top, v, xms, yms, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
+      this.requested_padding = {
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0
+      };
+      _ref = ['image', 'underlay', 'glyph', 'overlay', 'annotation', 'tool'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        level = _ref[_i];
+        renderers = this.levels[level];
+        for (k in renderers) {
+          v = renderers[k];
+          if (v.padding_request != null) {
+            pr = v.padding_request();
+            for (k in pr) {
+              v = pr[k];
+              this.requested_padding[k] += v;
+            }
+          }
+        }
+      }
+      title = this.mget('title');
+      if (title) {
+        this.title_props.set(this.ctx, {});
+        th = this.ctx.measureText(this.mget('title')).ascent;
+        this.requested_padding['top'] += th + this.mget('title_standoff');
+      }
+      sym = this.mget('border_symmetry');
+      if (sym.indexOf('h') >= 0 || sym.indexOf('H') >= 0) {
+        hpadding = Math.max(this.requested_padding['left'], this.requested_padding['right']);
+        this.requested_padding['left'] = hpadding;
+        this.requested_padding['right'] = hpadding;
+      }
+      if (sym.indexOf('v') >= 0 || sym.indexOf('V') >= 0) {
+        hpadding = Math.max(this.requested_padding['top'], this.requested_padding['bottom']);
+        this.requested_padding['top'] = hpadding;
+        this.requested_padding['bottom'] = hpadding;
+      }
+      this.is_paused = true;
+      _ref1 = this.requested_padding;
+      for (k in _ref1) {
+        v = _ref1[k];
+        this.view_state.set("requested_border_" + k, v);
+      }
+      this.is_paused = false;
+      oh = this.view_state.get('outer_height');
+      ow = this.view_state.get('outer_width');
+      iw = this.view_state.get('inner_width');
+      ih = this.view_state.get('inner_height');
+      top = this.view_state.get('border_top');
+      left = this.view_state.get('border_left');
+      this.gmap_div.attr("style", "top: " + top + "px; left: " + left + "px;");
+      this.gmap_div.width("" + iw + "px").height("" + ih + "px");
+      this.ctx.clearRect(0, 0, ow, oh);
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, 0);
+      this.ctx.lineTo(0, oh);
+      this.ctx.lineTo(ow, oh);
+      this.ctx.lineTo(ow, 0);
+      this.ctx.lineTo(0, 0);
+      this.ctx.moveTo(left, top);
+      this.ctx.lineTo(left + iw, top);
+      this.ctx.lineTo(left + iw, top + ih);
+      this.ctx.lineTo(left, top + ih);
+      this.ctx.lineTo(left, top);
+      this.ctx.closePath();
+      this.ctx.fillStyle = this.mget('border_fill');
+      this.ctx.fill();
+      have_new_mapper_state = false;
+      xms = this.xmapper.get('mapper_state')[0];
+      yms = this.xmapper.get('mapper_state')[0];
+      if (Math.abs(this.old_mapper_state.x - xms) > 1e-8 || Math.abs(this.old_mapper_state.y - yms) > 1e-8) {
+        this.old_mapper_state.x = xms;
+        this.old_mapper_state.y = yms;
+        have_new_mapper_state = true;
+      }
+      this.ctx.save();
+      this.ctx.beginPath();
+      this.ctx.rect(this.view_state.get('border_left'), this.view_state.get('border_top'), this.view_state.get('inner_width'), this.view_state.get('inner_height'));
+      this.ctx.clip();
+      this.ctx.beginPath();
+      _ref2 = ['image', 'underlay', 'glyph'];
+      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
+        level = _ref2[_j];
+        renderers = this.levels[level];
+        for (k in renderers) {
+          v = renderers[k];
+          v.render(have_new_mapper_state);
+        }
+      }
+      this.ctx.restore();
+      _ref3 = ['overlay', 'annotation', 'tool'];
+      for (_k = 0, _len2 = _ref3.length; _k < _len2; _k++) {
+        level = _ref3[_k];
+        renderers = this.levels[level];
+        for (k in renderers) {
+          v = renderers[k];
+          v.render(have_new_mapper_state);
+        }
+      }
+      if (title) {
+        sx = this.view_state.get('outer_width') / 2;
+        sy = th;
+        this.title_props.set(this.ctx, {});
+        return this.ctx.fillText(title, sx, sy);
+      }
+    };
+
+    return GMapPlotView;
+
+  })(ContinuumView);
+
+  GMapPlot = (function(_super) {
+
+    __extends(GMapPlot, _super);
+
+    function GMapPlot() {
+      return GMapPlot.__super__.constructor.apply(this, arguments);
+    }
+
+    GMapPlot.prototype.type = 'GMapPlot';
+
+    GMapPlot.prototype.default_view = GMapPlotView;
+
+    GMapPlot.prototype.add_renderers = function(new_renderers) {
+      var renderers;
+      renderers = this.get('renderers');
+      renderers = renderers.concat(new_renderers);
+      return this.set('renderers', renderers);
+    };
+
+    GMapPlot.prototype.parent_properties = ['border_fill', 'canvas_width', 'canvas_height', 'outer_width', 'outer_height', 'min_border', 'min_border_top', 'min_border_bottom', 'min_border_left', 'min_border_right'];
+
+    return GMapPlot;
+
+  })(HasParent);
+
+  GMapPlot.prototype.defaults = _.clone(GMapPlot.prototype.defaults);
+
+  _.extend(GMapPlot.prototype.defaults, {
+    'data_sources': {},
+    'renderers': [],
+    'tools': [],
+    'title': 'GMapPlot'
+  });
+
+  GMapPlot.prototype.display_defaults = _.clone(GMapPlot.prototype.display_defaults);
+
+  _.extend(GMapPlot.prototype.display_defaults, {
+    border_fill: "#eee",
+    border_symmetry: 'h',
+    min_border: 40,
+    x_offset: 0,
+    y_offset: 0,
+    canvas_width: 300,
+    canvas_height: 300,
+    outer_width: 300,
+    outer_height: 300,
+    title_standoff: 8,
+    title_text_font: "helvetica",
+    title_text_font_size: "20pt",
+    title_text_font_style: "normal",
+    title_text_color: "#444444",
+    title_text_alpha: 1.0,
+    title_text_align: "center",
+    title_text_baseline: "alphabetic"
+  });
+
+  GMapPlots = (function(_super) {
+
+    __extends(GMapPlots, _super);
+
+    function GMapPlots() {
+      return GMapPlots.__super__.constructor.apply(this, arguments);
+    }
+
+    GMapPlots.prototype.model = GMapPlot;
+
+    return GMapPlots;
+
+  })(Backbone.Collection);
+
+  exports.GMapPlot = GMapPlot;
+
+  exports.GMapPlotView = GMapPlotView;
+
+  exports.gmapplots = new GMapPlots;
 
 }).call(this);
 }, "common/grid_plot": function(exports, require, module) {(function() {
@@ -18331,7 +20980,7 @@ _.setdefault = function(obj, key, value){
     __extends(GridPlotView, _super);
 
     function GridPlotView() {
-      GridPlotView.__super__.constructor.apply(this, arguments);
+      return GridPlotView.__super__.constructor.apply(this, arguments);
     }
 
     GridPlotView.prototype.tagName = 'div';
@@ -18461,7 +21110,7 @@ _.setdefault = function(obj, key, value){
     __extends(GridPlot, _super);
 
     function GridPlot() {
-      GridPlot.__super__.constructor.apply(this, arguments);
+      return GridPlot.__super__.constructor.apply(this, arguments);
     }
 
     GridPlot.prototype.type = 'GridPlot';
@@ -18484,7 +21133,7 @@ _.setdefault = function(obj, key, value){
     __extends(GridPlots, _super);
 
     function GridPlots() {
-      GridPlots.__super__.constructor.apply(this, arguments);
+      return GridPlots.__super__.constructor.apply(this, arguments);
     }
 
     GridPlots.prototype.model = GridPlot;
@@ -18499,9 +21148,11 @@ _.setdefault = function(obj, key, value){
 
     function GridPlotViewState() {
       this.layout_widths = __bind(this.layout_widths, this);
+
       this.layout_heights = __bind(this.layout_heights, this);
+
       this.setup_layout_properties = __bind(this.setup_layout_properties, this);
-      GridPlotViewState.__super__.constructor.apply(this, arguments);
+      return GridPlotViewState.__super__.constructor.apply(this, arguments);
     }
 
     GridPlotViewState.prototype.setup_layout_properties = function() {
@@ -18649,9 +21300,11 @@ _.setdefault = function(obj, key, value){
 
     function GridViewState() {
       this.layout_widths = __bind(this.layout_widths, this);
+
       this.layout_heights = __bind(this.layout_heights, this);
+
       this.setup_layout_properties = __bind(this.setup_layout_properties, this);
-      GridViewState.__super__.constructor.apply(this, arguments);
+      return GridViewState.__super__.constructor.apply(this, arguments);
     }
 
     GridViewState.prototype.setup_layout_properties = function() {
@@ -18813,9 +21466,14 @@ _.setdefault = function(obj, key, value){
 
     function PlotView() {
       this._mousemove = __bind(this._mousemove, this);
+
       this._mousedown = __bind(this._mousedown, this);
-      PlotView.__super__.constructor.apply(this, arguments);
+      return PlotView.__super__.constructor.apply(this, arguments);
     }
+
+    PlotView.prototype.attributes = {
+      "class": "plotview"
+    };
 
     PlotView.prototype.events = {
       "mousemove .bokeh_canvas_wrapper": "_mousemove",
@@ -18880,11 +21538,11 @@ _.setdefault = function(obj, key, value){
     };
 
     PlotView.prototype.initialize = function(options) {
-      var _ref, _ref1, _ref10, _ref11, _ref12, _ref13, _ref14, _ref15, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
-      this.throttled_render = _.throttle(this.render, 100);
-      this.throttled_render_canvas = _.throttle(this.render_canvas, 100);
-      this.title_props = new text_properties(this, {}, 'title_');
+      var level, _i, _len, _ref, _ref1, _ref10, _ref11, _ref12, _ref13, _ref14, _ref15, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
       PlotView.__super__.initialize.call(this, _.defaults(options, this.default_options));
+      this.throttled_render = _.throttle(this.render, 15);
+      this.throttled_render_canvas = _.throttle(this.render_canvas, 15);
+      this.title_props = new text_properties(this, {}, 'title_');
       this.view_state = new ViewState({
         canvas_width: (_ref = options.canvas_width) != null ? _ref : this.mget('canvas_width'),
         canvas_height: (_ref1 = options.canvas_height) != null ? _ref1 : this.mget('canvas_height'),
@@ -18921,6 +21579,10 @@ _.setdefault = function(obj, key, value){
         left: 0,
         right: 0
       };
+      this.old_mapper_state = {
+        x: null,
+        y: null
+      };
       this.am_rendering = false;
       this.renderers = {};
       this.tools = {};
@@ -18930,8 +21592,16 @@ _.setdefault = function(obj, key, value){
       this.keydownCallbacks = [];
       this.render_init();
       this.render_canvas(false);
+      this.atm = new ActiveToolManager(this.eventSink);
+      this.levels = {};
+      for (_i = 0, _len = LEVELS.length; _i < _len; _i++) {
+        level = LEVELS[_i];
+        this.levels[level] = {};
+      }
       this.build_levels();
       this.request_render();
+      this.atm.bind_bokeh_events();
+      this.bind_bokeh_events();
       return this;
     };
 
@@ -18950,8 +21620,8 @@ _.setdefault = function(obj, key, value){
 
     PlotView.prototype.map_from_screen = function(sx, sy, units) {
       var x, y, _ref;
-      sx = this.view_state.v_device_sx(sx.slice(0));
-      sy = this.view_state.v_device_sx(sy.slice(0));
+      sx = this.view_state.v_device_to_sx(sx.slice(0));
+      sy = this.view_state.v_device_to_sy(sy.slice(0));
       if (units === 'screen') {
         x = sx;
         y = sy;
@@ -18961,59 +21631,36 @@ _.setdefault = function(obj, key, value){
       return [x, y];
     };
 
-    PlotView.prototype.build_tools = function() {
-      build_views(this.tools, this.mget_obj('tools'), this.view_options());
-      return this;
+    PlotView.prototype.update_range = function(range_info) {
+      this.pause();
+      this.x_range.set(range_info.xr);
+      this.y_range.set(range_info.yr);
+      return this.unpause();
     };
 
-    PlotView.prototype.bind_tools = function() {
-      var toolspec, _i, _len, _ref;
-      _ref = this.mget('tools');
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        toolspec = _ref[_i];
-        this.tools[toolspec.id].bind_events(this);
-      }
-      return this;
+    PlotView.prototype.build_tools = function() {
+      return build_views(this.tools, this.mget_obj('tools'), this.view_options());
     };
 
     PlotView.prototype.build_views = function() {
-      build_views(this.renderers, this.mget_obj('renderers'), this.view_options());
-      return this;
+      return build_views(this.renderers, this.mget_obj('renderers'), this.view_options());
     };
 
     PlotView.prototype.build_levels = function() {
-      var k, level, toolview, v, view, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
-      this.build_views();
-      this.build_tools();
-      this.levels = {};
-      for (_i = 0, _len = LEVELS.length; _i < _len; _i++) {
-        level = LEVELS[_i];
-        this.levels[level] = {};
-      }
-      _ref = this.renderers;
-      for (k in _ref) {
-        v = _ref[k];
+      var level, t, tools, v, views, _i, _j, _len, _len1;
+      views = this.build_views();
+      tools = this.build_tools();
+      for (_i = 0, _len = views.length; _i < _len; _i++) {
+        v = views[_i];
         level = v.mget('level');
-        this.levels[level][k] = v;
+        this.levels[level][v.model.id] = v;
+        v.bind_bokeh_events();
       }
-      _ref1 = this.tools;
-      for (k in _ref1) {
-        v = _ref1[k];
-        level = v.mget('level');
-        this.levels[level][k] = v;
-      }
-      this.atm = new ActiveToolManager(this.eventSink);
-      this.atm.bind_bokeh_events();
-      this.bind_bokeh_events();
-      _ref2 = _.values(this.tools);
-      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-        toolview = _ref2[_j];
-        toolview.bind_bokeh_events();
-      }
-      _ref3 = _.values(this.renderers);
-      for (_k = 0, _len2 = _ref3.length; _k < _len2; _k++) {
-        view = _ref3[_k];
-        view.bind_bokeh_events();
+      for (_j = 0, _len1 = tools.length; _j < _len1; _j++) {
+        t = tools[_j];
+        level = t.mget('level');
+        this.levels[level][t.model.id] = t;
+        t.bind_bokeh_events();
       }
       return this;
     };
@@ -19035,7 +21682,7 @@ _.setdefault = function(obj, key, value){
     };
 
     PlotView.prototype.render_init = function() {
-      this.$el.append($("<div class='button_bar btn-group'/>\n<div class='bokeh_canvas_wrapper'>\n  <canvas class='bokeh_canvas'></canvas>\n</div>"));
+      this.$el.append($("<div class='button_bar btn-group pull-top'/>\n<div class='plotarea'>\n<div class='bokeh_canvas_wrapper'>\n  <canvas class='bokeh_canvas'></canvas>\n</div>\n</div>"));
       this.button_bar = this.$el.find('.button_bar');
       this.canvas_wrapper = this.$el.find('.bokeh_canvas_wrapper');
       return this.canvas = this.$el.find('canvas.bokeh_canvas');
@@ -19066,16 +21713,8 @@ _.setdefault = function(obj, key, value){
       return base.Collections.bulksave([this.model]);
     };
 
-    PlotView.prototype.save_png = function() {
-      var data_uri;
-      this.render();
-      data_uri = this.canvas[0].toDataURL();
-      this.model.set('png', this.canvas[0].toDataURL());
-      return base.Collections.bulksave([this.model]);
-    };
-
     PlotView.prototype.render = function(force) {
-      var k, level, pr, renderers, sx, sy, th, title, v, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
+      var have_new_mapper_state, hpadding, k, level, pr, renderers, sx, sy, sym, th, title, v, xms, yms, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
       PlotView.__super__.render.call(this);
       this.requested_padding = {
         top: 0,
@@ -19104,6 +21743,17 @@ _.setdefault = function(obj, key, value){
         th = this.ctx.measureText(this.mget('title')).ascent;
         this.requested_padding['top'] += th + this.mget('title_standoff');
       }
+      sym = this.mget('border_symmetry');
+      if (sym.indexOf('h') >= 0 || sym.indexOf('H') >= 0) {
+        hpadding = Math.max(this.requested_padding['left'], this.requested_padding['right']);
+        this.requested_padding['left'] = hpadding;
+        this.requested_padding['right'] = hpadding;
+      }
+      if (sym.indexOf('v') >= 0 || sym.indexOf('V') >= 0) {
+        hpadding = Math.max(this.requested_padding['top'], this.requested_padding['bottom']);
+        this.requested_padding['top'] = hpadding;
+        this.requested_padding['bottom'] = hpadding;
+      }
       this.is_paused = true;
       _ref1 = this.requested_padding;
       for (k in _ref1) {
@@ -19115,6 +21765,14 @@ _.setdefault = function(obj, key, value){
       this.ctx.fillRect(0, 0, this.view_state.get('canvas_width'), this.view_state.get('canvas_height'));
       this.ctx.fillStyle = this.mget('background_fill');
       this.ctx.fillRect(this.view_state.get('border_left'), this.view_state.get('border_top'), this.view_state.get('inner_width'), this.view_state.get('inner_height'));
+      have_new_mapper_state = false;
+      xms = this.xmapper.get('mapper_state')[0];
+      yms = this.xmapper.get('mapper_state')[0];
+      if (Math.abs(this.old_mapper_state.x - xms) > 1e-8 || Math.abs(this.old_mapper_state.y - yms) > 1e-8) {
+        this.old_mapper_state.x = xms;
+        this.old_mapper_state.y = yms;
+        have_new_mapper_state = true;
+      }
       this.ctx.save();
       this.ctx.beginPath();
       this.ctx.rect(this.view_state.get('border_left'), this.view_state.get('border_top'), this.view_state.get('inner_width'), this.view_state.get('inner_height'));
@@ -19126,7 +21784,7 @@ _.setdefault = function(obj, key, value){
         renderers = this.levels[level];
         for (k in renderers) {
           v = renderers[k];
-          v.render();
+          v.render(have_new_mapper_state);
         }
       }
       this.ctx.restore();
@@ -19136,7 +21794,7 @@ _.setdefault = function(obj, key, value){
         renderers = this.levels[level];
         for (k in renderers) {
           v = renderers[k];
-          v.render();
+          v.render(have_new_mapper_state);
         }
       }
       if (title) {
@@ -19156,7 +21814,7 @@ _.setdefault = function(obj, key, value){
     __extends(PNGView, _super);
 
     function PNGView() {
-      PNGView.__super__.constructor.apply(this, arguments);
+      return PNGView.__super__.constructor.apply(this, arguments);
     }
 
     PNGView.prototype.initialize = function(options) {
@@ -19169,7 +21827,9 @@ _.setdefault = function(obj, key, value){
 
     PNGView.prototype.render = function() {
       var png;
+      this.$el.html('');
       png = this.model.get('png');
+      this.$el.append($("<p> " + (this.model.get('title')) + " </p>"));
       return this.$el.append($("<img  modeltype='" + this.model.type + "' modelid='" + (this.model.get('id')) + "' class='pngview' width='" + this.thumb_x + "'  height='" + this.thumb_y + "'  src='" + png + "'/>"));
     };
 
@@ -19182,7 +21842,7 @@ _.setdefault = function(obj, key, value){
     __extends(Plot, _super);
 
     function Plot() {
-      Plot.__super__.constructor.apply(this, arguments);
+      return Plot.__super__.constructor.apply(this, arguments);
     }
 
     Plot.prototype.type = 'Plot';
@@ -19216,6 +21876,7 @@ _.setdefault = function(obj, key, value){
   _.extend(Plot.prototype.display_defaults, {
     background_fill: "#fff",
     border_fill: "#eee",
+    border_symmetry: "h",
     min_border: 40,
     x_offset: 0,
     y_offset: 0,
@@ -19238,7 +21899,7 @@ _.setdefault = function(obj, key, value){
     __extends(Plots, _super);
 
     function Plots() {
-      Plots.__super__.constructor.apply(this, arguments);
+      return Plots.__super__.constructor.apply(this, arguments);
     }
 
     Plots.prototype.model = Plot;
@@ -19284,8 +21945,9 @@ _.setdefault = function(obj, key, value){
 
     function PlotContextView() {
       this.removeplot = __bind(this.removeplot, this);
+
       this.closeall = __bind(this.closeall, this);
-      PlotContextView.__super__.constructor.apply(this, arguments);
+      return PlotContextView.__super__.constructor.apply(this, arguments);
     }
 
     PlotContextView.prototype.initialize = function(options) {
@@ -19399,7 +22061,7 @@ _.setdefault = function(obj, key, value){
 
     function PNGContextView() {
       this.pngclick = __bind(this.pngclick, this);
-      PNGContextView.__super__.constructor.apply(this, arguments);
+      return PNGContextView.__super__.constructor.apply(this, arguments);
     }
 
     PNGContextView.prototype.initialize = function(options) {
@@ -19434,9 +22096,9 @@ _.setdefault = function(obj, key, value){
       _ref = this.mget_obj('children');
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         view_model = _ref[_i];
-        if (view_model.get('png') === "") {
+        if (!view_model.get('png')) {
           console.log("no png for " + view_model.id + " making one");
-          pv = new PlotView({
+          pv = new view_model.default_view({
             model: view_model
           });
           pv.save_png();
@@ -19467,7 +22129,7 @@ _.setdefault = function(obj, key, value){
     __extends(PlotContextViewState, _super);
 
     function PlotContextViewState() {
-      PlotContextViewState.__super__.constructor.apply(this, arguments);
+      return PlotContextViewState.__super__.constructor.apply(this, arguments);
     }
 
     PlotContextViewState.prototype.defaults = {
@@ -19485,7 +22147,7 @@ _.setdefault = function(obj, key, value){
     __extends(PlotContextViewWithMaximized, _super);
 
     function PlotContextViewWithMaximized() {
-      PlotContextViewWithMaximized.__super__.constructor.apply(this, arguments);
+      return PlotContextViewWithMaximized.__super__.constructor.apply(this, arguments);
     }
 
     PlotContextViewWithMaximized.prototype.initialize = function(options) {
@@ -19593,7 +22255,7 @@ _.setdefault = function(obj, key, value){
     __extends(PlotContext, _super);
 
     function PlotContext() {
-      PlotContext.__super__.constructor.apply(this, arguments);
+      return PlotContext.__super__.constructor.apply(this, arguments);
     }
 
     PlotContext.prototype.type = 'PlotContext';
@@ -19618,7 +22280,7 @@ _.setdefault = function(obj, key, value){
     __extends(PlotList, _super);
 
     function PlotList() {
-      PlotList.__super__.constructor.apply(this, arguments);
+      return PlotList.__super__.constructor.apply(this, arguments);
     }
 
     PlotList.prototype.type = 'PlotList';
@@ -19632,7 +22294,7 @@ _.setdefault = function(obj, key, value){
     __extends(PlotContexts, _super);
 
     function PlotContexts() {
-      PlotContexts.__super__.constructor.apply(this, arguments);
+      return PlotContexts.__super__.constructor.apply(this, arguments);
     }
 
     PlotContexts.prototype.model = PlotContext;
@@ -19646,7 +22308,7 @@ _.setdefault = function(obj, key, value){
     __extends(PlotLists, _super);
 
     function PlotLists() {
-      PlotLists.__super__.constructor.apply(this, arguments);
+      return PlotLists.__super__.constructor.apply(this, arguments);
     }
 
     PlotLists.prototype.model = PlotList;
@@ -19688,7 +22350,7 @@ _.setdefault = function(obj, key, value){
     __extends(PlotWidget, _super);
 
     function PlotWidget() {
-      PlotWidget.__super__.constructor.apply(this, arguments);
+      return PlotWidget.__super__.constructor.apply(this, arguments);
     }
 
     PlotWidget.prototype.tagName = 'div';
@@ -19739,7 +22401,7 @@ _.setdefault = function(obj, key, value){
     };
 
     PlotWidget.prototype._fixup_measure_text = function(ctx) {
-      if (ctx.measureText && (ctx.html5MeasureText == null)) {
+      if (ctx.measureText && !(ctx.html5MeasureText != null)) {
         ctx.html5MeasureText = ctx.measureText;
         return ctx.measureText = function(text) {
           var textMetrics;
@@ -19820,7 +22482,7 @@ _.setdefault = function(obj, key, value){
     __extends(Range1d, _super);
 
     function Range1d() {
-      Range1d.__super__.constructor.apply(this, arguments);
+      return Range1d.__super__.constructor.apply(this, arguments);
     }
 
     Range1d.prototype.type = 'Range1d';
@@ -19853,7 +22515,7 @@ _.setdefault = function(obj, key, value){
     __extends(Range1ds, _super);
 
     function Range1ds() {
-      Range1ds.__super__.constructor.apply(this, arguments);
+      return Range1ds.__super__.constructor.apply(this, arguments);
     }
 
     Range1ds.prototype.model = Range1d;
@@ -19867,13 +22529,13 @@ _.setdefault = function(obj, key, value){
     __extends(DataRange1d, _super);
 
     function DataRange1d() {
-      DataRange1d.__super__.constructor.apply(this, arguments);
+      return DataRange1d.__super__.constructor.apply(this, arguments);
     }
 
     DataRange1d.prototype.type = 'DataRange1d';
 
     DataRange1d.prototype._get_minmax = function() {
-      var center, colname, columns, max, min, source, sourceobj, span, _i, _j, _len, _len1, _ref, _ref1, _ref2, _ref3;
+      var center, colname, columns, i, max, maxs, min, mins, source, sourceobj, span, _i, _j, _k, _len, _len1, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
       columns = [];
       _ref = this.get('sources');
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -19891,10 +22553,20 @@ _.setdefault = function(obj, key, value){
       columns = _.filter(columns, function(x) {
         return typeof x !== "string";
       });
-      _ref2 = [_.min(columns), _.max(columns)], min = _ref2[0], max = _ref2[1];
+      if (!_.isArray(columns[0])) {
+        _ref2 = [_.min(columns), _.max(columns)], min = _ref2[0], max = _ref2[1];
+      } else {
+        maxs = Array(columns.length);
+        mins = Array(columns.length);
+        for (i = _k = 0, _ref3 = columns.length - 1; 0 <= _ref3 ? _k <= _ref3 : _k >= _ref3; i = 0 <= _ref3 ? ++_k : --_k) {
+          maxs[i] = _.max(columns[i]);
+          mins[i] = _.min(columns[i]);
+        }
+        _ref4 = [_.min(mins), _.max(maxs)], min = _ref4[0], max = _ref4[1];
+      }
       span = (max - min) * (1 + this.get('rangepadding'));
       center = (max + min) / 2.0;
-      _ref3 = [center - span / 2.0, center + span / 2.0], min = _ref3[0], max = _ref3[1];
+      _ref5 = [center - span / 2.0, center + span / 2.0], min = _ref5[0], max = _ref5[1];
       return [min, max];
     };
 
@@ -19957,7 +22629,7 @@ _.setdefault = function(obj, key, value){
     __extends(DataRange1ds, _super);
 
     function DataRange1ds() {
-      DataRange1ds.__super__.constructor.apply(this, arguments);
+      return DataRange1ds.__super__.constructor.apply(this, arguments);
     }
 
     DataRange1ds.prototype.model = DataRange1d;
@@ -19971,7 +22643,7 @@ _.setdefault = function(obj, key, value){
     __extends(Range1ds, _super);
 
     function Range1ds() {
-      Range1ds.__super__.constructor.apply(this, arguments);
+      return Range1ds.__super__.constructor.apply(this, arguments);
     }
 
     Range1ds.prototype.model = Range1d;
@@ -19985,7 +22657,7 @@ _.setdefault = function(obj, key, value){
     __extends(FactorRange, _super);
 
     function FactorRange() {
-      FactorRange.__super__.constructor.apply(this, arguments);
+      return FactorRange.__super__.constructor.apply(this, arguments);
     }
 
     FactorRange.prototype.type = 'FactorRange';
@@ -20006,7 +22678,7 @@ _.setdefault = function(obj, key, value){
 
     function DataFactorRange() {
       this._get_values = __bind(this._get_values, this);
-      DataFactorRange.__super__.constructor.apply(this, arguments);
+      return DataFactorRange.__super__.constructor.apply(this, arguments);
     }
 
     DataFactorRange.prototype.type = 'DataFactorRange';
@@ -20063,7 +22735,7 @@ _.setdefault = function(obj, key, value){
     __extends(DataFactorRanges, _super);
 
     function DataFactorRanges() {
-      DataFactorRanges.__super__.constructor.apply(this, arguments);
+      return DataFactorRanges.__super__.constructor.apply(this, arguments);
     }
 
     DataFactorRanges.prototype.model = DataFactorRange;
@@ -20077,7 +22749,7 @@ _.setdefault = function(obj, key, value){
     __extends(FactorRanges, _super);
 
     function FactorRanges() {
-      FactorRanges.__super__.constructor.apply(this, arguments);
+      return FactorRanges.__super__.constructor.apply(this, arguments);
     }
 
     FactorRanges.prototype.model = FactorRange;
@@ -20135,17 +22807,19 @@ _.setdefault = function(obj, key, value){
 
 }).call(this);
 }, "common/ticking": function(exports, require, module) {(function() {
-  var BasicTickFormatter, arange, auto_interval, auto_ticks, heckbert_interval, is_base2, log10, log2, nice_10, nice_2_5_10;
+  var BasicTickFormatter, arange, argsort, arr_div2, arr_div3, auto_interval, auto_ticks, float, heckbert_interval, is_base2, log10, log2, nice_10, nice_2_5_10;
 
   log10 = function(num) {
-    "Returns the base 10 logarithm of a number.";    if (num === 0.0) {
+    "Returns the base 10 logarithm of a number.";
+    if (num === 0.0) {
       num += 1.0e-16;
     }
     return Math.log(num) / Math.LN10;
   };
 
   log2 = function(num) {
-    "Returns the base 2 logarithm of a number.";    if (num === 0.0) {
+    "Returns the base 2 logarithm of a number.";
+    if (num === 0.0) {
       num += 1.0e-16;
     }
     return Math.log(num) / Math.LN2;
@@ -20153,6 +22827,7 @@ _.setdefault = function(obj, key, value){
 
   is_base2 = function(rng) {
     " Returns True if rng is a positive multiple of 2 ";
+
     var lg;
     if (rng <= 0) {
       return false;
@@ -20168,6 +22843,7 @@ _.setdefault = function(obj, key, value){
       round = false;
     }
     " if round is false, then use Math.ceil(range) ";
+
     expv = Math.floor(log10(x));
     f = x / Math.pow(10.0, expv);
     if (round) {
@@ -20215,6 +22891,7 @@ _.setdefault = function(obj, key, value){
       loose = false;
     }
     "Returns a \"nice\" range and interval for a given data range and a preferred\nnumber of ticks.  From Paul Heckbert's algorithm in Graphics Gems.";
+
     range = nice(max - min);
     d = nice(range / (numticks - 1), true);
     if (loose) {
@@ -20244,10 +22921,12 @@ _.setdefault = function(obj, key, value){
         step = -1;
       } else if (step > 0) {
         "the loop will never terminate";
+
         1 / 0;
       }
     } else if (step < 0) {
       "the loop will never terminate";
+
       1 / 0;
     }
     if (!step) {
@@ -20278,6 +22957,7 @@ _.setdefault = function(obj, key, value){
       zero_always_nice = true;
     }
     " Finds locations for axis tick marks.\n\nCalculates the locations for tick marks on an axis. The *bound_low*,\n*bound_high*, and *tick_interval* parameters specify how the axis end\npoints and tick interval are calculated.\n\nParameters\n----------\n\ndata_low, data_high : number\n    The minimum and maximum values of the data along this axis.\n    If any of the bound settings are 'auto' or 'fit', the axis\n    bounds are calculated automatically from these values.\nbound_low, bound_high : 'auto', 'fit', or a number.\n    The lower and upper bounds of the axis. If the value is a number,\n    that value is used for the corresponding end point. If the value is\n    'auto', then the end point is calculated automatically. If the\n    value is 'fit', then the axis bound is set to the corresponding\n    *data_low* or *data_high* value.\ntick_interval : can be 'auto' or a number\n    If the value is a positive number, it specifies the length\n    of the tick interval; a negative integer specifies the\n    number of tick intervals; 'auto' specifies that the number and\n    length of the tick intervals are automatically calculated, based\n    on the range of the axis.\nuse_endpoints : Boolean\n    If True, the lower and upper bounds of the data are used as the\n    lower and upper end points of the axis. If False, the end points\n    might not fall exactly on the bounds.\nzero_always_nice : Boolean\n    If True, ticks much closer to zero than the tick interval will be\n    coerced to have a value of zero\n\nReturns\n-------\nAn array of tick mark locations. The first and last tick entries are the\naxis end points.";
+
     is_auto_low = bound_low === 'auto';
     is_auto_high = bound_high === 'auto';
     if (typeof bound_low === "string") {
@@ -20365,46 +23045,94 @@ _.setdefault = function(obj, key, value){
     })();
   };
 
+  arr_div2 = function(numerator, denominators) {
+    var output_arr, val, _i, _len;
+    output_arr = [];
+    for (_i = 0, _len = denominators.length; _i < _len; _i++) {
+      val = denominators[_i];
+      output_arr.push(numerator / val);
+    }
+    return output_arr;
+  };
+
+  arr_div3 = function(numerators, denominators) {
+    var i, output_arr, val, _i, _len;
+    output_arr = [];
+    for (i = _i = 0, _len = denominators.length; _i < _len; i = ++_i) {
+      val = denominators[i];
+      output_arr.push(numerators[i] / val);
+    }
+    return output_arr;
+  };
+
+  argsort = function(arr) {
+    var i, ret_arr, sorted_arr, y, _i, _len;
+    sorted_arr = _.sortBy(arr, _.identity);
+    ret_arr = [];
+    for (i = _i = 0, _len = sorted_arr.length; _i < _len; i = ++_i) {
+      y = sorted_arr[i];
+      ret_arr[i] = arr.indexOf(y);
+    }
+    return ret_arr;
+  };
+
+  float = function(x) {
+    return x + 0.0;
+  };
+
   auto_interval = function(data_low, data_high) {
-    " Calculates the tick interval for a range.\n\nThe boundaries for the data to be plotted on the axis are::\n\n    data_bounds = (data_low,data_high)\n\nThe function chooses the number of tick marks, which can be between\n3 and 9 marks (including end points), and chooses tick intervals at\n1, 2, 2.5, 5, 10, 20, ... TODO\n\nReturns\n-------\ninterval : float\n    tick mark interval for axis";
-    var candidate_intervals, diff, divisions, expv, f, i, ind, interval, j, magic_intervals, max, min, newdiff, nticks, _i, _j, _k, _len, _ref, _ref1, _ref2;
-    divisions = [8, 7, 6, 5, 4, 3];
+    " Calculates the tick interval for a range.\n\nThe boundaries for the data to be plotted on the axis are::\n\n    data_bounds = (data_low,data_high)\n\nThe function chooses the number of tick marks, which can be between\n3 and 9 marks (including end points), and chooses tick intervals at\n1, 2, 2.5, 5, 10, 20, ...\n\nReturns\n-------\ninterval : float\n    tick mark interval for axis";
+
+    var best_magics, best_mantissas, candidate_intervals, diff_arr, divisions, interval, ma, magic_index, magic_intervals, magnitude, magnitudes, mantissa_index, mantissas, mi, range, result, _i, _j, _len, _len1;
+    range = float(data_high) - float(data_low);
+    divisions = [8.0, 7.0, 6.0, 5.0, 4.0, 3.0];
+    candidate_intervals = arr_div2(range, divisions);
+    magnitudes = candidate_intervals.map(function(candidate) {
+      return Math.pow(10.0, Math.floor(log10(candidate)));
+    });
+    mantissas = arr_div3(candidate_intervals, magnitudes);
     magic_intervals = [1.0, 2.0, 2.5, 5.0, 10.0];
-    candidate_intervals = [];
-    for (_i = 0, _len = divisions.length; _i < _len; _i++) {
-      nticks = divisions[_i];
-      _ref = heckbert_interval(data_low, data_high, nticks, nice_2_5_10), min = _ref[0], max = _ref[1], interval = _ref[2];
-      candidate_intervals.push([min, max, interval]);
+    best_mantissas = [];
+    best_magics = [];
+    for (_i = 0, _len = magic_intervals.length; _i < _len; _i++) {
+      mi = magic_intervals[_i];
+      diff_arr = mantissas.map(function(x) {
+        return Math.abs(mi - x);
+      });
+      best_magics.push(_.min(diff_arr));
     }
-    diff = 10000;
-    ind = 0;
-    for (i = _j = 0, _ref1 = candidate_intervals.length - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
-      for (j = _k = 0, _ref2 = magic_intervals.length - 1; 0 <= _ref2 ? _k <= _ref2 : _k >= _ref2; j = 0 <= _ref2 ? ++_k : --_k) {
-        expv = Math.floor(log10(candidate_intervals[i][2]));
-        f = candidate_intervals[i][2] / Math.pow(10.0, expv);
-        newdiff = Math.abs(f - magic_intervals[i]);
-        if (newdiff < diff) {
-          diff = newdiff;
-          ind = i;
-        }
-      }
+    for (_j = 0, _len1 = mantissas.length; _j < _len1; _j++) {
+      ma = mantissas[_j];
+      diff_arr = magic_intervals.map(function(x) {
+        return Math.abs(ma - x);
+      });
+      best_mantissas.push(_.min(diff_arr));
     }
-    return candidate_intervals[ind][2];
+    magic_index = argsort(best_magics)[0];
+    mantissa_index = argsort(best_mantissas)[0];
+    interval = magic_intervals[magic_index];
+    magnitude = magnitudes[mantissa_index];
+    result = interval * magnitude;
+    return result;
   };
 
   BasicTickFormatter = (function() {
 
     function BasicTickFormatter(precision, use_scientific, power_limit_high, power_limit_low) {
-      this.precision = precision != null ? precision : 4;
+      this.precision = precision != null ? precision : 'auto';
       this.use_scientific = use_scientific != null ? use_scientific : true;
       this.power_limit_high = power_limit_high != null ? power_limit_high : 5;
       this.power_limit_low = power_limit_low != null ? power_limit_low : -3;
       this.scientific_limit_low = Math.pow(10.0, power_limit_low);
       this.scientific_limit_high = Math.pow(10.0, power_limit_high);
+      this.last_precision = 3;
     }
 
     BasicTickFormatter.prototype.format = function(ticks) {
-      var i, labels, need_sci, tick, tick_abs, zero_eps, _i, _j, _k, _len, _ref, _ref1;
+      var i, is_ok, labels, need_sci, tick, tick_abs, x, zero_eps, _i, _j, _k, _l, _len, _m, _n, _ref, _ref1, _ref2, _ref3, _ref4;
+      if (ticks.length === 0) {
+        return [];
+      }
       zero_eps = 0;
       if (ticks.length >= 2) {
         zero_eps = Math.abs(ticks[1] - ticks[0]) / 10000;
@@ -20420,14 +23148,53 @@ _.setdefault = function(obj, key, value){
           }
         }
       }
-      labels = new Array(ticks.length);
-      if (need_sci) {
-        for (i = _j = 0, _ref = ticks.length - 1; 0 <= _ref ? _j <= _ref : _j >= _ref; i = 0 <= _ref ? ++_j : --_j) {
-          labels[i] = ticks[i].toExponential(this.precision);
+      if (_.isNumber(this.precision)) {
+        labels = new Array(ticks.length);
+        if (need_sci) {
+          for (i = _j = 0, _ref = ticks.length - 1; 0 <= _ref ? _j <= _ref : _j >= _ref; i = 0 <= _ref ? ++_j : --_j) {
+            labels[i] = ticks[i].toExponential(this.precision);
+          }
+        } else {
+          for (i = _k = 0, _ref1 = ticks.length - 1; 0 <= _ref1 ? _k <= _ref1 : _k >= _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
+            labels[i] = ticks[i].toPrecision(this.precision).replace(/(\.[0-9]*?)0+$/, "$1").replace(/\.$/, "");
+          }
         }
-      } else {
-        for (i = _k = 0, _ref1 = ticks.length - 1; 0 <= _ref1 ? _k <= _ref1 : _k >= _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
-          labels[i] = ticks[i].toPrecision(this.precision).replace(/(\.[0-9]*?)0+$/, "$1").replace(/\.$/, "");
+        return labels;
+      } else if (this.precision === 'auto') {
+        labels = new Array(ticks.length);
+        for (x = _l = _ref2 = this.last_precision; _ref2 <= 15 ? _l <= 15 : _l >= 15; x = _ref2 <= 15 ? ++_l : --_l) {
+          is_ok = true;
+          if (need_sci) {
+            for (i = _m = 0, _ref3 = ticks.length - 1; 0 <= _ref3 ? _m <= _ref3 : _m >= _ref3; i = 0 <= _ref3 ? ++_m : --_m) {
+              labels[i] = ticks[i].toExponential(x);
+              if (i > 0) {
+                if (labels[i] === labels[i - 1]) {
+                  is_ok = false;
+                  break;
+                }
+              }
+            }
+            if (is_ok) {
+              break;
+            }
+          } else {
+            for (i = _n = 0, _ref4 = ticks.length - 1; 0 <= _ref4 ? _n <= _ref4 : _n >= _ref4; i = 0 <= _ref4 ? ++_n : --_n) {
+              labels[i] = ticks[i].toPrecision(x).replace(/(\.[0-9]*?)0+$/, "$1").replace(/\.$/, "");
+              if (i > 0) {
+                if (labels[i] === labels[i - 1]) {
+                  is_ok = false;
+                  break;
+                }
+              }
+            }
+            if (is_ok) {
+              break;
+            }
+          }
+          if (is_ok) {
+            this.last_precision = x;
+            return labels;
+          }
         }
       }
       return labels;
@@ -20468,7 +23235,7 @@ _.setdefault = function(obj, key, value){
     __extends(ViewState, _super);
 
     function ViewState() {
-      ViewState.__super__.constructor.apply(this, arguments);
+      return ViewState.__super__.constructor.apply(this, arguments);
     }
 
     ViewState.prototype.initialize = function(attrs, options) {
@@ -20605,7 +23372,7 @@ _.setdefault = function(obj, key, value){
     __extends(CategoricalMapper, _super);
 
     function CategoricalMapper() {
-      CategoricalMapper.__super__.constructor.apply(this, arguments);
+      return CategoricalMapper.__super__.constructor.apply(this, arguments);
     }
 
     CategoricalMapper.prototype.initialize = function(attrs, options) {
@@ -20687,7 +23454,7 @@ _.setdefault = function(obj, key, value){
     __extends(LinearMapper, _super);
 
     function LinearMapper() {
-      LinearMapper.__super__.constructor.apply(this, arguments);
+      return LinearMapper.__super__.constructor.apply(this, arguments);
     }
 
     LinearMapper.prototype.initialize = function(attrs, options) {
@@ -20762,7 +23529,7 @@ _.setdefault = function(obj, key, value){
     __extends(LogMapper, _super);
 
     function LogMapper() {
-      LogMapper.__super__.constructor.apply(this, arguments);
+      return LogMapper.__super__.constructor.apply(this, arguments);
     }
 
     LogMapper.prototype.initialize = function(attrs, options) {
@@ -20804,7 +23571,7 @@ _.setdefault = function(obj, key, value){
     __extends(BarycentricMapper, _super);
 
     function BarycentricMapper() {
-      BarycentricMapper.__super__.constructor.apply(this, arguments);
+      return BarycentricMapper.__super__.constructor.apply(this, arguments);
     }
 
     BarycentricMapper.prototype.initialize = function(attrs, options) {
@@ -20838,7 +23605,7 @@ _.setdefault = function(obj, key, value){
     __extends(GridMapper, _super);
 
     function GridMapper() {
-      GridMapper.__super__.constructor.apply(this, arguments);
+      return GridMapper.__super__.constructor.apply(this, arguments);
     }
 
     GridMapper.prototype.map_to_target = function(x, y) {
@@ -20864,8 +23631,8 @@ _.setdefault = function(obj, key, value){
 
     GridMapper.prototype.v_map_from_target = function(xprimes, yprimes) {
       var xs, ys;
-      xs = this.domain_mapper.v_map_from_target(xprimes);
-      ys = this.codomain_mapper.v_map_from_target(yprimes);
+      xs = this.get('domain_mapper').v_map_from_target(xprimes);
+      ys = this.get('codomain_mapper').v_map_from_target(yprimes);
       return [xs, ys];
     };
 
@@ -20888,7 +23655,7 @@ _.setdefault = function(obj, key, value){
     __extends(PolarMapper, _super);
 
     function PolarMapper() {
-      PolarMapper.__super__.constructor.apply(this, arguments);
+      return PolarMapper.__super__.constructor.apply(this, arguments);
     }
 
     PolarMapper.prototype.initialize = function(attrs, options) {
@@ -20922,7 +23689,7 @@ _.setdefault = function(obj, key, value){
     __extends(TernaryMapper, _super);
 
     function TernaryMapper() {
-      TernaryMapper.__super__.constructor.apply(this, arguments);
+      return TernaryMapper.__super__.constructor.apply(this, arguments);
     }
 
     TernaryMapper.prototype.initialize = function(attrs, options) {
@@ -20956,7 +23723,7 @@ _.setdefault = function(obj, key, value){
     __extends(LinearColorMapper, _super);
 
     function LinearColorMapper() {
-      LinearColorMapper.__super__.constructor.apply(this, arguments);
+      return LinearColorMapper.__super__.constructor.apply(this, arguments);
     }
 
     LinearColorMapper.prototype.initialize = function(attrs, options) {
@@ -21080,7 +23847,7 @@ _.setdefault = function(obj, key, value){
     __extends(BoxSelectionOverlayView, _super);
 
     function BoxSelectionOverlayView() {
-      BoxSelectionOverlayView.__super__.constructor.apply(this, arguments);
+      return BoxSelectionOverlayView.__super__.constructor.apply(this, arguments);
     }
 
     BoxSelectionOverlayView.prototype.initialize = function(options) {
@@ -21158,7 +23925,7 @@ _.setdefault = function(obj, key, value){
     __extends(BoxSelectionOverlay, _super);
 
     function BoxSelectionOverlay() {
-      BoxSelectionOverlay.__super__.constructor.apply(this, arguments);
+      return BoxSelectionOverlay.__super__.constructor.apply(this, arguments);
     }
 
     BoxSelectionOverlay.prototype.type = 'BoxSelectionOverlay';
@@ -21181,7 +23948,7 @@ _.setdefault = function(obj, key, value){
     __extends(BoxSelectionOverlays, _super);
 
     function BoxSelectionOverlays() {
-      BoxSelectionOverlays.__super__.constructor.apply(this, arguments);
+      return BoxSelectionOverlays.__super__.constructor.apply(this, arguments);
     }
 
     BoxSelectionOverlays.prototype.model = BoxSelectionOverlay;
@@ -21508,7 +24275,7 @@ _.setdefault = function(obj, key, value){
     __extends(IPythonRemoteData, _super);
 
     function IPythonRemoteData() {
-      IPythonRemoteData.__super__.constructor.apply(this, arguments);
+      return IPythonRemoteData.__super__.constructor.apply(this, arguments);
     }
 
     IPythonRemoteData.prototype.type = 'IPythonRemoteData';
@@ -21534,7 +24301,7 @@ _.setdefault = function(obj, key, value){
     __extends(PandasPlotSource, _super);
 
     function PandasPlotSource() {
-      PandasPlotSource.__super__.constructor.apply(this, arguments);
+      return PandasPlotSource.__super__.constructor.apply(this, arguments);
     }
 
     PandasPlotSource.prototype.type = 'PandasPlotSource';
@@ -21554,7 +24321,7 @@ _.setdefault = function(obj, key, value){
     __extends(PandasPlotSources, _super);
 
     function PandasPlotSources() {
-      PandasPlotSources.__super__.constructor.apply(this, arguments);
+      return PandasPlotSources.__super__.constructor.apply(this, arguments);
     }
 
     PandasPlotSources.prototype.model = PandasPlotSource;
@@ -21569,19 +24336,31 @@ _.setdefault = function(obj, key, value){
 
     function PandasPivotView() {
       this.colors = __bind(this.colors, this);
+
       this.pandasend = __bind(this.pandasend, this);
+
       this.pandasnext = __bind(this.pandasnext, this);
+
       this.pandasback = __bind(this.pandasback, this);
+
       this.pandasbeginning = __bind(this.pandasbeginning, this);
+
       this.toggle_more_controls = __bind(this.toggle_more_controls, this);
+
       this.sort = __bind(this.sort, this);
+
       this.rowclick = __bind(this.rowclick, this);
+
       this.toggle_filterselected = __bind(this.toggle_filterselected, this);
+
       this.clearselected = __bind(this.clearselected, this);
+
       this.computedtxtbox = __bind(this.computedtxtbox, this);
+
       this.column_del = __bind(this.column_del, this);
+
       this.search = __bind(this.search, this);
-      PandasPivotView.__super__.constructor.apply(this, arguments);
+      return PandasPivotView.__super__.constructor.apply(this, arguments);
     }
 
     PandasPivotView.prototype.template = require("./pandaspivot");
@@ -21618,7 +24397,8 @@ _.setdefault = function(obj, key, value){
       if (e.keyCode === ENTER) {
         code = $(e.currentTarget).val();
         source = this.model.get_obj('source');
-        return source.rpc('search', [code]);
+        source.rpc('search', [code]);
+        return e.preventDefault();
       }
     };
 
@@ -21644,7 +24424,8 @@ _.setdefault = function(obj, key, value){
           name: name,
           code: code
         });
-        return source.rpc('set_computed_columns', [old]);
+        source.rpc('set_computed_columns', [old]);
+        return e.preventDefault();
       }
     };
 
@@ -21733,9 +24514,10 @@ _.setdefault = function(obj, key, value){
         if (_.isNaN(offset)) {
           offset = this.model.defaults.offset;
         }
-        return this.model.save('offset', offset, {
+        this.model.save('offset', offset, {
           wait: true
         });
+        return e.preventDefault();
       }
     };
 
@@ -21750,9 +24532,10 @@ _.setdefault = function(obj, key, value){
         if (size + this.mget('offset') > this.mget('maxlength')) {
           size = this.mget('maxlength') - this.mget('offset');
         }
-        return this.model.save('length', size, {
+        this.model.save('length', size, {
           wait: true
         });
+        return e.preventDefault();
       }
     };
 
@@ -21782,6 +24565,7 @@ _.setdefault = function(obj, key, value){
           offset: 0
         });
         this.model.save();
+        e.preventDefault();
         return false;
       }
     };
@@ -21870,8 +24654,9 @@ _.setdefault = function(obj, key, value){
 
     function PandasPivotTable() {
       this.toggle_column_sort = __bind(this.toggle_column_sort, this);
+
       this.dinitialize = __bind(this.dinitialize, this);
-      PandasPivotTable.__super__.constructor.apply(this, arguments);
+      return PandasPivotTable.__super__.constructor.apply(this, arguments);
     }
 
     PandasPivotTable.prototype.type = 'PandasPivotTable';
@@ -22195,12 +24980,13 @@ _.setdefault = function(obj, key, value){
 
   "Legends:\n\nlegend_padding is the boundary between the legend and the edge of the plot\nlegend_spacing goes between each legend entry and the edge of the legend,\nas well as between 2 adjacent legend entries.  It is also the space between\nthe legend label, and the legend glyph.\n\nA legend in the top right corner looks like this\n\nplotborder\npadding\nlegendborder\nspacing\nlegendborder|spacing|label|spacing|glyph|spacing|legendborder|padding|plotborder\nspacing\nlegendborder|spacing|label|spacing|glyph|spacing|legendborder|padding|plotborder\nspacing\nborder\n";
 
+
   LegendView = (function(_super) {
 
     __extends(LegendView, _super);
 
     function LegendView() {
-      LegendView.__super__.constructor.apply(this, arguments);
+      return LegendView.__super__.constructor.apply(this, arguments);
     }
 
     LegendView.prototype.initialize = function(options) {
@@ -22313,7 +25099,7 @@ _.setdefault = function(obj, key, value){
     __extends(Legend, _super);
 
     function Legend() {
-      Legend.__super__.constructor.apply(this, arguments);
+      return Legend.__super__.constructor.apply(this, arguments);
     }
 
     Legend.prototype.default_view = LegendView;
@@ -22351,7 +25137,7 @@ _.setdefault = function(obj, key, value){
     label_width: 50,
     legend_padding: 10,
     legend_spacing: 3,
-    orientation: "top_left",
+    orientation: "top_right",
     label_text_align: "left",
     label_text_baseline: "middle",
     datapoint: null
@@ -22381,12 +25167,12 @@ _.setdefault = function(obj, key, value){
     __extends(AnnotationRenderers, _super);
 
     function AnnotationRenderers() {
-      AnnotationRenderers.__super__.constructor.apply(this, arguments);
+      return AnnotationRenderers.__super__.constructor.apply(this, arguments);
     }
 
     AnnotationRenderers.prototype.model = function(attrs, options) {
       var model, type, _ref;
-      if (((_ref = attrs.annotationspec) != null ? _ref.type : void 0) == null) {
+      if (!(((_ref = attrs.annotationspec) != null ? _ref.type : void 0) != null)) {
         console.log("missing annotation type");
         return;
       }
@@ -22438,7 +25224,7 @@ _.setdefault = function(obj, key, value){
     __extends(AnnularWedgeView, _super);
 
     function AnnularWedgeView() {
-      AnnularWedgeView.__super__.constructor.apply(this, arguments);
+      return AnnularWedgeView.__super__.constructor.apply(this, arguments);
     }
 
     AnnularWedgeView.prototype.initialize = function(options) {
@@ -22727,7 +25513,7 @@ _.setdefault = function(obj, key, value){
     __extends(AnnularWedge, _super);
 
     function AnnularWedge() {
-      AnnularWedge.__super__.constructor.apply(this, arguments);
+      return AnnularWedge.__super__.constructor.apply(this, arguments);
     }
 
     AnnularWedge.prototype.default_view = AnnularWedgeView;
@@ -22782,7 +25568,7 @@ _.setdefault = function(obj, key, value){
     __extends(AnnulusView, _super);
 
     function AnnulusView() {
-      AnnulusView.__super__.constructor.apply(this, arguments);
+      return AnnulusView.__super__.constructor.apply(this, arguments);
     }
 
     AnnulusView.prototype.initialize = function(options) {
@@ -22989,7 +25775,7 @@ _.setdefault = function(obj, key, value){
     __extends(Annulus, _super);
 
     function Annulus() {
-      Annulus.__super__.constructor.apply(this, arguments);
+      return Annulus.__super__.constructor.apply(this, arguments);
     }
 
     Annulus.prototype.default_view = AnnulusView;
@@ -23041,7 +25827,7 @@ _.setdefault = function(obj, key, value){
     __extends(ArcView, _super);
 
     function ArcView() {
-      ArcView.__super__.constructor.apply(this, arguments);
+      return ArcView.__super__.constructor.apply(this, arguments);
     }
 
     ArcView.prototype.initialize = function(options) {
@@ -23197,7 +25983,7 @@ _.setdefault = function(obj, key, value){
     __extends(Arc, _super);
 
     function Arc() {
-      Arc.__super__.constructor.apply(this, arguments);
+      return Arc.__super__.constructor.apply(this, arguments);
     }
 
     Arc.prototype.default_view = ArcView;
@@ -23248,7 +26034,7 @@ _.setdefault = function(obj, key, value){
     __extends(BezierView, _super);
 
     function BezierView() {
-      BezierView.__super__.constructor.apply(this, arguments);
+      return BezierView.__super__.constructor.apply(this, arguments);
     }
 
     BezierView.prototype.initialize = function(options) {
@@ -23330,7 +26116,7 @@ _.setdefault = function(obj, key, value){
     __extends(Bezier, _super);
 
     function Bezier() {
-      Bezier.__super__.constructor.apply(this, arguments);
+      return Bezier.__super__.constructor.apply(this, arguments);
     }
 
     Bezier.prototype.default_view = BezierView;
@@ -23382,7 +26168,7 @@ _.setdefault = function(obj, key, value){
     __extends(CircleView, _super);
 
     function CircleView() {
-      CircleView.__super__.constructor.apply(this, arguments);
+      return CircleView.__super__.constructor.apply(this, arguments);
     }
 
     CircleView.prototype.initialize = function(options) {
@@ -23395,8 +26181,9 @@ _.setdefault = function(obj, key, value){
       }
       if (this.mget('nonselection_glyphspec')) {
         spec = _.extend({}, this.mget('glyphspec'), this.mget('nonselection_glyphspec'));
-        return this.nonselection_glyphprops = this.init_glyph(spec);
+        this.nonselection_glyphprops = this.init_glyph(spec);
       }
+      return this.have_new_data = false;
     };
 
     CircleView.prototype.init_glyph = function(glyphspec) {
@@ -23406,24 +26193,31 @@ _.setdefault = function(obj, key, value){
     };
 
     CircleView.prototype._set_data = function(data) {
-      var i, _i, _ref, _results;
+      var i, _i, _ref;
       this.data = data;
       this.x = this.glyph_props.v_select('x', data);
       this.y = this.glyph_props.v_select('y', data);
-      this.mask = new Array(data.length - 1);
-      this.selected_mask = new Array(data.length - 1);
-      _results = [];
+      this.mask = new Array(data.length);
+      this.selected_mask = new Array(data.length);
       for (i = _i = 0, _ref = this.mask.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
         this.mask[i] = true;
-        _results.push(this.selected_mask[i] = false);
+        this.selected_mask[i] = false;
       }
-      return _results;
+      return this.have_new_data = true;
     };
 
-    CircleView.prototype._render = function(plot_view) {
+    CircleView.prototype._render = function(plot_view, have_new_mapper_state) {
       var ctx, i, idx, oh, ow, props, selected, _i, _j, _len, _ref, _ref1;
+      if (have_new_mapper_state == null) {
+        have_new_mapper_state = true;
+      }
       _ref = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref[0], this.sy = _ref[1];
-      this.radius = this.distance(this.data, 'x', 'radius', 'edge');
+      ow = this.plot_view.view_state.get('outer_width');
+      oh = this.plot_view.view_state.get('outer_height');
+      if (this.have_new_data || have_new_mapper_state) {
+        this.radius = this.distance(this.data, 'x', 'radius', 'edge');
+        this.have_new_data = false;
+      }
       ow = this.plot_view.view_state.get('outer_width');
       oh = this.plot_view.view_state.get('outer_height');
       for (i = _i = 0, _ref1 = this.mask.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
@@ -23440,8 +26234,18 @@ _.setdefault = function(obj, key, value){
       }
       ctx = this.plot_view.ctx;
       ctx.save();
-      if (this.glyph_props.fast_path) {
-        this._fast_path(ctx);
+      if (false) {
+        if (selected && selected.length && this.nonselection_glyphprops) {
+          if (this.selection_glyphprops) {
+            props = this.selection_glyphprops;
+          } else {
+            props = this.glyph_props;
+          }
+          this._fast_path(ctx, props, true);
+          this._fast_path(ctx, this.nonselection_glyphprops, false);
+        } else {
+          this._fast_path(ctx);
+        }
       } else {
         if (selected && selected.length && this.nonselection_glyphprops) {
           if (this.selection_glyphprops) {
@@ -23449,8 +26253,8 @@ _.setdefault = function(obj, key, value){
           } else {
             props = this.glyph_props;
           }
-          this._full_path(ctx, props, 'selected');
-          this._full_path(ctx, this.nonselection_glyphprops, 'unselected');
+          this._full_path(ctx, props, true);
+          this._full_path(ctx, this.nonselection_glyphprops, false);
         } else {
           this._full_path(ctx);
         }
@@ -23458,29 +26262,43 @@ _.setdefault = function(obj, key, value){
       return ctx.restore();
     };
 
-    CircleView.prototype._fast_path = function(ctx, glyph_props) {
+    CircleView.prototype._fast_path = function(ctx, glyph_props, use_selection) {
       var i, _i, _j, _ref, _ref1, _results;
       if (!glyph_props) {
         glyph_props = this.glyph_props;
       }
       if (glyph_props.fill_properties.do_fill) {
-        this.glyph_props.fill_properties.set(ctx, this.glyph_props);
+        glyph_props.fill_properties.set(ctx, this.glyph_props);
+        ctx.beginPath();
         for (i = _i = 0, _ref = this.sx.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
           if (isNaN(this.sx[i] + this.sy[i] + this.radius[i]) || !this.mask[i]) {
             continue;
           }
-          ctx.beginPath();
+          if (use_selection && !this.selected_mask[i]) {
+            continue;
+          }
+          if (use_selection === false && this.selected_mask[i]) {
+            continue;
+          }
+          ctx.moveTo(this.sx[i], this.sy[i]);
           ctx.arc(this.sx[i], this.sy[i], this.radius[i], 0, 2 * Math.PI, false);
-          ctx.fill();
         }
+        ctx.fill();
       }
       if (glyph_props.line_properties.do_stroke) {
-        this.glyph_props.line_properties.set(ctx, this.glyph_props);
+        glyph_props.line_properties.set(ctx, this.glyph_props);
         _results = [];
         for (i = _j = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
           if (isNaN(this.sx[i] + this.sy[i] + this.radius[i]) || !this.mask[i]) {
             continue;
           }
+          if (use_selection && !this.selected_mask[i]) {
+            continue;
+          }
+          if (use_selection === false && this.selected_mask[i]) {
+            continue;
+          }
+          ctx.moveTo(this.sx[i], this.sy[i]);
           ctx.beginPath();
           ctx.arc(this.sx[i], this.sy[i], this.radius[i], 0, 2 * Math.PI, false);
           _results.push(ctx.stroke());
@@ -23499,10 +26317,10 @@ _.setdefault = function(obj, key, value){
         if (isNaN(this.sx[i] + this.sy[i] + this.radius[i]) || !this.mask[i]) {
           continue;
         }
-        if (use_selection === 'selected' && !this.selected_mask[i]) {
+        if (use_selection && !this.selected_mask[i]) {
           continue;
         }
-        if (use_selection === 'unselected' && this.selected_mask[i]) {
+        if (use_selection === false && this.selected_mask[i]) {
           continue;
         }
         ctx.beginPath();
@@ -23556,6 +26374,7 @@ _.setdefault = function(obj, key, value){
         data_r = this.distance([reference_point], 'x', 'radius', 'edge')[0];
       } else {
         glyph_settings = glyph_props;
+        data_r = glyph_props.select('radius', glyph_props)["default"];
       }
       border = line_props.select(line_props.line_width_name, glyph_settings);
       ctx.beginPath();
@@ -23582,7 +26401,7 @@ _.setdefault = function(obj, key, value){
     __extends(Circle, _super);
 
     function Circle() {
-      Circle.__super__.constructor.apply(this, arguments);
+      return Circle.__super__.constructor.apply(this, arguments);
     }
 
     Circle.prototype.default_view = CircleView;
@@ -23630,7 +26449,7 @@ _.setdefault = function(obj, key, value){
     __extends(GlyphView, _super);
 
     function GlyphView() {
-      GlyphView.__super__.constructor.apply(this, arguments);
+      return GlyphView.__super__.constructor.apply(this, arguments);
     }
 
     GlyphView.prototype.initialize = function(options) {
@@ -23659,12 +26478,15 @@ _.setdefault = function(obj, key, value){
       }
     };
 
-    GlyphView.prototype.render = function() {
+    GlyphView.prototype.render = function(have_new_mapper_state) {
+      if (have_new_mapper_state == null) {
+        have_new_mapper_state = true;
+      }
       if (this.need_set_data) {
         this.set_data(false);
         this.need_set_data = false;
       }
-      return this._render();
+      return this._render(this.plot_view, have_new_mapper_state);
     };
 
     GlyphView.prototype.select = function() {
@@ -23715,15 +26537,7 @@ _.setdefault = function(obj, key, value){
           }
           return _results;
         })();
-        ptc = (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = data.length; _i < _len; _i++) {
-            x = data[_i];
-            _results.push(this.glyph_props.select(pt, x));
-          }
-          return _results;
-        }).call(this);
+        ptc = this.glyph_props.v_select(pt, data);
         if (pt_units === 'screen') {
           ptc = mapper.v_map_from_target(ptc);
         }
@@ -23744,15 +26558,7 @@ _.setdefault = function(obj, key, value){
           return _results;
         })();
       } else {
-        pt0 = (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = data.length; _i < _len; _i++) {
-            x = data[_i];
-            _results.push(this.glyph_props.select(pt, x));
-          }
-          return _results;
-        }).call(this);
+        pt0 = this.glyph_props.v_select(pt, data);
         if (pt_units === 'screen') {
           pt0 = mapper.v_map_from_target(pt0);
         }
@@ -23798,7 +26604,7 @@ _.setdefault = function(obj, key, value){
     __extends(Glyph, _super);
 
     function Glyph() {
-      Glyph.__super__.constructor.apply(this, arguments);
+      return Glyph.__super__.constructor.apply(this, arguments);
     }
 
     return Glyph;
@@ -23851,7 +26657,7 @@ _.setdefault = function(obj, key, value){
     __extends(ImageView, _super);
 
     function ImageView() {
-      ImageView.__super__.constructor.apply(this, arguments);
+      return ImageView.__super__.constructor.apply(this, arguments);
     }
 
     ImageView.prototype.initialize = function(options) {
@@ -23937,7 +26743,7 @@ _.setdefault = function(obj, key, value){
     __extends(ImageGlyph, _super);
 
     function ImageGlyph() {
-      ImageGlyph.__super__.constructor.apply(this, arguments);
+      return ImageGlyph.__super__.constructor.apply(this, arguments);
     }
 
     ImageGlyph.prototype.default_view = ImageView;
@@ -23979,7 +26785,7 @@ _.setdefault = function(obj, key, value){
     __extends(ImageRGBAView, _super);
 
     function ImageRGBAView() {
-      ImageRGBAView.__super__.constructor.apply(this, arguments);
+      return ImageRGBAView.__super__.constructor.apply(this, arguments);
     }
 
     ImageRGBAView.prototype.initialize = function(options) {
@@ -24009,15 +26815,15 @@ _.setdefault = function(obj, key, value){
         }
         return _results;
       }).call(this);
-      if ((this.image_data == null) || this.image_data.length !== data.length) {
+      if (!(this.image_data != null) || this.image_data.length !== data.length) {
         this.image_data = new Array(data.length);
       }
-      if ((this.image_canvas == null) || this.image_canvas.length !== data.length) {
+      if (!(this.image_canvas != null) || this.image_canvas.length !== data.length) {
         this.image_canvas = new Array(data.length);
       }
       _results = [];
       for (i = _j = 0, _ref1 = data.length - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
-        if ((this.image_canvas[i] == null) || (this.image_canvas[i].width !== width[i] || this.image_canvas[i].height !== height[i])) {
+        if (!(this.image_canvas[i] != null) || (this.image_canvas[i].width !== width[i] || this.image_canvas[i].height !== height[i])) {
           this.image_canvas[i] = document.createElement('canvas');
           this.image_canvas[i].width = width[i];
           this.image_canvas[i].height = height[i];
@@ -24066,7 +26872,7 @@ _.setdefault = function(obj, key, value){
     __extends(ImageRGBAGlyph, _super);
 
     function ImageRGBAGlyph() {
-      ImageRGBAGlyph.__super__.constructor.apply(this, arguments);
+      return ImageRGBAGlyph.__super__.constructor.apply(this, arguments);
     }
 
     ImageRGBAGlyph.prototype.default_view = ImageRGBAView;
@@ -24108,7 +26914,7 @@ _.setdefault = function(obj, key, value){
     __extends(ImageURIView, _super);
 
     function ImageURIView() {
-      ImageURIView.__super__.constructor.apply(this, arguments);
+      return ImageURIView.__super__.constructor.apply(this, arguments);
     }
 
     ImageURIView.prototype.initialize = function(options) {
@@ -24119,11 +26925,11 @@ _.setdefault = function(obj, key, value){
     };
 
     ImageURIView.prototype._set_data = function(data) {
-      var obj;
+      var img, obj;
       this.data = data;
       this.x = this.glyph_props.v_select('x', data);
       this.y = this.glyph_props.v_select('y', data);
-      this.image = (function() {
+      this.url = (function() {
         var _i, _len, _results;
         _results = [];
         for (_i = 0, _len = data.length; _i < _len; _i++) {
@@ -24132,7 +26938,7 @@ _.setdefault = function(obj, key, value){
         }
         return _results;
       }).call(this);
-      return this.angle = (function() {
+      this.angle = (function() {
         var _i, _len, _results;
         _results = [];
         for (_i = 0, _len = data.length; _i < _len; _i++) {
@@ -24141,35 +26947,82 @@ _.setdefault = function(obj, key, value){
         }
         return _results;
       }).call(this);
+      this.image = (function() {
+        var _i, _len, _ref, _results;
+        _ref = this.url;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          img = _ref[_i];
+          _results.push(null);
+        }
+        return _results;
+      }).call(this);
+      this.need_load = (function() {
+        var _i, _len, _ref, _results;
+        _ref = this.url;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          img = _ref[_i];
+          _results.push(true);
+        }
+        return _results;
+      }).call(this);
+      return this.loaded = (function() {
+        var _i, _len, _ref, _results;
+        _ref = this.url;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          img = _ref[_i];
+          _results.push(false);
+        }
+        return _results;
+      }).call(this);
     };
 
     ImageURIView.prototype._render = function() {
-      var ctx, i, img, _i, _ref, _ref1,
+      var ctx, i, img, vs, _i, _ref, _ref1,
         _this = this;
       _ref = this.plot_view.map_to_screen(this.x, this.glyph_props.x.units, this.y, this.glyph_props.y.units), this.sx = _ref[0], this.sy = _ref[1];
       ctx = this.plot_view.ctx;
+      vs = this.plot_view.view_state;
       ctx.save();
       for (i = _i = 0, _ref1 = this.sx.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
         if (isNaN(this.sx[i] + this.sy[i] + this.angle[i])) {
           continue;
         }
-        img = new Image();
-        img.onload = (function(img, i) {
-          return function() {
-            if (_this.angle[i]) {
-              ctx.translate(_this.sx[i], _this.sy[i]);
-              ctx.rotate(_this.angle[i]);
-              ctx.drawImage(img, 0, 0);
-              ctx.rotate(-_this.angle[i]);
-              return ctx.translate(-_this.sx[i], -_this.sy[i]);
-            } else {
-              return ctx.drawImage(img, _this.sx[i], _this.sy[i]);
-            }
-          };
-        })(img, i);
-        img.src = this.image[i];
+        if (this.need_load[i]) {
+          img = new Image();
+          img.onload = (function(img, i) {
+            return function() {
+              _this.loaded[i] = true;
+              _this.image[i] = img;
+              ctx.save();
+              ctx.beginPath();
+              ctx.rect(vs.get('border_left') + 1, vs.get('border_top') + 1, vs.get('inner_width') - 2, vs.get('inner_height') - 2);
+              ctx.clip();
+              _this._render_image(ctx, vs, i, img);
+              return ctx.restore();
+            };
+          })(img, i);
+          img.src = this.url[i];
+          this.need_load[i] = false;
+        } else if (this.loaded[i]) {
+          this._render_image(ctx, vs, i, this.image[i]);
+        }
       }
       return ctx.restore();
+    };
+
+    ImageURIView.prototype._render_image = function(ctx, vs, i, img) {
+      if (this.angle[i]) {
+        ctx.translate(this.sx[i], this.sy[i]);
+        ctx.rotate(this.angle[i]);
+        ctx.drawImage(img, 0, 0);
+        ctx.rotate(-this.angle[i]);
+        return ctx.translate(-this.sx[i], -this.sy[i]);
+      } else {
+        return ctx.drawImage(img, this.sx[i], this.sy[i]);
+      }
     };
 
     return ImageURIView;
@@ -24181,7 +27034,7 @@ _.setdefault = function(obj, key, value){
     __extends(ImageURIGlyph, _super);
 
     function ImageURIGlyph() {
-      ImageURIGlyph.__super__.constructor.apply(this, arguments);
+      return ImageURIGlyph.__super__.constructor.apply(this, arguments);
     }
 
     ImageURIGlyph.prototype.default_view = ImageURIView;
@@ -24225,7 +27078,7 @@ _.setdefault = function(obj, key, value){
     __extends(LineView, _super);
 
     function LineView() {
-      LineView.__super__.constructor.apply(this, arguments);
+      return LineView.__super__.constructor.apply(this, arguments);
     }
 
     LineView.prototype.initialize = function(options) {
@@ -24373,7 +27226,7 @@ _.setdefault = function(obj, key, value){
     __extends(Line, _super);
 
     function Line() {
-      Line.__super__.constructor.apply(this, arguments);
+      return Line.__super__.constructor.apply(this, arguments);
     }
 
     Line.prototype.default_view = LineView;
@@ -24423,7 +27276,7 @@ _.setdefault = function(obj, key, value){
     __extends(MultiLineView, _super);
 
     function MultiLineView() {
-      MultiLineView.__super__.constructor.apply(this, arguments);
+      return MultiLineView.__super__.constructor.apply(this, arguments);
     }
 
     MultiLineView.prototype.initialize = function(options) {
@@ -24538,7 +27391,7 @@ _.setdefault = function(obj, key, value){
     __extends(MultiLine, _super);
 
     function MultiLine() {
-      MultiLine.__super__.constructor.apply(this, arguments);
+      return MultiLine.__super__.constructor.apply(this, arguments);
     }
 
     MultiLine.prototype.default_view = MultiLineView;
@@ -24590,7 +27443,7 @@ _.setdefault = function(obj, key, value){
     __extends(OvalView, _super);
 
     function OvalView() {
-      OvalView.__super__.constructor.apply(this, arguments);
+      return OvalView.__super__.constructor.apply(this, arguments);
     }
 
     OvalView.prototype.initialize = function(options) {
@@ -24826,7 +27679,7 @@ _.setdefault = function(obj, key, value){
     __extends(Oval, _super);
 
     function Oval() {
-      Oval.__super__.constructor.apply(this, arguments);
+      return Oval.__super__.constructor.apply(this, arguments);
     }
 
     Oval.prototype.default_view = OvalView;
@@ -24881,7 +27734,7 @@ _.setdefault = function(obj, key, value){
     __extends(PatchView, _super);
 
     function PatchView() {
-      PatchView.__super__.constructor.apply(this, arguments);
+      return PatchView.__super__.constructor.apply(this, arguments);
     }
 
     PatchView.prototype.initialize = function(options) {
@@ -24954,7 +27807,7 @@ _.setdefault = function(obj, key, value){
     __extends(Patch, _super);
 
     function Patch() {
-      Patch.__super__.constructor.apply(this, arguments);
+      return Patch.__super__.constructor.apply(this, arguments);
     }
 
     Patch.prototype.default_view = PatchView;
@@ -25008,7 +27861,7 @@ _.setdefault = function(obj, key, value){
     __extends(PatchesView, _super);
 
     function PatchesView() {
-      PatchesView.__super__.constructor.apply(this, arguments);
+      return PatchesView.__super__.constructor.apply(this, arguments);
     }
 
     PatchesView.prototype.initialize = function(options) {
@@ -25085,7 +27938,7 @@ _.setdefault = function(obj, key, value){
     __extends(Patches, _super);
 
     function Patches() {
-      Patches.__super__.constructor.apply(this, arguments);
+      return Patches.__super__.constructor.apply(this, arguments);
     }
 
     Patches.prototype.default_view = PatchesView;
@@ -25139,7 +27992,7 @@ _.setdefault = function(obj, key, value){
     __extends(QuadView, _super);
 
     function QuadView() {
-      QuadView.__super__.constructor.apply(this, arguments);
+      return QuadView.__super__.constructor.apply(this, arguments);
     }
 
     QuadView.prototype.initialize = function(options) {
@@ -25158,7 +28011,7 @@ _.setdefault = function(obj, key, value){
       this.top = this.glyph_props.v_select('top', data);
       this.right = this.glyph_props.v_select('right', data);
       this.bottom = this.glyph_props.v_select('bottom', data);
-      this.mask = new Array(data.length - 1);
+      this.mask = new Array(data.length);
       _results = [];
       for (i = _i = 0, _ref = this.mask.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
         _results.push(this.mask[i] = true);
@@ -25290,7 +28143,7 @@ _.setdefault = function(obj, key, value){
     __extends(Quad, _super);
 
     function Quad() {
-      Quad.__super__.constructor.apply(this, arguments);
+      return Quad.__super__.constructor.apply(this, arguments);
     }
 
     Quad.prototype.default_view = QuadView;
@@ -25342,7 +28195,7 @@ _.setdefault = function(obj, key, value){
     __extends(QuadcurveView, _super);
 
     function QuadcurveView() {
-      QuadcurveView.__super__.constructor.apply(this, arguments);
+      return QuadcurveView.__super__.constructor.apply(this, arguments);
     }
 
     QuadcurveView.prototype.initialize = function(options) {
@@ -25421,7 +28274,7 @@ _.setdefault = function(obj, key, value){
     __extends(Quadcurve, _super);
 
     function Quadcurve() {
-      Quadcurve.__super__.constructor.apply(this, arguments);
+      return Quadcurve.__super__.constructor.apply(this, arguments);
     }
 
     Quadcurve.prototype.default_view = QuadcurveView;
@@ -25471,7 +28324,7 @@ _.setdefault = function(obj, key, value){
     __extends(RayView, _super);
 
     function RayView() {
-      RayView.__super__.constructor.apply(this, arguments);
+      return RayView.__super__.constructor.apply(this, arguments);
     }
 
     RayView.prototype.initialize = function(options) {
@@ -25607,7 +28460,7 @@ _.setdefault = function(obj, key, value){
     __extends(Ray, _super);
 
     function Ray() {
-      Ray.__super__.constructor.apply(this, arguments);
+      return Ray.__super__.constructor.apply(this, arguments);
     }
 
     Ray.prototype.default_view = RayView;
@@ -25659,7 +28512,7 @@ _.setdefault = function(obj, key, value){
     __extends(RectView, _super);
 
     function RectView() {
-      RectView.__super__.constructor.apply(this, arguments);
+      return RectView.__super__.constructor.apply(this, arguments);
     }
 
     RectView.prototype.initialize = function(options) {
@@ -25896,7 +28749,7 @@ _.setdefault = function(obj, key, value){
     __extends(Rect, _super);
 
     function Rect() {
-      Rect.__super__.constructor.apply(this, arguments);
+      return Rect.__super__.constructor.apply(this, arguments);
     }
 
     Rect.prototype.default_view = RectView;
@@ -25949,7 +28802,7 @@ _.setdefault = function(obj, key, value){
     __extends(SegmentView, _super);
 
     function SegmentView() {
-      SegmentView.__super__.constructor.apply(this, arguments);
+      return SegmentView.__super__.constructor.apply(this, arguments);
     }
 
     SegmentView.prototype.initialize = function(options) {
@@ -26044,7 +28897,7 @@ _.setdefault = function(obj, key, value){
     __extends(Segment, _super);
 
     function Segment() {
-      Segment.__super__.constructor.apply(this, arguments);
+      return Segment.__super__.constructor.apply(this, arguments);
     }
 
     Segment.prototype.default_view = SegmentView;
@@ -26098,7 +28951,7 @@ _.setdefault = function(obj, key, value){
     __extends(SquareView, _super);
 
     function SquareView() {
-      SquareView.__super__.constructor.apply(this, arguments);
+      return SquareView.__super__.constructor.apply(this, arguments);
     }
 
     SquareView.prototype.initialize = function(options) {
@@ -26177,7 +29030,7 @@ _.setdefault = function(obj, key, value){
     __extends(Square, _super);
 
     function Square() {
-      Square.__super__.constructor.apply(this, arguments);
+      return Square.__super__.constructor.apply(this, arguments);
     }
 
     Square.prototype.default_view = SquareView;
@@ -26215,7 +29068,7 @@ _.setdefault = function(obj, key, value){
     __extends(TextView, _super);
 
     function TextView() {
-      TextView.__super__.constructor.apply(this, arguments);
+      return TextView.__super__.constructor.apply(this, arguments);
     }
 
     TextView.prototype.initialize = function(options) {
@@ -26330,7 +29183,7 @@ _.setdefault = function(obj, key, value){
     __extends(Text, _super);
 
     function Text() {
-      Text.__super__.constructor.apply(this, arguments);
+      return Text.__super__.constructor.apply(this, arguments);
     }
 
     Text.prototype.default_view = TextView;
@@ -26382,7 +29235,7 @@ _.setdefault = function(obj, key, value){
     __extends(WedgeView, _super);
 
     function WedgeView() {
-      WedgeView.__super__.constructor.apply(this, arguments);
+      return WedgeView.__super__.constructor.apply(this, arguments);
     }
 
     WedgeView.prototype.initialize = function(options) {
@@ -26570,7 +29423,7 @@ _.setdefault = function(obj, key, value){
     __extends(Wedge, _super);
 
     function Wedge() {
-      Wedge.__super__.constructor.apply(this, arguments);
+      return Wedge.__super__.constructor.apply(this, arguments);
     }
 
     Wedge.prototype.default_view = WedgeView;
@@ -26617,12 +29470,12 @@ _.setdefault = function(obj, key, value){
     __extends(GlyphRenderers, _super);
 
     function GlyphRenderers() {
-      GlyphRenderers.__super__.constructor.apply(this, arguments);
+      return GlyphRenderers.__super__.constructor.apply(this, arguments);
     }
 
     GlyphRenderers.prototype.model = function(attrs, options) {
       var model, type, _ref;
-      if (((_ref = attrs.glyphspec) != null ? _ref.type : void 0) == null) {
+      if (!(((_ref = attrs.glyphspec) != null ? _ref.type : void 0) != null)) {
         console.log("missing glyph type");
         return;
       }
@@ -26846,7 +29699,7 @@ _.setdefault = function(obj, key, value){
     __extends(LinearAxisView, _super);
 
     function LinearAxisView() {
-      LinearAxisView.__super__.constructor.apply(this, arguments);
+      return LinearAxisView.__super__.constructor.apply(this, arguments);
     }
 
     LinearAxisView.prototype.initialize = function(attrs, options) {
@@ -26879,8 +29732,8 @@ _.setdefault = function(obj, key, value){
     };
 
     LinearAxisView.prototype._draw_rule = function(ctx) {
-      var i, sx, sy, x, y, _i, _ref, _ref1, _ref2;
-      _ref = this.mget('rule_coords'), x = _ref[0], y = _ref[1];
+      var coords, i, sx, sy, x, y, _i, _ref, _ref1, _ref2;
+      _ref = coords = this.mget('rule_coords'), x = _ref[0], y = _ref[1];
       _ref1 = this.plot_view.map_to_screen(x, "data", y, "data"), sx = _ref1[0], sy = _ref1[1];
       this.rule_props.set(ctx, this);
       ctx.beginPath();
@@ -26892,8 +29745,8 @@ _.setdefault = function(obj, key, value){
     };
 
     LinearAxisView.prototype._draw_major_ticks = function(ctx) {
-      var i, nx, ny, sx, sy, tin, tout, x, y, _i, _ref, _ref1, _ref2, _ref3;
-      _ref = this.mget('major_coords'), x = _ref[0], y = _ref[1];
+      var coords, i, nx, ny, sx, sy, tin, tout, x, y, _i, _ref, _ref1, _ref2, _ref3;
+      _ref = coords = this.mget('major_coords'), x = _ref[0], y = _ref[1];
       _ref1 = this.plot_view.map_to_screen(x, "data", y, "data"), sx = _ref1[0], sy = _ref1[1];
       _ref2 = this.mget('normals'), nx = _ref2[0], ny = _ref2[1];
       tin = this.mget('major_tick_in');
@@ -26941,7 +29794,7 @@ _.setdefault = function(obj, key, value){
     LinearAxisView.prototype._draw_axis_label = function(ctx) {
       var angle, label, nx, ny, orient, side, standoff, sx, sy, x, y, _ref, _ref1, _ref2;
       label = this.mget('axis_label');
-      if (label == null) {
+      if (!(label != null)) {
         return;
       }
       _ref = this.mget('rule_coords'), x = _ref[0], y = _ref[1];
@@ -27027,7 +29880,7 @@ _.setdefault = function(obj, key, value){
       s = Math.sin(angle);
       if (side === "top" || side === "bottom") {
         for (i = _i = 0, _ref = labels.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-          if (labels[i] == null) {
+          if (!(labels[i] != null)) {
             continue;
           }
           w = this.plot_view.ctx.measureText(labels[i]).width * 1.3;
@@ -27039,7 +29892,7 @@ _.setdefault = function(obj, key, value){
         }
       } else {
         for (i = _j = 0, _ref1 = labels.length - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
-          if (labels[i] == null) {
+          if (!(labels[i] != null)) {
             continue;
           }
           w = this.plot_view.ctx.measureText(labels[i]).width * 1.3;
@@ -27081,10 +29934,10 @@ _.setdefault = function(obj, key, value){
     };
 
     LinearAxisView.prototype._padding_request = function() {
-      var loc, padding, req, side;
+      var loc, padding, req, side, _ref;
       req = {};
       side = this.mget('side');
-      loc = this.mget('guidespec').location;
+      loc = (_ref = this.mget('guidespec').location) != null ? _ref : 'min';
       if (!_.isString(loc)) {
         return req;
       }
@@ -27105,7 +29958,7 @@ _.setdefault = function(obj, key, value){
     __extends(LinearAxis, _super);
 
     function LinearAxis() {
-      LinearAxis.__super__.constructor.apply(this, arguments);
+      return LinearAxis.__super__.constructor.apply(this, arguments);
     }
 
     LinearAxis.prototype.default_view = LinearAxisView;
@@ -27116,7 +29969,6 @@ _.setdefault = function(obj, key, value){
       LinearAxis.__super__.initialize.call(this, attrs, options);
       this.register_property('bounds', this._bounds, false);
       this.add_dependencies('bounds', this, ['guidespec']);
-      this.add_dependencies('bounds', this.get_obj('plot'), ['x_range', 'y_range']);
       this.register_property('rule_coords', this._rule_coords, false);
       this.add_dependencies('rule_coords', this, ['bounds', 'dimension', 'location']);
       this.register_property('major_coords', this._major_coords, false);
@@ -27126,6 +29978,10 @@ _.setdefault = function(obj, key, value){
       this.register_property('side', this._side, false);
       this.add_dependencies('side', this, ['normals']);
       return this.register_property('padding_request', this._padding_request, false);
+    };
+
+    LinearAxis.prototype.dinitialize = function(attrs, options) {
+      return this.add_dependencies('bounds', this.get_obj('plot'), ['x_range', 'y_range']);
     };
 
     LinearAxis.prototype._bounds = function() {
@@ -27138,16 +29994,6 @@ _.setdefault = function(obj, key, value){
       if (_.isArray(user_bounds)) {
         start = Math.min(user_bounds[0], user_bounds[1]);
         end = Math.max(user_bounds[0], user_bounds[1]);
-        if (start < range_bounds[0]) {
-          start = range_bounds[0];
-        } else if (start > range_bounds[1]) {
-          start = null;
-        }
-        if (end > range_bounds[1]) {
-          end = range_bounds[1];
-        } else if (end < range_bounds[0]) {
-          end = null;
-        }
       } else {
         start = range_bounds[0], end = range_bounds[1];
       }
@@ -27155,7 +30001,7 @@ _.setdefault = function(obj, key, value){
     };
 
     LinearAxis.prototype._rule_coords = function() {
-      var coords, cross_range, end, i, j, loc, range, ranges, start, xs, ys, _ref;
+      var coords, cross_range, end, i, j, loc, range, range_max, range_min, ranges, start, xs, ys, _ref, _ref1, _ref2;
       i = this.get('guidespec').dimension;
       j = (i + 1) % 2;
       ranges = [this.get_obj('plot').get_obj('x_range'), this.get_obj('plot').get_obj('y_range')];
@@ -27165,7 +30011,7 @@ _.setdefault = function(obj, key, value){
       xs = new Array(2);
       ys = new Array(2);
       coords = [xs, ys];
-      loc = this.get('guidespec').location;
+      loc = (_ref1 = this.get('guidespec').location) != null ? _ref1 : 'min';
       if (_.isString(loc)) {
         if (loc === 'left' || loc === 'bottom') {
           loc = 'start';
@@ -27174,15 +30020,19 @@ _.setdefault = function(obj, key, value){
         }
         loc = cross_range.get(loc);
       }
-      coords[i][0] = start;
-      coords[i][1] = end;
+      _ref2 = [range.get('min'), range.get('max')], range_min = _ref2[0], range_max = _ref2[1];
+      coords[i][0] = Math.max(start, range_min);
+      coords[i][1] = Math.min(end, range_max);
       coords[j][0] = loc;
       coords[j][1] = loc;
+      if (coords[i][0] > coords[i][1]) {
+        coords[i][0] = coords[i][1] = NaN;
+      }
       return coords;
     };
 
     LinearAxis.prototype._major_coords = function() {
-      var coords, cross_range, end, i, ii, interval, j, loc, range, ranges, start, ticks, tmp, xs, ys, _i, _ref, _ref1;
+      var coords, cross_range, end, i, ii, interval, j, loc, range, range_max, range_min, ranges, start, ticks, tmp, xs, ys, _i, _ref, _ref1, _ref2, _ref3;
       i = this.get('guidespec').dimension;
       j = (i + 1) % 2;
       ranges = [this.get_obj('plot').get_obj('x_range'), this.get_obj('plot').get_obj('y_range')];
@@ -27191,10 +30041,9 @@ _.setdefault = function(obj, key, value){
       _ref = this.get('bounds'), start = _ref[0], end = _ref[1];
       tmp = Math.min(start, end);
       end = Math.max(start, end);
-      start = tmp;
       interval = ticking.auto_interval(start, end);
       ticks = ticking.auto_ticks(null, null, start, end, interval);
-      loc = this.get('guidespec').location;
+      loc = (_ref1 = this.get('guidespec').location) != null ? _ref1 : 'min';
       if (_.isString(loc)) {
         if (loc === 'left' || loc === 'bottom') {
           loc = 'start';
@@ -27206,7 +30055,11 @@ _.setdefault = function(obj, key, value){
       xs = [];
       ys = [];
       coords = [xs, ys];
-      for (ii = _i = 0, _ref1 = ticks.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; ii = 0 <= _ref1 ? ++_i : --_i) {
+      _ref2 = [range.get('min'), range.get('max')], range_min = _ref2[0], range_max = _ref2[1];
+      for (ii = _i = 0, _ref3 = ticks.length - 1; 0 <= _ref3 ? _i <= _ref3 : _i >= _ref3; ii = 0 <= _ref3 ? ++_i : --_i) {
+        if (ticks[ii] < range_min || ticks[ii] > range_max) {
+          continue;
+        }
         coords[i].push(ticks[ii]);
         coords[j].push(loc);
       }
@@ -27214,14 +30067,14 @@ _.setdefault = function(obj, key, value){
     };
 
     LinearAxis.prototype._normals = function() {
-      var cend, cross_range, cstart, end, i, j, loc, normals, range, ranges, start, _ref;
+      var cend, cross_range, cstart, end, i, j, loc, normals, range, ranges, start, _ref, _ref1;
       i = this.get('guidespec').dimension;
       j = (i + 1) % 2;
       ranges = [this.get_obj('plot').get_obj('x_range'), this.get_obj('plot').get_obj('y_range')];
       range = ranges[i];
       cross_range = ranges[j];
       _ref = this.get('bounds'), start = _ref[0], end = _ref[1];
-      loc = this.get('guidespec').location;
+      loc = (_ref1 = this.get('guidespec').location) != null ? _ref1 : 'min';
       cstart = cross_range.get('start');
       cend = cross_range.get('end');
       normals = [0, 0];
@@ -27321,7 +30174,7 @@ _.setdefault = function(obj, key, value){
     __extends(LinearAxes, _super);
 
     function LinearAxes() {
-      LinearAxes.__super__.constructor.apply(this, arguments);
+      return LinearAxes.__super__.constructor.apply(this, arguments);
     }
 
     LinearAxes.prototype.model = LinearAxis;
@@ -27361,7 +30214,7 @@ _.setdefault = function(obj, key, value){
     __extends(RuleView, _super);
 
     function RuleView() {
-      RuleView.__super__.constructor.apply(this, arguments);
+      return RuleView.__super__.constructor.apply(this, arguments);
     }
 
     RuleView.prototype.initialize = function(attrs, options) {
@@ -27407,7 +30260,7 @@ _.setdefault = function(obj, key, value){
     __extends(Rule, _super);
 
     function Rule() {
-      Rule.__super__.constructor.apply(this, arguments);
+      return Rule.__super__.constructor.apply(this, arguments);
     }
 
     Rule.prototype.default_view = RuleView;
@@ -27508,7 +30361,7 @@ _.setdefault = function(obj, key, value){
     __extends(Rules, _super);
 
     function Rules() {
-      Rules.__super__.constructor.apply(this, arguments);
+      return Rules.__super__.constructor.apply(this, arguments);
     }
 
     Rules.prototype.model = Rule;
@@ -27540,12 +30393,12 @@ _.setdefault = function(obj, key, value){
     __extends(GuideRenderers, _super);
 
     function GuideRenderers() {
-      GuideRenderers.__super__.constructor.apply(this, arguments);
+      return GuideRenderers.__super__.constructor.apply(this, arguments);
     }
 
     GuideRenderers.prototype.model = function(attrs, options) {
       var model, type, _ref;
-      if (((_ref = attrs.guidespec) != null ? _ref.type : void 0) == null) {
+      if (!(((_ref = attrs.guidespec) != null ? _ref.type : void 0) != null)) {
         console.log("missing guide type");
         return;
       }
@@ -27607,7 +30460,7 @@ _.setdefault = function(obj, key, value){
         };
       } else if (_.isObject(glyph_value)) {
         this[attrname] = glyph_value;
-        if (this[attrname]["default"] == null) {
+        if (!(this[attrname]["default"] != null)) {
           return this[attrname]["default"] = default_value;
         }
       } else {
@@ -27647,10 +30500,10 @@ _.setdefault = function(obj, key, value){
         };
       } else if (_.isObject(glyph_value)) {
         this[attrname] = glyph_value;
-        if (this[attrname]["default"] == null) {
+        if (!(this[attrname]["default"] != null)) {
           this[attrname]["default"] = default_value;
         }
-        if (this[attrname].units == null) {
+        if (!(this[attrname].units != null)) {
           return this[attrname].units = default_units;
         }
       } else {
@@ -27678,7 +30531,7 @@ _.setdefault = function(obj, key, value){
         };
       } else if (_.isObject(glyph_value)) {
         this[attrname] = glyph_value;
-        if (this[attrname]["default"] == null) {
+        if (!(this[attrname]["default"] != null)) {
           return this[attrname]["default"] = default_value;
         }
       } else {
@@ -27718,7 +30571,7 @@ _.setdefault = function(obj, key, value){
         };
       } else if (_.isObject(glyph_value)) {
         this[attrname] = glyph_value;
-        if (this[attrname]["default"] == null) {
+        if (!(this[attrname]["default"] != null)) {
           return this[attrname]["default"] = default_value;
         }
       } else {
@@ -27755,7 +30608,7 @@ _.setdefault = function(obj, key, value){
         }
       } else if (_.isObject(glyph_value)) {
         this[attrname] = glyph_value;
-        if (this[attrname]["default"] == null) {
+        if (!(this[attrname]["default"] != null)) {
           return this[attrname]["default"] = default_value;
         }
       } else {
@@ -27787,7 +30640,6 @@ _.setdefault = function(obj, key, value){
 
     properties.prototype.select = function(attrname, obj) {
       if (!(attrname in this)) {
-        console.log(("requested unknown property '" + attrname + "' on object: ") + obj);
         return;
       }
       if (this[attrname].field != null) {
@@ -27798,7 +30650,7 @@ _.setdefault = function(obj, key, value){
       if (obj[attrname] != null) {
         return obj[attrname];
       }
-      if (this[attrname]["default"] != null) {
+      if ((this[attrname] != null) && 'default' in this[attrname]) {
         return this[attrname]["default"];
       } else {
         return console.log("selection for attribute '" + attrname + "' failed on object: " + obj);
@@ -27808,7 +30660,6 @@ _.setdefault = function(obj, key, value){
     properties.prototype.v_select = function(attrname, objs) {
       var i, obj, result, _i, _ref;
       if (!(attrname in this)) {
-        console.log("requested unknown property '" + attrname + "' on objects");
         return;
       }
       result = new Array(objs.length);
@@ -27921,7 +30772,7 @@ _.setdefault = function(obj, key, value){
 
     text_properties.prototype.font = function(obj, font_size) {
       var font, font_style;
-      if (font_size == null) {
+      if (!(font_size != null)) {
         font_size = this.select(this.text_font_size_name, obj);
       }
       font = this.select(this.text_font_name, obj);
@@ -28199,8 +31050,8 @@ _.setdefault = function(obj, key, value){
       },
       parent: parent
     }, options);
-    _ref = make_range_and_mapper(data_source, [xfield], d3.max([1 / (data_source.get('data').length - 1), 0.1]), plot_model.get_obj('xrange'), false, options), xdr = _ref[0], xmapper = _ref[1];
-    _ref1 = make_range_and_mapper(data_source, [yfield], d3.max([1 / (data_source.get('data').length - 1), 0.1]), plot_model.get_obj('yrange'), false, options), ydr = _ref1[0], ymapper = _ref1[1];
+    _ref = make_range_and_mapper(data_source, [xfield], Math.max([1 / (data_source.get('data').length - 1), 0.1]), plot_model.get_obj('xrange'), false, options), xdr = _ref[0], xmapper = _ref[1];
+    _ref1 = make_range_and_mapper(data_source, [yfield], Math.max([1 / (data_source.get('data').length - 1), 0.1]), plot_model.get_obj('yrange'), false, options), ydr = _ref1[0], ymapper = _ref1[1];
     bar_plot = Collections("BarRenderer").create({
       data_source: data_source.ref(),
       xfield: xfield,
@@ -28405,9 +31256,7 @@ _.setdefault = function(obj, key, value){
       xaxis1 = Collections('GuideRenderer').create({
         guidespec: {
           type: 'linear_axis',
-          dimension: 0,
-          location: 'min',
-          bounds: 'auto'
+          dimension: 0
         },
         axis_label: 'x',
         plot: plot_model.ref()
@@ -28415,9 +31264,7 @@ _.setdefault = function(obj, key, value){
       yaxis1 = Collections('GuideRenderer').create({
         guidespec: {
           type: 'linear_axis',
-          dimension: 1,
-          location: 'min',
-          bounds: 'auto'
+          dimension: 1
         },
         axis_label: 'y',
         plot: plot_model.ref()
@@ -28426,20 +31273,16 @@ _.setdefault = function(obj, key, value){
         guidespec: {
           type: 'linear_axis',
           dimension: 0,
-          location: 'max',
-          bounds: 'auto'
+          location: 'max'
         },
-        axis_label: 'x',
         plot: plot_model.ref()
       });
       yaxis2 = Collections('GuideRenderer').create({
         guidespec: {
           type: 'linear_axis',
           dimension: 1,
-          location: 'max',
-          bounds: 'auto'
+          location: 'max'
         },
-        axis_label: 'y',
         plot: plot_model.ref()
       });
       xrule = Collections('GuideRenderer').create({
@@ -28589,6 +31432,7 @@ _.setdefault = function(obj, key, value){
 
   ActiveToolManager = (function() {
     " This makes sure that only one tool is active at a time ";
+
     function ActiveToolManager(event_sink) {
       this.event_sink = event_sink;
       this.event_sink.active = null;
@@ -28608,7 +31452,7 @@ _.setdefault = function(obj, key, value){
         }
       });
       return this.event_sink.on("try_active_tool", function(toolName) {
-        if (_this.event_sink.active == null) {
+        if (!(_this.event_sink.active != null)) {
           _this.event_sink.trigger("" + toolName + ":activated");
           _this.event_sink.trigger("" + _this.event_sink.active + ":deactivated");
           return _this.event_sink.active = toolName;
@@ -28645,7 +31489,7 @@ _.setdefault = function(obj, key, value){
     __extends(EmbedToolView, _super);
 
     function EmbedToolView() {
-      EmbedToolView.__super__.constructor.apply(this, arguments);
+      return EmbedToolView.__super__.constructor.apply(this, arguments);
     }
 
     EmbedToolView.prototype.initialize = function(options) {
@@ -28671,7 +31515,7 @@ _.setdefault = function(obj, key, value){
       doc_id = this.plot_model.get('doc');
       doc_apikey = this.plot_model.get('docapikey');
       baseurl = this.plot_model.get('baseurl');
-      js_template = "&lt;script src=\"http://localhost:5006/bokeh/embed.js\" bokeh_plottype=\"serverconn\"\nbokeh_docid=\"" + doc_id + "\" bokeh_ws_conn_string=\"ws://localhost:5006/bokeh/sub\"\nbokeh_docapikey=\"" + doc_apikey + "\"\n\nbokeh_root_url=\"" + baseurl + "\"\nbokeh_root_url=\"http://localhost:5006\"\nbokeh_modelid=\"" + model_id + "\" bokeh_modeltype=\"Plot\" async=\"true\"&gt;\n&lt;/script&gt;\n";
+      js_template = "\n&lt;script src=\"http://localhost:5006/bokeh/embed.js\" bokeh_plottype=\"serverconn\"\nbokeh_docid=\"" + doc_id + "\" bokeh_ws_conn_string=\"ws://localhost:5006/bokeh/sub\"\nbokeh_docapikey=\"" + doc_apikey + "\"\n\nbokeh_root_url=\"" + baseurl + "\"\nbokeh_root_url=\"http://localhost:5006\"\nbokeh_modelid=\"" + model_id + "\" bokeh_modeltype=\"Plot\" async=\"true\"&gt;\n&lt;/script&gt;\n";
       script_inject_escaped = this.plot_model.get('script_inject_escaped');
       modal = "<div id=\"embedModal\" class=\"modal\" role=\"dialog\" aria-labelledby=\"embedLabel\" aria-hidden=\"true\">\n  <div class=\"modal-header\">\n    <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-hidden=\"true\">×</button>\n    <h3 id=\"dataConfirmLabel\"> HTML Embed code</h3></div><div class=\"modal-body\">\n  <div class=\"modal-body\">\n    " + script_inject_escaped + "\n  </div>\n  </div><div class=\"modal-footer\">\n    <button class=\"btn\" data-dismiss=\"modal\" aria-hidden=\"true\">Close</button>\n  </div>\n</div>";
       $('body').append(modal);
@@ -28692,7 +31536,7 @@ _.setdefault = function(obj, key, value){
     __extends(EmbedTool, _super);
 
     function EmbedTool() {
-      EmbedTool.__super__.constructor.apply(this, arguments);
+      return EmbedTool.__super__.constructor.apply(this, arguments);
     }
 
     EmbedTool.prototype.type = "EmbedTool";
@@ -28712,7 +31556,7 @@ _.setdefault = function(obj, key, value){
     __extends(EmbedTools, _super);
 
     function EmbedTools() {
-      EmbedTools.__super__.constructor.apply(this, arguments);
+      return EmbedTools.__super__.constructor.apply(this, arguments);
     }
 
     EmbedTools.prototype.model = EmbedTool;
@@ -28955,13 +31799,11 @@ _.setdefault = function(obj, key, value){
         _this.tool_active = false;
         _this.button_activated = false;
         _this.$tool_button.removeClass('active');
-        restore_scroll(_this.plotview.$el[0]);
         return document.body.style.overflow = _this.old_overflow;
       });
       eventSink.on("" + toolName + ":activated", function() {
         _this.tool_active = true;
-        _this.$tool_button.addClass('active');
-        return no_scroll(_this.plotview.$el[0]);
+        return _this.$tool_button.addClass('active');
       });
       return eventSink;
     };
@@ -29024,13 +31866,11 @@ _.setdefault = function(obj, key, value){
         _this.tool_active = false;
         _this.button_activated = false;
         _this.$tool_button.removeClass('active');
-        restore_scroll(_this.plotview.$el[0]);
         return document.body.style.overflow = _this.old_overflow;
       });
       eventSink.on("" + toolName + ":activated", function() {
         _this.tool_active = true;
-        _this.$tool_button.addClass('active');
-        return no_scroll(_this.plotview.$el[0]);
+        return _this.$tool_button.addClass('active');
       });
       return eventSink;
     };
@@ -29070,7 +31910,7 @@ _.setdefault = function(obj, key, value){
 
     function PanToolView() {
       this.build_mappers = __bind(this.build_mappers, this);
-      PanToolView.__super__.constructor.apply(this, arguments);
+      return PanToolView.__super__.constructor.apply(this, arguments);
     }
 
     PanToolView.prototype.initialize = function(options) {
@@ -29132,8 +31972,7 @@ _.setdefault = function(obj, key, value){
     };
 
     PanToolView.prototype._drag = function(e) {
-      var sx_high, sx_low, sy_high, sy_low, x, xdiff, xend, xr, xstart, y, ydiff, yend, yr, ystart, _ref, _ref1;
-      this.plot_view.pause();
+      var pan_info, sx_high, sx_low, sy_high, sy_low, x, xdiff, xend, xr, xstart, y, ydiff, yend, yr, ystart, _ref, _ref1;
       _ref = this.mouse_coords(e, e.bokehX, e.bokehY), x = _ref[0], y = _ref[1];
       xdiff = x - this.x;
       ydiff = y - this.y;
@@ -29148,15 +31987,19 @@ _.setdefault = function(obj, key, value){
       xend = this.plot_view.xmapper.map_from_target(sx_high);
       ystart = this.plot_view.ymapper.map_from_target(sy_low);
       yend = this.plot_view.ymapper.map_from_target(sy_high);
-      this.plot_view.x_range.set({
-        start: xstart,
-        end: xend
-      });
-      this.plot_view.y_range.set({
-        start: ystart,
-        end: yend
-      });
-      this.plot_view.unpause();
+      pan_info = {
+        xr: {
+          start: xstart,
+          end: xend
+        },
+        yr: {
+          start: ystart,
+          end: yend
+        },
+        sdx: -xdiff,
+        sdy: ydiff
+      };
+      this.plot_view.update_range(pan_info);
       return null;
     };
 
@@ -29169,7 +32012,7 @@ _.setdefault = function(obj, key, value){
     __extends(PanTool, _super);
 
     function PanTool() {
-      PanTool.__super__.constructor.apply(this, arguments);
+      return PanTool.__super__.constructor.apply(this, arguments);
     }
 
     PanTool.prototype.type = "PanTool";
@@ -29192,7 +32035,7 @@ _.setdefault = function(obj, key, value){
     __extends(PanTools, _super);
 
     function PanTools() {
-      PanTools.__super__.constructor.apply(this, arguments);
+      return PanTools.__super__.constructor.apply(this, arguments);
     }
 
     PanTools.prototype.model = PanTool;
@@ -29224,12 +32067,11 @@ _.setdefault = function(obj, key, value){
     __extends(PreviewSaveToolView, _super);
 
     function PreviewSaveToolView() {
-      PreviewSaveToolView.__super__.constructor.apply(this, arguments);
+      return PreviewSaveToolView.__super__.constructor.apply(this, arguments);
     }
 
     PreviewSaveToolView.prototype.initialize = function(options) {
-      PreviewSaveToolView.__super__.initialize.call(this, options);
-      return console.log("png", this.plot_model.get('png'));
+      return PreviewSaveToolView.__super__.initialize.call(this, options);
     };
 
     PreviewSaveToolView.prototype.eventGeneratorClass = ButtonEventGenerator;
@@ -29267,7 +32109,7 @@ _.setdefault = function(obj, key, value){
     __extends(PreviewSaveTool, _super);
 
     function PreviewSaveTool() {
-      PreviewSaveTool.__super__.constructor.apply(this, arguments);
+      return PreviewSaveTool.__super__.constructor.apply(this, arguments);
     }
 
     PreviewSaveTool.prototype.type = "PreviewSaveTool";
@@ -29287,7 +32129,7 @@ _.setdefault = function(obj, key, value){
     __extends(PreviewSaveTools, _super);
 
     function PreviewSaveTools() {
-      PreviewSaveTools.__super__.constructor.apply(this, arguments);
+      return PreviewSaveTools.__super__.constructor.apply(this, arguments);
     }
 
     PreviewSaveTools.prototype.model = PreviewSaveTool;
@@ -29321,7 +32163,7 @@ _.setdefault = function(obj, key, value){
     __extends(ResizeToolView, _super);
 
     function ResizeToolView() {
-      ResizeToolView.__super__.constructor.apply(this, arguments);
+      return ResizeToolView.__super__.constructor.apply(this, arguments);
     }
 
     ResizeToolView.prototype.initialize = function(options) {
@@ -29378,9 +32220,9 @@ _.setdefault = function(obj, key, value){
     ResizeToolView.prototype._activate = function(e) {
       var bbar, ch, cw;
       this.active = true;
-      this.popup = $('<div class="resize_popup pull-right" style="border-radius: 10px; background-color: lightgrey; padding:3px 8px"></div>');
+      this.popup = $('<div class="resize_popup pull-right" style="border-radius: 10px; background-color: lightgrey; padding:3px 8px; font-size: 14px"></div>');
       bbar = this.plot_view.$el.find('.button_bar');
-      bbar.append(this.popup);
+      this.popup.appendTo(bbar);
       ch = this.plot_view.view_state.get('outer_height');
       cw = this.plot_view.view_state.get('outer_width');
       this.popup.text("width: " + cw + " height: " + ch);
@@ -29441,7 +32283,7 @@ _.setdefault = function(obj, key, value){
     __extends(ResizeTool, _super);
 
     function ResizeTool() {
-      ResizeTool.__super__.constructor.apply(this, arguments);
+      return ResizeTool.__super__.constructor.apply(this, arguments);
     }
 
     ResizeTool.prototype.type = "ResizeTool";
@@ -29465,7 +32307,7 @@ _.setdefault = function(obj, key, value){
     __extends(ResizeTools, _super);
 
     function ResizeTools() {
-      ResizeTools.__super__.constructor.apply(this, arguments);
+      return ResizeTools.__super__.constructor.apply(this, arguments);
     }
 
     ResizeTools.prototype.model = ResizeTool;
@@ -29480,7 +32322,7 @@ _.setdefault = function(obj, key, value){
 
 }).call(this);
 }, "tools/select_tool": function(exports, require, module) {(function() {
-  var LinearMapper, SelectionTool, SelectionToolView, SelectionTools, TwoPointEventGenerator, base, eventgenerators, safebind, tool,
+  var DataRangeBoxSelectionTool, DataRangeBoxSelectionToolView, LinearMapper, SelectionTool, SelectionToolView, SelectionTools, TwoPointEventGenerator, base, coll, eventgenerators, safebind, tool,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -29501,7 +32343,7 @@ _.setdefault = function(obj, key, value){
     __extends(SelectionToolView, _super);
 
     function SelectionToolView() {
-      SelectionToolView.__super__.constructor.apply(this, arguments);
+      return SelectionToolView.__super__.constructor.apply(this, arguments);
     }
 
     SelectionToolView.prototype.initialize = function(options) {
@@ -29524,7 +32366,6 @@ _.setdefault = function(obj, key, value){
         this.listenTo(rendererview.xrange(), 'change', this.select_callback);
         this.listenTo(rendererview.yrange(), 'change', this.select_callback);
         this.listenTo(renderer, 'change', this.select_callback);
-        this.listenTo(renderer.get_obj('data_source'), 'change', this.select_callback);
         _results.push(this.listenTo(renderer, 'change', this.select_callback));
       }
       return _results;
@@ -29648,8 +32489,11 @@ _.setdefault = function(obj, key, value){
         v = datasource_selections[k];
         selected = _.intersection.apply(_, v);
         ds = datasources[k];
-        ds.set('selected', selected);
-        ds.save();
+        ds.save({
+          selected: selected
+        }, {
+          patch: true
+        });
       }
       return null;
     };
@@ -29663,7 +32507,7 @@ _.setdefault = function(obj, key, value){
     __extends(SelectionTool, _super);
 
     function SelectionTool() {
-      SelectionTool.__super__.constructor.apply(this, arguments);
+      return SelectionTool.__super__.constructor.apply(this, arguments);
     }
 
     SelectionTool.prototype.type = "SelectionTool";
@@ -29688,7 +32532,7 @@ _.setdefault = function(obj, key, value){
     __extends(SelectionTools, _super);
 
     function SelectionTools() {
-      SelectionTools.__super__.constructor.apply(this, arguments);
+      return SelectionTools.__super__.constructor.apply(this, arguments);
     }
 
     SelectionTools.prototype.model = SelectionTool;
@@ -29700,6 +32544,212 @@ _.setdefault = function(obj, key, value){
   exports.SelectionToolView = SelectionToolView;
 
   exports.selectiontools = new SelectionTools;
+
+  DataRangeBoxSelectionToolView = (function(_super) {
+
+    __extends(DataRangeBoxSelectionToolView, _super);
+
+    function DataRangeBoxSelectionToolView() {
+      return DataRangeBoxSelectionToolView.__super__.constructor.apply(this, arguments);
+    }
+
+    DataRangeBoxSelectionToolView.prototype.bind_bokeh_events = function() {
+      return tool.ToolView.prototype.bind_bokeh_events.call(this);
+    };
+
+    DataRangeBoxSelectionToolView.prototype._select_data = function() {
+      var xend, xstart, yend, ystart, _ref, _ref1;
+      _ref = this.plot_view.mapper.map_from_target(this.xrange[0], this.yrange[0]), xstart = _ref[0], ystart = _ref[1];
+      _ref1 = this.plot_view.mapper.map_from_target(this.xrange[1], this.yrange[1]), xend = _ref1[0], yend = _ref1[1];
+      this.mset('xselect', [xstart, xend]);
+      this.mset('yselect', [ystart, yend]);
+      return this.model.save();
+    };
+
+    return DataRangeBoxSelectionToolView;
+
+  })(SelectionToolView);
+
+  DataRangeBoxSelectionTool = (function(_super) {
+
+    __extends(DataRangeBoxSelectionTool, _super);
+
+    function DataRangeBoxSelectionTool() {
+      return DataRangeBoxSelectionTool.__super__.constructor.apply(this, arguments);
+    }
+
+    DataRangeBoxSelectionTool.prototype.type = "DataRangeBoxSelectionTool";
+
+    DataRangeBoxSelectionTool.prototype.default_view = DataRangeBoxSelectionToolView;
+
+    return DataRangeBoxSelectionTool;
+
+  })(SelectionTool);
+
+  DataRangeBoxSelectionTool.prototype.defaults = _.clone(DataRangeBoxSelectionTool.prototype.defaults);
+
+  coll = Backbone.Collection.extend({
+    model: DataRangeBoxSelectionTool
+  });
+
+  exports.datarangeboxselectiontools = new coll();
+
+}).call(this);
+}, "tools/slider": function(exports, require, module) {(function() {
+  var DataSlider, DataSliderView, HasParent, PlotWidget, coll,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  PlotWidget = require('../common/plot_widget').PlotWidget;
+
+  HasParent = require("../base").HasParent;
+
+  DataSliderView = (function(_super) {
+
+    __extends(DataSliderView, _super);
+
+    function DataSliderView() {
+      return DataSliderView.__super__.constructor.apply(this, arguments);
+    }
+
+    DataSliderView.prototype.attributes = {
+      "class": "dataslider pull-left"
+    };
+
+    DataSliderView.prototype.initialize = function(options) {
+      DataSliderView.__super__.initialize.call(this, options);
+      this.render_init();
+      return this.select = _.throttle(this._select, 50);
+    };
+
+    DataSliderView.prototype.delegateEvents = function(events) {
+      DataSliderView.__super__.delegateEvents.call(this, events);
+      return "pass";
+    };
+
+    DataSliderView.prototype.label = function(min, max) {
+      this.$(".minlabel").text(min);
+      return this.$(".maxlabel").text(max);
+    };
+
+    DataSliderView.prototype.render_init = function() {
+      var column, max, min, _ref,
+        _this = this;
+      this.$el.html("");
+      this.$el.append("<div class='maxlabel'></div>");
+      this.$el.append("<div class='slider'></div>");
+      this.$el.append("<div class='minlabel'></div>");
+      this.plot_view.$(".plotarea").append(this.$el);
+      column = this.mget_obj('data_source').getcolumn(this.mget('field'));
+      _ref = [_.min(column), _.max(column)], min = _ref[0], max = _ref[1];
+      this.$el.find(".slider").slider({
+        orientation: "vertical",
+        animate: "fast",
+        step: (max - min) / 50.0,
+        min: min,
+        max: max,
+        values: [min, max],
+        slide: function(event, ui) {
+          _this.set_selection_range(event, ui);
+          return _this.select(event, ui);
+        }
+      });
+      this.label(min, max);
+      return this.$el.find(".slider").height(this.plot_view.view_state.get('inner_height'));
+    };
+
+    DataSliderView.prototype.set_selection_range = function(event, ui) {
+      var data_source, field, max, min;
+      min = _.min(ui.values);
+      max = _.max(ui.values);
+      this.label(min, max);
+      data_source = this.mget_obj('data_source');
+      field = this.mget('field');
+      if (!(data_source.range_selections != null)) {
+        data_source.range_selections = {};
+      }
+      return data_source.range_selections[field] = [min, max];
+    };
+
+    DataSliderView.prototype._select = function() {
+      var colname, columns, data_source, i, max, min, numrows, select, selected, val, value, _i, _ref, _ref1;
+      data_source = this.mget_obj('data_source');
+      columns = {};
+      numrows = 0;
+      _ref = data_source.range_selections;
+      for (colname in _ref) {
+        if (!__hasProp.call(_ref, colname)) continue;
+        value = _ref[colname];
+        columns[colname] = data_source.getcolumn(colname);
+        numrows = columns[colname].length;
+      }
+      selected = [];
+      for (i = _i = 0; 0 <= numrows ? _i < numrows : _i > numrows; i = 0 <= numrows ? ++_i : --_i) {
+        select = true;
+        _ref1 = data_source.range_selections;
+        for (colname in _ref1) {
+          if (!__hasProp.call(_ref1, colname)) continue;
+          value = _ref1[colname];
+          min = value[0], max = value[1];
+          val = columns[colname][i];
+          if (val < min || val > max) {
+            select = false;
+            break;
+          }
+        }
+        if (select) {
+          selected.push(i);
+        }
+      }
+      return data_source.save({
+        selected: selected
+      }, {
+        patch: true
+      });
+    };
+
+    return DataSliderView;
+
+  })(PlotWidget);
+
+  DataSlider = (function(_super) {
+
+    __extends(DataSlider, _super);
+
+    function DataSlider() {
+      return DataSlider.__super__.constructor.apply(this, arguments);
+    }
+
+    DataSlider.prototype.type = "DataSlider";
+
+    DataSlider.prototype.default_view = DataSliderView;
+
+    return DataSlider;
+
+  })(HasParent);
+
+  DataSlider.prototype.defaults = _.clone(DataSlider.prototype.defaults);
+
+  _.extend(DataSlider.prototype.defaults, {
+    data_source: null,
+    field: null
+  });
+
+  DataSlider.prototype.display_defaults = _.clone(DataSlider.prototype.display_defaults);
+
+  _.extend(DataSlider.prototype.display_defaults, {
+    level: 'tool'
+  });
+
+  PlotWidget = require('../common/plot_widget').PlotWidget;
+
+  HasParent = require('../base').HasParent;
+
+  coll = Backbone.Collection.extend({
+    model: DataSlider
+  });
+
+  exports.datasliders = new coll();
 
 }).call(this);
 }, "tools/tool": function(exports, require, module) {(function() {
@@ -29716,7 +32766,7 @@ _.setdefault = function(obj, key, value){
     __extends(ToolView, _super);
 
     function ToolView() {
-      ToolView.__super__.constructor.apply(this, arguments);
+      return ToolView.__super__.constructor.apply(this, arguments);
     }
 
     ToolView.prototype.initialize = function(options) {
@@ -29755,7 +32805,7 @@ _.setdefault = function(obj, key, value){
     __extends(Tool, _super);
 
     function Tool() {
-      Tool.__super__.constructor.apply(this, arguments);
+      return Tool.__super__.constructor.apply(this, arguments);
     }
 
     return Tool;
@@ -29797,7 +32847,7 @@ _.setdefault = function(obj, key, value){
 
     function ZoomToolView() {
       this.build_mappers = __bind(this.build_mappers, this);
-      ZoomToolView.__super__.constructor.apply(this, arguments);
+      return ZoomToolView.__super__.constructor.apply(this, arguments);
     }
 
     ZoomToolView.prototype.initialize = function(options) {
@@ -29846,7 +32896,7 @@ _.setdefault = function(obj, key, value){
     };
 
     ZoomToolView.prototype._zoom = function(e) {
-      var delta, factor, screenX, screenY, speed, sx_high, sx_low, sy_high, sy_low, x, xend, xr, xstart, y, yend, yr, ystart, _ref;
+      var delta, factor, screenX, screenY, speed, sx_high, sx_low, sy_high, sy_low, x, xend, xr, xstart, y, yend, yr, ystart, zoom_info, _ref;
       delta = e.delta;
       screenX = e.bokehX;
       screenY = e.bokehY;
@@ -29863,16 +32913,18 @@ _.setdefault = function(obj, key, value){
       xend = this.plot_view.xmapper.map_from_target(sx_high - (sx_high - x) * factor);
       ystart = this.plot_view.ymapper.map_from_target(sy_low - (sy_low - y) * factor);
       yend = this.plot_view.ymapper.map_from_target(sy_high - (sy_high - y) * factor);
-      this.plot_view.pause();
-      this.plot_view.x_range.set({
-        start: xstart,
-        end: xend
-      });
-      this.plot_view.y_range.set({
-        start: ystart,
-        end: yend
-      });
-      this.plot_view.unpause();
+      zoom_info = {
+        xr: {
+          start: xstart,
+          end: xend
+        },
+        yr: {
+          start: ystart,
+          end: yend
+        },
+        factor: factor
+      };
+      this.plot_view.update_range(zoom_info);
       return null;
     };
 
@@ -29885,7 +32937,7 @@ _.setdefault = function(obj, key, value){
     __extends(ZoomTool, _super);
 
     function ZoomTool() {
-      ZoomTool.__super__.constructor.apply(this, arguments);
+      return ZoomTool.__super__.constructor.apply(this, arguments);
     }
 
     ZoomTool.prototype.type = "ZoomTool";
@@ -29909,7 +32961,7 @@ _.setdefault = function(obj, key, value){
     __extends(ZoomTools, _super);
 
     function ZoomTools() {
-      ZoomTools.__super__.constructor.apply(this, arguments);
+      return ZoomTools.__super__.constructor.apply(this, arguments);
     }
 
     ZoomTools.prototype.model = ZoomTool;

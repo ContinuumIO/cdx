@@ -7,12 +7,14 @@ notebook.
 from uuid import uuid4
 from functools import wraps
 import urlparse
+import warnings
+import logging
+logger = logging.getLogger(__file__)
+
 from bokeh.properties import (HasProps, MetaHasProps, Any, Dict, Enum,
         Either, Float, Instance, Int, List, String, Color, Pattern, Percent,
         Size, LineProps, FillProps, TextProps, Include)
 
-import logging
-logger = logging.getLogger(__file__)
 class Viewable(MetaHasProps):
     """ Any plot object (Data Model) which has its own View Model in the
     persistence layer.
@@ -149,9 +151,6 @@ def recursively_traverse_plot_object(plot_object,
                     children=children)
         return children
 
-
-
-
 class PlotObject(HasProps):
     """ Base class for all plot-related objects """
 
@@ -230,9 +229,6 @@ class PlotObject(HasProps):
         dict.  Otherwise, returns a list of attribute names.
         """
         props = self.changed_vars()
-        #print "Object:", type(self)
-        #print "\tOld:", sorted(self.properties())
-        #print "\tNew:", sorted(props)
         if "session" in props:
             props.remove("session")
         if withvalues:
@@ -307,9 +303,6 @@ class PlotObject(HasProps):
             for callback in callbacks:
                 getattr(callback['obj'], callback['callbackname'])(
                     self, attrname, old, new)
-    def dummy(self, changedobj, attrname, old, new):
-        print 'DUMMY', changedobj, attrname, old, new
-
 
 class DataSource(PlotObject):
     """ Base class for data sources """
@@ -326,7 +319,7 @@ class DataSource(PlotObject):
 class ColumnsRef(HasProps):
     source = Instance(DataSource, has_ref=True)
     columns = List(String)
-    
+
 class ColumnDataSource(DataSource):
     # Maps names of columns to sequences or arrays
     data = Dict()
@@ -644,13 +637,13 @@ class GMapPlot(PlotObject):
         data.pop('center_lng', None)
         data.pop('zoom_level', None)
         data["map_options"] = {
-            'lat': self.center_lat, 
-            'lng': self.center_lng, 
+            'lat': self.center_lat,
+            'lng': self.center_lng,
             'zoom': self.zoom_level
         }
         self._session.raw_js_snippets(self)
         return data
-    
+
     @classmethod
     def load_json(cls, attrs, instance=None):
         """Loads all json into a instance of cls, EXCEPT any references
@@ -697,6 +690,8 @@ class GMapPlot(PlotObject):
 
 class GridPlot(PlotObject):
     """ A 2D grid of plots """
+
+    __view_model__ = "GridPlotContainer"
 
     children = List(List)
     border_space = Int(0)
@@ -753,9 +748,10 @@ class LinearAxis(GuideRenderer):
     major_tick_in = Int
     major_tick_out = Int
 
-class Rule(GuideRenderer):
+class Grid(GuideRenderer):
     """ 1D Grid component """
     type = String("rule")
+    __view_model__ = "Rule"
 
 class PanTool(PlotObject):
     plot = Instance(Plot, has_ref=True)
@@ -791,14 +787,14 @@ class Legend(PlotObject):
         result['annotationspec']['type'] = 'legend'
         return result
 
-    
+
 class DataSlider(PlotObject):
     plot = Instance(Plot, has_ref=True)
     data_source = Instance(has_ref=True)
     field = String()
-    
+
 class DataRangeBoxSelectionTool(PlotObject):
-    plot = Instance(Plot, has_ref=True)    
+    plot = Instance(Plot, has_ref=True)
     xselect = List()
-    yselect = List()    
+    yselect = List()
 

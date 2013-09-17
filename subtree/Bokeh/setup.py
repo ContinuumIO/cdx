@@ -1,23 +1,33 @@
 # needs to be tested
 import sys
-if len(sys.argv)>1 and sys.argv[1] == 'develop':
+if 'develop' in sys.argv:
     # Only import setuptools if we have to
     import setuptools
 else:
     import shutil
-    shutil.copy("jsbuild/application.js", "bokeh/server/static/js/application.js")
-    shutil.copy("jsbuild/bokehnotebook.js", "bokeh/server/static/js/bokehnotebook.js")
-    
-from distutils.core import setup
+    shutil.copy("jsbuild/application.js",
+                "bokeh/server/static/js/application.js")
+    shutil.copy("jsbuild/bokehnotebook.js",
+                "bokeh/server/static/js/bokehnotebook.js")
+
 import os
-import sys
-__version__ = (0, 0, 1)
+import shutil
+from os.path import abspath, isdir
+from distutils.core import setup
+
+if sys.platform == 'win32':
+    bokehjs = abspath('bokeh/server/static/vendor/bokehjs')
+    if not isdir(bokehjs):
+        os.unlink(bokehjs)
+        shutil.copytree(abspath('subtree/bokehjs/static'), bokehjs)
+
+__version__ = (0, 1, 1)
 package_data_dirs = []
 for dirname, _, files in os.walk('bokeh/server/static', followlinks=True):
     dirname = os.path.relpath(dirname, 'bokeh')
     for f in files:
         package_data_dirs.append(os.path.join(dirname, f))
-        
+
 for dirname, _, files in os.walk('bokeh/server/templates', followlinks=True):
     dirname = os.path.relpath(dirname, 'bokeh')
     for f in files:
@@ -27,6 +37,11 @@ for dirname, _, files in os.walk('bokeh/templates', followlinks=True):
     dirname = os.path.relpath(dirname, 'bokeh')
     for f in files:
         package_data_dirs.append(os.path.join(dirname, f))
+
+scripts = []
+if sys.platform != 'win32':
+    scripts.append('bokeh-server')
+
 
 setup(
     name = 'bokeh',
@@ -41,4 +56,5 @@ setup(
     description = 'Statistical and novel interactive HTML plots for Python',
     zip_safe=False,
     license = 'New BSD',
+    scripts = scripts,
 )

@@ -156,6 +156,12 @@ class Glyph(PlotObject):
         """
         d = self.vm_props(withvalues=True)
         d["type"] = self.__view_model__
+
+        # TODO: Remove this when we rename the BokehJS fill color attribute
+        # from "fill" to "fill_color"
+        if "fill_color" in d:
+            d["fill"] = d.pop("fill_color")
+
         # Iterate over all the DataSpec properties and convert them, using the
         # fact that DataSpecs store the dict-ified version on the object.
         for attrname, dspec in self.dataspecs().iteritems():
@@ -188,16 +194,6 @@ class Circle(Marker):
     __view_model__ = "circle"
     radius = DataSpec(units="screen", default=4)
 
-#class Rects(Glyph):
-#    glyphtype = "rects"
-#    x = DataSpec
-#    y = DataSpec
-#    width = DataSpec
-#    height = DataSpec
-#    angle = DataSpec
-#    color = Color
-#    outline_color = Color
-#    outline_width = Size
 
 # Other kinds of Markers, to match what GGplot provides
 class Square(Marker):
@@ -361,8 +357,8 @@ class Text(Glyph):
     __view_model__ = "text"
     x = DataSpec
     y = DataSpec
-    angle = DataSpec
     text = String
+    angle = DataSpec
 
 class Wedge(Glyph, FillProps, LineProps):
     __view_model__ = 'wedge'

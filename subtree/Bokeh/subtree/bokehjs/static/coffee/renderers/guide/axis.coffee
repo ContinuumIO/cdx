@@ -345,7 +345,6 @@ class LinearAxis extends HasParent
     super(attrs, options)
     @register_property('bounds', @_bounds, false)
     @add_dependencies('bounds', this, ['guidespec'])
-    @add_dependencies('bounds', @get_obj('plot'), ['x_range', 'y_range'])
 
     @register_property('rule_coords', @_rule_coords, false)
     @add_dependencies('rule_coords', this, ['bounds', 'dimension', 'location'])
@@ -361,6 +360,9 @@ class LinearAxis extends HasParent
 
     @register_property('padding_request', @_padding_request, false)
 
+  dinitialize: (attrs, options)->
+    @add_dependencies('bounds', @get_obj('plot'), ['x_range', 'y_range'])
+
   _bounds: () ->
     i = @get('guidespec').dimension
     j = (i + 1) % 2
@@ -374,14 +376,6 @@ class LinearAxis extends HasParent
     if _.isArray(user_bounds)
       start = Math.min(user_bounds[0], user_bounds[1])
       end = Math.max(user_bounds[0], user_bounds[1])
-      if start < range_bounds[0]
-        start = range_bounds[0]
-      else if start > range_bounds[1]
-        start = null
-      if end > range_bounds[1]
-        end = range_bounds[1]
-      else if end < range_bounds[0]
-        end = null
     else
       [start, end] = range_bounds
 
@@ -409,10 +403,15 @@ class LinearAxis extends HasParent
         loc = 'end'
       loc = cross_range.get(loc)
 
-    coords[i][0] = start
-    coords[i][1] = end
+    [range_min, range_max] = [range.get('min'), range.get('max')]
+
+    coords[i][0] = Math.max(start, range_min)
+    coords[i][1] = Math.min(end, range_max)
     coords[j][0] = loc
     coords[j][1] = loc
+
+    if coords[i][0] > coords[i][1]
+      coords[i][0] = coords[i][1] = NaN
 
     return coords
 
@@ -428,7 +427,6 @@ class LinearAxis extends HasParent
 
     tmp = Math.min(start, end)
     end = Math.max(start, end)
-    start = tmp
 
     interval = ticking.auto_interval(start, end)
     ticks = ticking.auto_ticks(null, null, start, end, interval)
@@ -445,7 +443,11 @@ class LinearAxis extends HasParent
     ys = []
     coords = [xs, ys]
 
+    [range_min, range_max] = [range.get('min'), range.get('max')]
+
     for ii in [0..ticks.length-1]
+      if ticks[ii] < range_min or ticks[ii] > range_max
+        continue
       coords[i].push(ticks[ii])
       coords[j].push(loc)
 

@@ -528,9 +528,9 @@ class PlotServerSession(BaseHTMLSession):
         return self.load_broadcast_attrs(broadcast_attrs, events=events)
 
     def load_broadcast_attrs(self, attrs, events='existing'):
-        """events can be 'existing', or None.   existing means
-        trigger events only for existing (not new  objects).
-        None means don't trigger any events
+        """events can be 'existing', or None. 'existing' means
+        trigger events only for existing (not new objects).
+        None means don't trigger any events.
         """
         models = []
         created = set()
@@ -548,7 +548,7 @@ class PlotServerSession(BaseHTMLSession):
                 cls = PlotObject.get_class(typename)
                 m = cls.load_json(attr)
                 if m is None:
-                    import pdb;pdb.set_trace()
+                    raise RuntimeError('Error loading object from JSON')
                 self.add(m)
                 created.add(m)
             models.append(m)
@@ -681,7 +681,7 @@ class PlotServerSession(BaseHTMLSession):
                     obj = self._models[callback['obj']['id']]
                     callbackname = callback['callbackname']
                     m.on_change(attrname, obj, callbackname)
-                    
+
     def load_all_callbacks(self, get_json=False):
         """get_json = return json of callbacks, rather than
         loading them into models
@@ -735,7 +735,7 @@ class PlotServerSession(BaseHTMLSession):
         for m in models:
             for cb in m._callback_queue:
                 m._trigger(*cb)
-            del m._callback_queue[:]                
+            del m._callback_queue[:]
     #------------------------------------------------------------------------
     # Static files
     #------------------------------------------------------------------------
@@ -821,9 +821,10 @@ class NotebookSessionMixin(object):
         to just see one or two plots, and not all the plots and models
         associated with the session.
         """
-        from IPython.core.display import HTML
+        import IPython.core.displaypub as displaypub
         html = self.dumps(objects)
-        return HTML(html)
+        displaypub.publish_display_data('bokeh', {'text/html': html})
+        return None
 
 
 class NotebookSession(NotebookSessionMixin, HTMLFileSession):
