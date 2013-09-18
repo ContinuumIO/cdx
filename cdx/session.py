@@ -3,7 +3,7 @@ from bokeh.session import PlotServerSession, PlotList
 from objects import CDX, Namespace
 from bokeh.objects import (
     Range1d,
-    Plot, DataRange1d, LinearAxis, Rule,
+    Plot, DataRange1d, LinearAxis, Grid,
     ColumnDataSource, GlyphRenderer, ObjectArrayDataSource,
     PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay,
     GMapPlot, DataSlider
@@ -148,8 +148,8 @@ class CDXSession(PlotServerSession):
         plot.renderers.append(overlay)
         plot.tools.append(select_tool)
 
-        xgrid = Rule(plot=plot, dimension=0)
-        ygrid = Rule(plot=plot, dimension=1)
+        xgrid = Grid(plot=plot, dimension=0)
+        ygrid = Grid(plot=plot, dimension=1)
         pantool = PanTool(plot=plot)
         zoomtool = ZoomTool(plot=plot)
         plot.tools.extend([pantool, zoomtool])
