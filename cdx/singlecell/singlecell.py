@@ -30,14 +30,13 @@ from tornado import httpserver
 from tornado import web
 
 # IPython
-from IPython.frontend.html.notebook.kernelmanager import MultiKernelManager
-from IPython.frontend.html.notebook.handlers import (
+from IPython.kernel.multikernelmanager import MultiKernelManager
+from IPython.html.services.kernels.handlers import (
     KernelHandler, KernelActionHandler,
-    IOPubHandler, ShellHandler,
+    IOPubHandler, ShellHandler, _kernel_action_regex,
 )
-from IPython.frontend.html.notebook.notebookapp import (
-    _kernel_action_regex,
-)
+from IPython.kernel import KernelClient
+
 import sys
 
 #-----------------------------------------------------------------------------
@@ -69,15 +68,16 @@ class WebApp(web.Application):
         # make the patterns unicode, and ultimately result in unicode
         # keys in kwargs to handler._execute(**kwargs) in tornado.
         # This enforces that base_project_url be ascii in that situation.
-        # 
+        #
         # Note that the URLs these patterns check against are escaped,
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
-        
+
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path='static',
             cookie_secret='secret',
             cookie_name='ignored',
+            kernel_manager=kernel_manager,
         )
 
         super(WebApp, self).__init__(handlers, **settings)
@@ -103,12 +103,10 @@ class SingleCellKernelManager(MultiKernelManager):
         else:
             kernel_id = unicode(uuid.uuid4())
         km = self.kernel_manager_factory(connection_file=os.path.join(
-            self.connection_dir, "kernel-%s.json" % kernel_id),
-                                         config=self.config,
-                                         )
+                    self.connection_dir, "kernel-%s.json" % kernel_id),
+                    parent=self, autorestart=True, log=self.log
+        )
         km.start_kernel(**kwargs)
-        # start just the shell channel, needed for graceful restart
-        km.start_channels(shell=True, sub=False, stdin=False, hb=False)
         self._kernels[kernel_id] = km
         return kernel_id
 
@@ -120,14 +118,14 @@ def main():
     kernel_manager.max_msg_size = 100*1024*1024
     kernel_manager.time_to_dead = 1000
     kernel_manager.first_beat = 1000
-    
+
     # we are only using one kernel:
     kernel_id = kernel_manager.start_kernel(kernel_id='1')
-    
+
     logging.basicConfig(level=logging.INFO)
     log = logging.getLogger()
 
-    DummyIPythonApp.websocket_host = 'localhost:%d' % port    
+    DummyIPythonApp.websocket_host = 'localhost:%d' % port
     app = WebApp(kernel_manager, kernel_id, log)
     server = httpserver.HTTPServer(app)
     server.listen(port, '127.0.0.1')
