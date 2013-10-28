@@ -48,7 +48,7 @@ The only changes we've applied so far are these::
          var doubleDelimiters = new RegExp("^((\\+=)|(\\-=)|(\\*=)|(%=)|(/=)|(&=)|(\\|=)|(\\^=))");
 
 In practice it's just a one-line change, adding `\\?` to singleOperators,
-surrounded by a comment. 
+surrounded by a comment.
 
 that you should be able to apply after updating codemirror with
 

@@ -112,7 +112,7 @@ var IPython = (function (IPython) {
 
     Kernel.prototype._websocket_closed = function(ws_url, early) {
         this.stop_channels();
-        $([IPython.events]).trigger('websocket_closed.Kernel', 
+        $([IPython.events]).trigger('websocket_closed.Kernel',
             {ws_url: ws_url, kernel: this, early: early}
         );
     };

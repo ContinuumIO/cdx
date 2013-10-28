@@ -67,13 +67,13 @@ def start_services():
     mproc = services.start_ipython("cdxpids.json", cdx_app.ipython_port)
     cdx_app.ipython_proc = mproc
     atexit.register(service_exit)
-    
+
 def service_exit():
     if hasattr(cdx_app, 'redis_proc'):
         cdx_app.redis_proc.close()
     cdx_app.ipython_proc.close()
-    
-    
+
+
 def prepare_bokeh(app, rhost='127.0.0.1', rport=REDIS_PORT,
                   debug=True, debugjs=True):
     bokeh_prepare_app(rhost=rhost, rport=rport)
@@ -96,5 +96,5 @@ def start_app(app, verbose=False):
 def prepare_local():
     bokeh_prepare_local()
 
-        
-    
+
+

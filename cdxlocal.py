@@ -2,7 +2,7 @@
 import os
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--username", 
+parser.add_argument("--username",
                     help="username for bokeh",
                     default="defaultuser"
                     )

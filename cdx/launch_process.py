@@ -29,7 +29,7 @@ class ManagedProcess(object):
                                      stdin=stdin)
         self.add_to_pidfile()
         self.closed = False
-        
+
     def read_pidfile(self):
         if os.path.exists(self.pidfilename):
             with open(self.pidfilename, "r") as f:
@@ -37,21 +37,21 @@ class ManagedProcess(object):
         else:
             data = {}
         return data
-    
+
     def add_to_pidfile(self):
         data = self.read_pidfile()
         data[self.name] = self.proc.pid
         with open(self.pidfilename, "w+") as f:
             json.dump(data, f)
-            
+
     def remove_from_pidfile(self):
         data = self.read_pidfile()
         if self.name in data:
             del data[self.name]
         with open(self.pidfilename, "w+") as f:
             json.dump(data, f)
-        
-        
+
+
     def close(self):
         if not self.closed:
             self.proc.kill()

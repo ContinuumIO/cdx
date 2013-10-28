@@ -9,7 +9,7 @@ else:
                 "cdx/static/js/application.js")
     shutil.copy("hembuild/application.css",
                 "cdx/static/css/application.css")
-    
+
 from distutils.core import setup
 import os
 import sys
@@ -19,18 +19,18 @@ for dirname, _, files in os.walk('cdx/static', followlinks=True):
     dirname = os.path.relpath(dirname, 'cdx')
     for f in files:
         package_data.append(os.path.join(dirname, f))
-        
+
 for dirname, _, files in os.walk('cdx/templates', followlinks=True):
     dirname = os.path.relpath(dirname, 'cdx')
     for f in files:
         package_data.append(os.path.join(dirname, f))
-        
+
 for dirname, _, files in os.walk('cdx/singlecell/static',
                                  followlinks=True):
     dirname = os.path.relpath(dirname, 'cdx')
     for f in files:
         package_data.append(os.path.join(dirname, f))
-        
+
 for dirname, _, files in os.walk('cdx/singlecell/templates',
                                  followlinks=True):
     dirname = os.path.relpath(dirname, 'cdx')

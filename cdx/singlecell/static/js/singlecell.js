@@ -39,10 +39,10 @@ window.setup_ipython = function (ws_url) {
     // set some example input
     // focus the cell
     thecell.select();
-    
+
     $(document).keydown(function (event) {
         var key = IPython.utils.keycodes;
-        
+
         if (event.which === key.ESC) {
             // Intercept escape at highest level to avoid closing
             // websocket connection with firefox

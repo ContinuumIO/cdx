@@ -292,7 +292,7 @@ IPython.utils = (function (IPython) {
         wrapUrls : wrapUrls,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
-        browser : browser    
+        browser : browser
     };
 
 }(IPython));

@@ -42,13 +42,13 @@ do_request_update = function(kernel){
     // execute update on the kernel
     var n = $('div#n_slider').slider("value");
     $('span#n_label').text("n = " + n);
-    
+
     var xmax = $('div#xmax_slider').slider("value");
     $('span#xmax_label').text("xmax = " + xmax);
-    
+
     var npoints = $('div#npoints_slider').slider("value");
     $('span#npoints_label').text("npoints = " + npoints);
-    
+
     var args = n + ", xmax=" + xmax + ", npoints=" + npoints;
     kernel.execute("update_plot(" + args + ")", {'output': update_plot});
 };
@@ -61,12 +61,12 @@ $(document).ready(function () {
             do_request_update(data.kernel);
         }, 500);
     });
-    
+
     // setup our sliders
 
 
     var kernel = new IPython.Kernel('/kernels');
-    
+
     request_update = function() {
         do_request_update(kernel);
     }
@@ -94,12 +94,12 @@ $(document).ready(function () {
         slide : request_update,
         change: request_update
     });
-    
+
     var ws_url = 'ws' + document.location.origin.substring(4);
     setTimeout(function() {
         kernel._kernel_started({kernel_id: '1', ws_url: ws_url});
     }, 500);
-    
+
     $("a#restart").click(function() {
         kernel.restart();
     })

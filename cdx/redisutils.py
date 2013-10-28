@@ -18,5 +18,5 @@ def start_redis(pidfilename, port, data_dir, data_file='redis.db', save=True):
     mproc.proc.stdin.close()
     return mproc
 
-                     
+
 

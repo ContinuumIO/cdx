@@ -13,7 +13,7 @@ cdx
 - install Bokeh from the cdx subtree `cd subtree/Bokeh; python setup.py install; cd ../../`
 - install cdx `python setup.py install`
 
-### to start 
+### to start
 
 python cdxlocal.py
 

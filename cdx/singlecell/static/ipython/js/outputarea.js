@@ -30,7 +30,7 @@ var IPython = (function (IPython) {
         this.style();
         this.bind_events();
     };
-    
+
     OutputArea.prototype.create_elements = function () {
         this.element = $("<div/>");
         this.collapse_button = $("<div/>");
@@ -44,18 +44,18 @@ var IPython = (function (IPython) {
     OutputArea.prototype.style = function () {
         this.collapse_button.hide();
         this.prompt_overlay.hide();
-        
+
         this.wrapper.addClass('output_wrapper');
         this.element.addClass('output vbox');
-        
+
         this.collapse_button.button();
         this.collapse_button.addClass('output_collapsed vbox');
         this.collapse_button.attr('title', 'click to expand output');
         this.collapse_button.html('. . .');
-        
+
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
         this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
-        
+
         this.collapse();
     };
 
@@ -67,7 +67,7 @@ var IPython = (function (IPython) {
         // line-height from http://stackoverflow.com/questions/1185151
         var fontSize = this.element.css('font-size');
         var lineHeight = Math.floor(parseInt(fontSize.replace('px','')) * 1.5);
-        
+
         return (this.element.height() > lines * lineHeight);
     };
 
@@ -502,7 +502,7 @@ var IPython = (function (IPython) {
             output_div.find("div.output_subarea").not("div.output_stderr").not("div.output_stdout").parent().remove();
         }
         this.unscroll_area();
-        
+
         // remove cleared outputs from JSON list:
         for (var i = this.outputs.length - 1; i >= 0; i--) {
             var out = this.outputs[i];

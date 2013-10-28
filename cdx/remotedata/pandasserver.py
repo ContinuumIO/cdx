@@ -18,7 +18,7 @@ def computed_column(data, column_spec):
     localvars['np'] = np
     result = eval(column_spec['code'], localvars)
     data[column_spec['name']] = result
-    
+
 def search(varname, code):
     data = namespace[varname]
     localvars = dict(**data)
@@ -26,7 +26,7 @@ def search(varname, code):
     localvars['np'] = np
     result = eval(code, localvars)
     selections[varname] = np.nonzero(result)[0].tolist()
-    
+
 def get_data(varname, transforms):
     sort = transforms.get('sort', [])
     group = transforms.get('group', [])
@@ -96,7 +96,7 @@ def set_computed(varname):
     cc = json.loads(request.data)
     computed_columns[varname] = cc
     return make_json(protocol.serialize_json(cc))
-    
+
 import logging
 @app.route("/array/<varname>")
 def get(varname):
@@ -116,7 +116,7 @@ def compute_selection(varname):
     else:
         transforms = {}
     groupobj, data, maxlength, totallength = get_data(varname, transforms)
-    selected = transforms.get('selected', [])    
+    selected = transforms.get('selected', [])
     if groupobj:
         raw_selected = []
         for rownum in selected:
@@ -130,7 +130,7 @@ def searchapi(varname):
     code = request.data
     search(varname, code)
     return make_json(protocol.serialize_json(selections[varname]))
-    
+
 @app.route("/array/<varname>/setselect", methods=["POST"])
 def set_selection(varname):
     raw_selected = compute_selection(varname)
@@ -142,14 +142,14 @@ def select(varname):
     raw_selected = compute_selection(varname)
     selections[varname] = np.union1d(raw_selected,
                                      selections.get(varname, [])).tolist()
-    return make_json(protocol.serialize_json(selections[varname]))    
+    return make_json(protocol.serialize_json(selections[varname]))
 
 @app.route("/array/<varname>/deselect", methods=["POST"])
 def deselect(varname):
     raw_selected = compute_selection(varname)
     selections[varname] = np.setdiff1d(selections.get(varname, []),
                                        raw_selected).tolist()
-    return make_json(protocol.serialize_json(selections[varname]))    
+    return make_json(protocol.serialize_json(selections[varname]))
 
 
 @app.route("/test")
@@ -158,13 +158,13 @@ def test():
 
 def _run(server):
     server.serve_forever()
-    
+
 server = None
 def shutdown():
     print 'QUITTING'
     server.shutdown()
     server.socket.close()
-    
+
 def run(port):
     global namespace
     global server
@@ -196,7 +196,7 @@ def run_test():
     def helper():
         server = werkzeug.serving.make_server("localhost", 10020, app=app)
         _run(server)
-    
+
 if __name__ == "__main__":
     run_test()
-    
+

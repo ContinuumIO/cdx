@@ -7,14 +7,14 @@
         "./cdx/static/vendor/bokehjs/vendor/buckets/buckets.js",
         "./cdx/static/vendor/bokehjs/vendor/bootstrap/js/bootstrap.js",
         "./cdx/static/vendor/bokehjs/js/custom.js",
-        
-        
+
+
         "./cdx/static/vendor/singlecell/codemirror/lib/codemirror.js",
         "./cdx/static/vendor/singlecell/codemirror/lib/util/loadmode.js",
         "./cdx/static/vendor/singlecell/codemirror/lib/util/multiplex.js",
         "./cdx/static/vendor/singlecell/codemirror/mode/python/python.js",
         "./cdx/static/vendor/singlecell/jquery/js/jquery-ui.min.js",
-             
+
         "./cdx/static/vendor/singlecell/ipython/js/namespace.js",
         "./cdx/static/vendor/singlecell/ipython/js/utils.js",
         "./cdx/static/vendor/singlecell/ipython/js/events.js",
@@ -26,7 +26,7 @@
         "./cdx/static/vendor/singlecell/ipython/js/completer.js",
         "./cdx/static/vendor/singlecell/ipython/js/tooltip.js",
         "./cdx/static/vendor/singlecell/ipython/js/celltoolbar.js",
-        "./cdx/static/vendor/singlecell/ipython/js/contexthint.js",        
+        "./cdx/static/vendor/singlecell/ipython/js/contexthint.js",
         "./cdx/static/vendor/singlecell/js/singlecell.js"
     ],
     "paths" : [

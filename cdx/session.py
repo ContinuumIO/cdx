@@ -25,7 +25,7 @@ class CDXSession(PlotServerSession):
         plotting._config["output_type"] = "server"
         plotting._config["output_file"] = None
         plotting.hold(False)
-        
+
     def figure(self):
         plotting.figure()
 
@@ -60,11 +60,11 @@ class CDXSession(PlotServerSession):
         #load namespace
         self.cdx.namespace.load()
         self.cdx.namespace.populate(todisk=False)
-            
+
     @property
     def source(self):
         return self.cdx.activetable.source
-    
+
     def reset(self):
         self.cdx.activetable = None
         self.cdx.plotlist.children = []
@@ -72,7 +72,7 @@ class CDXSession(PlotServerSession):
         self.cdx.namespace.data = {}
         self.cdx.activeplot = None
         self.store_all()
-        
+
     def _get_plotsource(self, varname):
         plot_source = [m for m in self._models.values() \
                        if isinstance(m, PandasPlotSource) and \
@@ -92,7 +92,7 @@ class CDXSession(PlotServerSession):
         plot_source = PandasPlotSource(source=remote_source)
         self.add(plot_source)
         return plot_source
-            
+
     def plot(self, xname, yname, varname, type="scatter", load=True, plot=None,
              alpha=1.0, nonselection_alpha=0.1, slider=None,
              **kwargs):
@@ -114,7 +114,7 @@ class CDXSession(PlotServerSession):
         plot = plotfunc(xname, yname, source=plot_source, title=title,
                         plot=plot, **kwargs)
         if slider:
-            slider = DataSlider(plot=plot, data_source=plot_source, 
+            slider = DataSlider(plot=plot, data_source=plot_source,
                                 field=slider)
             self.add(slider)
             plot.tools.append(slider)
@@ -127,7 +127,7 @@ class CDXSession(PlotServerSession):
         self.plotcontext._dirty = True
         stored = self.store_all()
         return stored
-    
+
     def map(self, latitude=35.349, longitude=-116.595, zoom=17, load=True,
             title = "Map"):
         if load:
@@ -142,7 +142,7 @@ class CDXSession(PlotServerSession):
             outer_width=600, outer_height=600,
             title = title
             )
-        
+
         select_tool = SelectionTool()
         overlay = BoxSelectionOverlay(tool=select_tool)
         plot.renderers.append(overlay)
@@ -153,7 +153,7 @@ class CDXSession(PlotServerSession):
         pantool = PanTool(plot=plot)
         zoomtool = ZoomTool(plot=plot)
         plot.tools.extend([pantool, zoomtool])
-        self.add(plot, xgrid, ygrid, pantool, zoomtool, x_range, y_range, 
+        self.add(plot, xgrid, ygrid, pantool, zoomtool, x_range, y_range,
                  select_tool, overlay)
         self.cdx.plotlist.children.insert(0, plot)
         self.cdx.activeplot = plot

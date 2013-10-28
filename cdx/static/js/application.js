@@ -3645,7 +3645,7 @@ if ( !jQuery.support.submitBubbles ) {
 			});
 			// return undefined since we don't need an event listener
 		},
-		
+
 		postDispatch: function( event ) {
 			// If form was submitted by the user, bubble the event up the tree
 			if ( event._submit_bubble ) {
@@ -12337,7 +12337,7 @@ buckets.arrays = {};
  * within the specified array.
  * @param {*} array the array in which to search the element.
  * @param {Object} item the element to search.
- * @param {function(Object,Object):boolean=} equalsFunction optional function used to 
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
  * check equality between 2 elements.
  * @return {number} the position of the first occurrence of the specified element
  * within the specified array, or -1 if not found.
@@ -12358,7 +12358,7 @@ buckets.arrays.indexOf = function(array, item, equalsFunction) {
  * within the specified array.
  * @param {*} array the array in which to search the element.
  * @param {Object} item the element to search.
- * @param {function(Object,Object):boolean=} equalsFunction optional function used to 
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
  * check equality between 2 elements.
  * @return {number} the position of the last occurrence of the specified element
  * within the specified array or -1 if not found.
@@ -12378,7 +12378,7 @@ buckets.arrays.lastIndexOf = function(array, item, equalsFunction) {
  * Returns true if the specified array contains the specified element.
  * @param {*} array the array in which to search the element.
  * @param {Object} item the element to search.
- * @param {function(Object,Object):boolean=} equalsFunction optional function to 
+ * @param {function(Object,Object):boolean=} equalsFunction optional function to
  * check equality between 2 elements.
  * @return {boolean} true if the specified array contains the specified element.
  */
@@ -12391,7 +12391,7 @@ buckets.arrays.contains = function(array, item, equalsFunction) {
  * Removes the first ocurrence of the specified element from the specified array.
  * @param {*} array the array in which to search element.
  * @param {Object} item the element to search.
- * @param {function(Object,Object):boolean=} equalsFunction optional function to 
+ * @param {function(Object,Object):boolean=} equalsFunction optional function to
  * check equality between 2 elements.
  * @return {boolean} true if the array changed after this call.
  */
@@ -12409,9 +12409,9 @@ buckets.arrays.remove = function(array, item, equalsFunction) {
  * to the specified object.
  * @param {Array} array the array in which to determine the frequency of the element.
  * @param {Object} item the element whose frequency is to be determined.
- * @param {function(Object,Object):boolean=} equalsFunction optional function used to 
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
  * check equality between 2 elements.
- * @return {number} the number of elements in the specified array 
+ * @return {number} the number of elements in the specified array
  * equal to the specified object.
  */
 buckets.arrays.frequency = function(array, item, equalsFunction) {
@@ -12429,11 +12429,11 @@ buckets.arrays.frequency = function(array, item, equalsFunction) {
 /**
  * Returns true if the two specified arrays are equal to one another.
  * Two arrays are considered equal if both arrays contain the same number
- * of elements, and all corresponding pairs of elements in the two 
- * arrays are equal and are in the same order. 
+ * of elements, and all corresponding pairs of elements in the two
+ * arrays are equal and are in the same order.
  * @param {Array} array1 one array to be tested for equality.
  * @param {Array} array2 the other array to be tested for equality.
- * @param {function(Object,Object):boolean=} equalsFunction optional function used to 
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
  * check equality between elemements in the arrays.
  * @return {boolean} true if the two arrays are equal
  */
@@ -12479,11 +12479,11 @@ buckets.arrays.swap = function(array, i, j) {
 };
 
 /**
- * Executes the provided function once for each element present in this array 
+ * Executes the provided function once for each element present in this array
  * starting from index 0 to length - 1.
  * @param {Array} array The array in which to iterate.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one argument: the element value, to break the iteration you can 
+ * invoked with one argument: the element value, to break the iteration you can
  * optionally return false.
  */
 buckets.arrays.forEach = function(array, callback) {
@@ -12492,7 +12492,7 @@ buckets.arrays.forEach = function(array, callback) {
    		if(callback(array[i])===false){
 			return;
 		}
-   }	 
+   }
 };
 
 /**
@@ -12796,7 +12796,7 @@ buckets.LinkedList.prototype.removeElementAtIndex = function(index) {
 /**
  * Executes the provided function once for each element present in this list in order.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one argument: the element value, to break the iteration you can 
+ * invoked with one argument: the element value, to break the iteration you can
  * optionally return false.
  */
 buckets.LinkedList.prototype.forEach = function(callback) {
@@ -12810,7 +12810,7 @@ buckets.LinkedList.prototype.forEach = function(callback) {
 };
 
 /**
- * Reverses the order of the elements in this linked list (makes the last 
+ * Reverses the order of the elements in this linked list (makes the last
  * element first, and the first element last).
  */
 buckets.LinkedList.prototype.reverse = function() {
@@ -12889,7 +12889,7 @@ buckets.LinkedList.prototype.createNode = function(item) {
 
 
 /**
- * Creates an empty dictionary. 
+ * Creates an empty dictionary.
  * @class <p>Dictionaries map keys to values; each key can map to at most one value.
  * This implementation accepts any kind of objects as keys.</p>
  *
@@ -13021,10 +13021,10 @@ buckets.Dictionary.prototype.values = function() {
 };
 
 /**
- * Executes the provided function once for each key-value pair 
+ * Executes the provided function once for each key-value pair
  * present in this dictionary.
  * @param {function(Object,Object):*} callback function to execute, it is
- * invoked with two arguments: key and value. To break the iteration you can 
+ * invoked with two arguments: key and value. To break the iteration you can
  * optionally return false.
  */
 buckets.Dictionary.prototype.forEach = function(callback) {
@@ -13093,9 +13093,9 @@ buckets.Dictionary.prototype.isEmpty = function() {
 // 	return this.equalsAux(this.firstNode,other.firstNode,eqF);
 // };
 /**
- * Creates an empty multi dictionary. 
+ * Creates an empty multi dictionary.
  * @class <p>A multi dictionary is a special kind of dictionary that holds
- * multiple values against each key. Setting a value into the dictionary will 
+ * multiple values against each key. Setting a value into the dictionary will
  * add the value to an array at that key. Getting a key will return an array,
  * holding all the values set to that key.
  * This implementation accepts any kind of objects as keys.</p>
@@ -13123,7 +13123,7 @@ buckets.Dictionary.prototype.isEmpty = function() {
  * unique string must be provided.
  * @param {function(Object,Object):boolean=} valuesEqualsFunction optional
  * function to check if two values are equal.
- * 
+ *
  */
 buckets.MultiDictionary = function(toStrFunction, valuesEqualsFunction) {
     // Call the parent's constructor
@@ -13148,7 +13148,7 @@ buckets.MultiDictionary.prototype.get = function(key) {
 };
 
 /**
- * Adds the value to the array associated with the specified key, if 
+ * Adds the value to the array associated with the specified key, if
  * it is not already present.
  * @param {Object} key key with which the specified value is to be
  * associated.
@@ -13174,13 +13174,13 @@ buckets.MultiDictionary.prototype.set = function(key, value) {
 
 /**
  * Removes the specified values from the array of values associated with the
- * specified key. If a value isn't given, all values associated with the specified 
+ * specified key. If a value isn't given, all values associated with the specified
  * key are removed.
  * @param {Object} key key whose mapping is to be removed from the
  * dictionary.
- * @param {Object=} value optional argument to specify the value to remove 
+ * @param {Object=} value optional argument to specify the value to remove
  * from the array associated with the specified key.
- * @return {*} true if the dictionary changed, false if the key doesn't exist or 
+ * @return {*} true if the dictionary changed, false if the key doesn't exist or
  * if the specified value isn't associated with the specified key.
  */
 buckets.MultiDictionary.prototype.remove = function(key, value) {
@@ -13229,7 +13229,7 @@ buckets.MultiDictionary.prototype.values = function() {
  * Returns true if this dictionary at least one value associatted the specified key.
  * @param {Object} key key whose presence in this dictionary is to be
  * tested.
- * @return {boolean} true if this dictionary at least one value associatted 
+ * @return {boolean} true if this dictionary at least one value associatted
  * the specified key.
  */
 buckets.MultiDictionary.prototype.containsKey = function(key) {
@@ -13261,12 +13261,12 @@ buckets.MultiDictionary.prototype.isEmpty = function() {
 
 /**
  * Creates an empty Heap.
- * @class 
- * <p>A heap is a binary tree, where the nodes maintain the heap property: 
- * each node is smaller than each of its children. 
+ * @class
+ * <p>A heap is a binary tree, where the nodes maintain the heap property:
+ * each node is smaller than each of its children.
  * This implementation uses an array to store elements.</p>
- * <p>If the inserted elements are custom objects a compare function must be provided, 
- *  at construction time, otherwise the <=, === and >= operators are 
+ * <p>If the inserted elements are custom objects a compare function must be provided,
+ *  at construction time, otherwise the <=, === and >= operators are
  * used to compare elements. Example:</p>
  *
  * <pre>
@@ -13275,7 +13275,7 @@ buckets.MultiDictionary.prototype.isEmpty = function() {
  *     return -1;
  *  } if (a is greater than b by the ordering criterion) {
  *     return 1;
- *  } 
+ *  }
  *  // a must be equal to b
  *  return 0;
  * }
@@ -13290,7 +13290,7 @@ buckets.MultiDictionary.prototype.isEmpty = function() {
  *     return 1;
  *  } if (a is greater than b by the ordering criterion) {
  *     return -1;
- *  } 
+ *  }
  *  // a must be equal to b
  *  return 0;
  * }
@@ -13482,10 +13482,10 @@ buckets.Heap.prototype.clear = function() {
 };
 
 /**
- * Executes the provided function once for each element present in this heap in 
+ * Executes the provided function once for each element present in this heap in
  * no particular order.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one argument: the element value, to break the iteration you can 
+ * invoked with one argument: the element value, to break the iteration you can
  * optionally return false.
  */
 buckets.Heap.prototype.forEach = function(callback) {
@@ -13586,10 +13586,10 @@ buckets.Stack.prototype.clear = function() {
 };
 
 /**
- * Executes the provided function once for each element present in this stack in 
+ * Executes the provided function once for each element present in this stack in
  * LIFO order.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one argument: the element value, to break the iteration you can 
+ * invoked with one argument: the element value, to break the iteration you can
  * optionally return false.
  */
 buckets.Stack.prototype.forEach = function(callback) {
@@ -13699,10 +13699,10 @@ buckets.Queue.prototype.clear = function() {
 };
 
 /**
- * Executes the provided function once for each element present in this queue in 
+ * Executes the provided function once for each element present in this queue in
  * FIFO order.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one argument: the element value, to break the iteration you can 
+ * invoked with one argument: the element value, to break the iteration you can
  * optionally return false.
  */
 buckets.Queue.prototype.forEach = function(callback) {
@@ -13712,9 +13712,9 @@ buckets.Queue.prototype.forEach = function(callback) {
 /**
  * Creates an empty priority queue.
  * @class <p>In a priority queue each element is associated with a "priority",
- * elements are dequeued in highest-priority-first order (the elements with the 
- * highest priority are dequeued first). Priority Queues are implemented as heaps. 
- * If the inserted elements are custom objects a compare function must be provided, 
+ * elements are dequeued in highest-priority-first order (the elements with the
+ * highest priority are dequeued first). Priority Queues are implemented as heaps.
+ * If the inserted elements are custom objects a compare function must be provided,
  * otherwise the <=, === and >= operators are used to compare object priority.</p>
  * <pre>
  * function compare(a, b) {
@@ -13722,7 +13722,7 @@ buckets.Queue.prototype.forEach = function(callback) {
  *     return -1;
  *  } if (a is greater than b by the ordering criterion) {
  *     return 1;
- *  } 
+ *  }
  *  // a must be equal to b
  *  return 0;
  * }
@@ -13757,7 +13757,7 @@ buckets.PriorityQueue.prototype.add = function(element) {
 
 /**
  * Retrieves and removes the highest priority element of this queue.
- * @return {*} the the highest priority element of this queue, 
+ * @return {*} the the highest priority element of this queue,
 or undefined if this queue is empty.
  */
 buckets.PriorityQueue.prototype.dequeue = function() {
@@ -13812,10 +13812,10 @@ buckets.PriorityQueue.prototype.clear = function() {
 };
 
 /**
- * Executes the provided function once for each element present in this queue in 
+ * Executes the provided function once for each element present in this queue in
  * no particular order.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one argument: the element value, to break the iteration you can 
+ * invoked with one argument: the element value, to break the iteration you can
  * optionally return false.
  */
 buckets.PriorityQueue.prototype.forEach = function(callback) {
@@ -13826,7 +13826,7 @@ buckets.PriorityQueue.prototype.forEach = function(callback) {
 /**
  * Creates an empty set.
  * @class <p>A set is a data structure that contains no duplicate items.</p>
- * <p>If the inserted elements are custom objects a function 
+ * <p>If the inserted elements are custom objects a function
  * which converts elements to strings must be provided. Example:</p>
  *
  * <pre>
@@ -13939,10 +13939,10 @@ buckets.Set.prototype.remove = function(element) {
 };
 
 /**
- * Executes the provided function once for each element 
+ * Executes the provided function once for each element
  * present in this set.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one arguments: the element. To break the iteration you can 
+ * invoked with one arguments: the element. To break the iteration you can
  * optionally return false.
  */
 buckets.Set.prototype.forEach = function(callback) {
@@ -13984,9 +13984,9 @@ buckets.Set.prototype.clear = function() {
 
 /**
  * Creates an empty bag.
- * @class <p>A bag is a special kind of set in which members are 
+ * @class <p>A bag is a special kind of set in which members are
  * allowed to appear more than once.</p>
- * <p>If the inserted elements are custom objects a function 
+ * <p>If the inserted elements are custom objects a function
  * which converts elements to unique strings must be provided. Example:</p>
  *
  * <pre>
@@ -14062,8 +14062,8 @@ buckets.Bag.prototype.contains = function(element) {
 
 /**
 * Removes nCopies of the specified object to this bag.
-* If the number of copies to remove is greater than the actual number 
-* of copies in the Bag, all copies are removed. 
+* If the number of copies to remove is greater than the actual number
+* of copies in the Bag, all copies are removed.
 * @param {Object} element element to remove.
 * @param {number=} nCopies the number of copies to remove, if this argument is
 * undefined 1 copy is removed.
@@ -14096,7 +14096,7 @@ buckets.Bag.prototype.remove = function(element, nCopies) {
 };
 
 /**
- * Returns an array containing all of the elements in this big in arbitrary order, 
+ * Returns an array containing all of the elements in this big in arbitrary order,
  * including multiple copies.
  * @return {Array} an array containing all of the elements in this bag.
  */
@@ -14116,7 +14116,7 @@ buckets.Bag.prototype.toArray = function() {
 };
 
 /**
- * Returns a set of unique elements in this bag. 
+ * Returns a set of unique elements in this bag.
  * @return {buckets.Set} a set of unique elements in this bag.
  */
 buckets.Bag.prototype.toSet = function() {
@@ -14131,10 +14131,10 @@ buckets.Bag.prototype.toSet = function() {
 };
 
 /**
- * Executes the provided function once for each element 
+ * Executes the provided function once for each element
  * present in this bag, including multiple copies.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one argument: the element. To break the iteration you can 
+ * invoked with one argument: the element. To break the iteration you can
  * optionally return false.
  */
 buckets.Bag.prototype.forEach = function(callback) {
@@ -14177,21 +14177,21 @@ buckets.Bag.prototype.clear = function() {
 
 /**
  * Creates an empty binary search tree.
- * @class <p>A binary search tree is a binary tree in which each 
- * internal node stores an element such that the elements stored in the 
- * left subtree are less than it and the elements 
+ * @class <p>A binary search tree is a binary tree in which each
+ * internal node stores an element such that the elements stored in the
+ * left subtree are less than it and the elements
  * stored in the right subtree are greater.</p>
- * <p>Formally, a binary search tree is a node-based binary tree data structure which 
+ * <p>Formally, a binary search tree is a node-based binary tree data structure which
  * has the following properties:</p>
  * <ul>
- * <li>The left subtree of a node contains only nodes with elements less 
+ * <li>The left subtree of a node contains only nodes with elements less
  * than the node's element</li>
- * <li>The right subtree of a node contains only nodes with elements greater 
+ * <li>The right subtree of a node contains only nodes with elements greater
  * than the node's element</li>
  * <li>Both the left and right subtrees must also be binary search trees.</li>
  * </ul>
- * <p>If the inserted elements are custom objects a compare function must 
- * be provided at construction time, otherwise the <=, === and >= operators are 
+ * <p>If the inserted elements are custom objects a compare function must
+ * be provided at construction time, otherwise the <=, === and >= operators are
  * used to compare elements. Example:</p>
  * <pre>
  * function compare(a, b) {
@@ -14199,7 +14199,7 @@ buckets.Bag.prototype.clear = function() {
  *     return -1;
  *  } if (a is greater than b by the ordering criterion) {
  *     return 1;
- *  } 
+ *  }
  *  // a must be equal to b
  *  return 0;
  * }
@@ -14286,9 +14286,9 @@ buckets.BSTree.prototype.remove = function(element) {
 };
 
 /**
- * Executes the provided function once for each element present in this tree in 
+ * Executes the provided function once for each element present in this tree in
  * in-order.
- * @param {function(Object):*} callback function to execute, it is invoked with one 
+ * @param {function(Object):*} callback function to execute, it is invoked with one
  * argument: the element value, to break the iteration you can optionally return false.
  */
 buckets.BSTree.prototype.inorderTraversal = function(callback) {
@@ -14299,7 +14299,7 @@ buckets.BSTree.prototype.inorderTraversal = function(callback) {
 
 /**
  * Executes the provided function once for each element present in this tree in pre-order.
- * @param {function(Object):*} callback function to execute, it is invoked with one 
+ * @param {function(Object):*} callback function to execute, it is invoked with one
  * argument: the element value, to break the iteration you can optionally return false.
  */
 buckets.BSTree.prototype.preorderTraversal = function(callback) {
@@ -14310,7 +14310,7 @@ buckets.BSTree.prototype.preorderTraversal = function(callback) {
 
 /**
  * Executes the provided function once for each element present in this tree in post-order.
- * @param {function(Object):*} callback function to execute, it is invoked with one 
+ * @param {function(Object):*} callback function to execute, it is invoked with one
  * argument: the element value, to break the iteration you can optionally return false.
  */
 buckets.BSTree.prototype.postorderTraversal = function(callback) {
@@ -14320,9 +14320,9 @@ buckets.BSTree.prototype.postorderTraversal = function(callback) {
 };
 
 /**
- * Executes the provided function once for each element present in this tree in 
+ * Executes the provided function once for each element present in this tree in
  * level-order.
- * @param {function(Object):*} callback function to execute, it is invoked with one 
+ * @param {function(Object):*} callback function to execute, it is invoked with one
  * argument: the element value, to break the iteration you can optionally return false.
  */
 buckets.BSTree.prototype.levelTraversal = function(callback) {
@@ -14357,7 +14357,7 @@ buckets.BSTree.prototype.maximum = function() {
  * Executes the provided function once for each element present in this tree in inorder.
  * Equivalent to inorderTraversal.
  * @param {function(Object):*} callback function to execute, it is
- * invoked with one argument: the element value, to break the iteration you can 
+ * invoked with one argument: the element value, to break the iteration you can
  * optionally return false.
  */
 buckets.BSTree.prototype.forEach = function(callback) {
@@ -16531,7 +16531,7 @@ var CodeMirror = (function() {
     // Needed to handle Tab key in KHTML
     if (khtml) inputDiv.style.height = "1px", inputDiv.style.position = "absolute";
 
-    // Check for OS X >= 10.7. If so, we need to force a width on the scrollbar, and 
+    // Check for OS X >= 10.7. If so, we need to force a width on the scrollbar, and
     // make it overlap the content. (But we only do this if the scrollbar doesn't already
     // have a natural width. If the mouse is plugged in or the user sets the system pref
     // to always show scrollbars, the scrollbar shouldn't overlap.)
@@ -17039,7 +17039,7 @@ var CodeMirror = (function() {
     function onDragStart(e) {
       var txt = getSelection();
       e.dataTransfer.setData("Text", txt);
-      
+
       // Use dummy image instead of default browsers image.
       if (gecko || chrome || opera) {
         var img = document.createElement('img');
@@ -17354,8 +17354,8 @@ var CodeMirror = (function() {
       // Position the mover div to align with the current virtual scroll position
       mover.style.top = (displayOffset * textHeight() - scrollbar.scrollTop) + "px";
     }
-  
-    // On Mac OS X Lion and up, detect whether the mouse is plugged in by measuring 
+
+    // On Mac OS X Lion and up, detect whether the mouse is plugged in by measuring
     // the width of a div with a scrollbar in it. If the width is <= 1, then
     // the mouse isn't plugged in and scrollbars should overlap the content.
     function overlapScrollbars() {
@@ -17374,7 +17374,7 @@ var CodeMirror = (function() {
     }
 
     function computeMaxLength() {
-      var maxLineLength = 0; 
+      var maxLineLength = 0;
       maxLine = ""; maxLineChanged = true;
       doc.iter(0, doc.size, function(line) {
         var l = line.text;
@@ -19818,7 +19818,7 @@ CodeMirror.multiplexingMode = function(outer /*, others */) {
         return innerToken;
       }
     },
-    
+
     indent: function(state, textAfter) {
       var mode = state.innerActive ? state.innerActive.mode : outer;
       if (!mode.indent) return CodeMirror.Pass;
@@ -19839,7 +19839,7 @@ CodeMirror.multiplexingMode = function(outer /*, others */) {
 
 CodeMirror.defineMode("python", function(conf, parserConf) {
     var ERRORCLASS = 'error';
-    
+
     function wordRegexp(words) {
         return new RegExp("^((" + words.join(")|(") + "))\\b");
     }
@@ -19914,15 +19914,15 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
         if (stream.eatSpace()) {
             return null;
         }
-        
+
         var ch = stream.peek();
-        
+
         // Handle Comments
         if (ch === '#') {
             stream.skipToEnd();
             return 'comment';
         }
-        
+
         // Handle Number Literals
         if (stream.match(/^[0-9\.]/, false)) {
             var floatLiteral = false;
@@ -19958,13 +19958,13 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
                 return 'number';
             }
         }
-        
+
         // Handle Strings
         if (stream.match(stringPrefixes)) {
             state.tokenize = tokenStringFactory(stream.current());
             return state.tokenize(stream, state);
         }
-        
+
         // Handle operators and Delimiters
         if (stream.match(tripleDelimiters) || stream.match(doubleDelimiters)) {
             return null;
@@ -19977,31 +19977,31 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
         if (stream.match(singleDelimiters)) {
             return null;
         }
-        
+
         if (stream.match(keywords)) {
             return 'keyword';
         }
-        
+
         if (stream.match(builtins)) {
             return 'builtin';
         }
-        
+
         if (stream.match(identifiers)) {
             return 'variable';
         }
-        
+
         // Handle non-detected items
         stream.next();
         return ERRORCLASS;
     }
-    
+
     function tokenStringFactory(delimiter) {
         while ('rub'.indexOf(delimiter.charAt(0).toLowerCase()) >= 0) {
             delimiter = delimiter.substr(1);
         }
         var singleline = delimiter.length == 1;
         var OUTCLASS = 'string';
-        
+
         return function tokenString(stream, state) {
             while (!stream.eol()) {
                 stream.eatWhile(/[^'"\\]/);
@@ -20027,7 +20027,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             return OUTCLASS;
         };
     }
-    
+
     function indent(stream, state, type) {
         type = type || 'py';
         var indentUnit = 0;
@@ -20050,7 +20050,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             type: type
         });
     }
-    
+
     function dedent(stream, state, type) {
         type = type || 'py';
         if (state.scopes.length == 1) return;
@@ -20099,7 +20099,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             }
             return style;
         }
-        
+
         // Handle decorators
         if (current === '@') {
             return stream.match(identifiers, false) ? 'meta' : ERRORCLASS;
@@ -20109,7 +20109,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             && state.lastToken === 'meta') {
             style = 'meta';
         }
-        
+
         // Handle scope changes.
         if (current === 'pass' || current === 'return') {
             state.dedent += 1;
@@ -20138,7 +20138,7 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
             if (state.scopes.length > 1) state.scopes.shift();
             state.dedent -= 1;
         }
-        
+
         return style;
     }
 
@@ -20152,27 +20152,27 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
               dedent: 0
           };
         },
-        
+
         token: function(stream, state) {
             var style = tokenLexer(stream, state);
-            
+
             state.lastToken = style;
-            
+
             if (stream.eol() && stream.lambda) {
                 state.lambda = false;
             }
-            
+
             return style;
         },
-        
+
         indent: function(state, textAfter) {
             if (state.tokenize != tokenBase) {
                 return 0;
             }
-            
+
             return state.scopes[0].offset;
         }
-        
+
     };
     return external;
 });
@@ -20520,7 +20520,7 @@ IPython.utils = (function (IPython) {
         wrapUrls : wrapUrls,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
-        browser : browser    
+        browser : browser
     };
 
 }(IPython));
@@ -20672,7 +20672,7 @@ var IPython = (function (IPython) {
 
     Kernel.prototype._websocket_closed = function(ws_url, early) {
         this.stop_channels();
-        $([IPython.events]).trigger('websocket_closed.Kernel', 
+        $([IPython.events]).trigger('websocket_closed.Kernel',
             {ws_url: ws_url, kernel: this, early: early}
         );
     };
@@ -21030,7 +21030,7 @@ var IPython = (function (IPython) {
         this.style();
         this.bind_events();
     };
-    
+
     OutputArea.prototype.create_elements = function () {
         this.element = $("<div/>");
         this.collapse_button = $("<div/>");
@@ -21044,18 +21044,18 @@ var IPython = (function (IPython) {
     OutputArea.prototype.style = function () {
         this.collapse_button.hide();
         this.prompt_overlay.hide();
-        
+
         this.wrapper.addClass('output_wrapper');
         this.element.addClass('output vbox');
-        
+
         this.collapse_button.button();
         this.collapse_button.addClass('output_collapsed vbox');
         this.collapse_button.attr('title', 'click to expand output');
         this.collapse_button.html('. . .');
-        
+
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
         this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
-        
+
         this.collapse();
     };
 
@@ -21067,7 +21067,7 @@ var IPython = (function (IPython) {
         // line-height from http://stackoverflow.com/questions/1185151
         var fontSize = this.element.css('font-size');
         var lineHeight = Math.floor(parseInt(fontSize.replace('px','')) * 1.5);
-        
+
         return (this.element.height() > lines * lineHeight);
     };
 
@@ -21502,7 +21502,7 @@ var IPython = (function (IPython) {
             output_div.find("div.output_subarea").not("div.output_stderr").not("div.output_stdout").parent().remove();
         }
         this.unscroll_area();
-        
+
         // remove cleared outputs from JSON list:
         for (var i = this.outputs.length - 1; i >= 0; i--) {
             var out = this.outputs[i];
@@ -23596,10 +23596,10 @@ window.setup_ipython = function (ws_url) {
     // set some example input
     // focus the cell
     thecell.select();
-    
+
     $(document).keydown(function (event) {
         var key = IPython.utils.keycodes;
-        
+
         if (event.which === key.ESC) {
             // Intercept escape at highest level to avoid closing
             // websocket connection with firefox
@@ -23716,9 +23716,9 @@ window.setup_ipython = function (ws_url) {
   (function() {
     (function() {
       var colname, idx, statname, varname, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
-    
+
       __out.push('<table class="table" cellpadding="0" cellspacing="0">\n  ');
-    
+
       _ref = this.metadata._varnames;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         varname = _ref[_i];
@@ -23748,11 +23748,11 @@ window.setup_ipython = function (ws_url) {
         }
         __out.push('\n  ');
       }
-    
+
       __out.push('\n</table>\n');
-    
+
     }).call(this);
-    
+
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
@@ -23920,7 +23920,7 @@ window.setup_ipython = function (ws_url) {
   (function() {
     (function() {
       var element, idx, _i, _len, _ref;
-    
+
       _ref = this.elements;
       for (idx = _i = 0, _len = _ref.length; _i < _len; idx = ++_i) {
         element = _ref[idx];
@@ -23938,11 +23938,11 @@ window.setup_ipython = function (ws_url) {
         }
         __out.push('\n</div>\n');
       }
-    
+
       __out.push('\n');
-    
+
     }).call(this);
-    
+
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
@@ -23986,7 +23986,7 @@ window.setup_ipython = function (ws_url) {
   (function() {
     (function() {
       var element, idx, _i, _len, _ref;
-    
+
       _ref = this.elements;
       for (idx = _i = 0, _len = _ref.length; _i < _len; idx = ++_i) {
         element = _ref[idx];
@@ -24004,11 +24004,11 @@ window.setup_ipython = function (ws_url) {
         }
         __out.push('\n</div>\n');
       }
-    
+
       __out.push('\n');
-    
+
     }).call(this);
-    
+
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
@@ -25201,9 +25201,9 @@ window.setup_ipython = function (ws_url) {
   (function() {
     (function() {
       __out.push('<p>\n  <b>\n    You have no Plots.  Follow the intsructions\n    below to create some\n  </b>\n</p>\n');
-    
+
     }).call(this);
-    
+
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
@@ -25247,21 +25247,21 @@ window.setup_ipython = function (ws_url) {
   (function() {
     (function() {
       __out.push('<div class="accordion-heading bokehdocheading">\n  <a class="accordion-toggle bokehdoclabel" data-toggle="collapse" \n     href="#');
-    
+
       __out.push(__sanitize(this.bodyid));
-    
+
       __out.push('">\n    Document: ');
-    
+
       __out.push(__sanitize(this.model.get('title')));
-    
+
       __out.push('\n    <i class="bokehdelete icon-trash"></i>\n  </a>\n</div>\n<div id="');
-    
+
       __out.push(__sanitize(this.bodyid));
-    
+
       __out.push('" class="accordion-body collapse">\n  <div class="accordion-inner plots">\n  </div>\n</div>\n\n\n');
-    
+
     }).call(this);
-    
+
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
@@ -25305,9 +25305,9 @@ window.setup_ipython = function (ws_url) {
   (function() {
     (function() {
       __out.push('<div class="accordion">\n</div>\n');
-    
+
     }).call(this);
-    
+
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');
@@ -32038,17 +32038,17 @@ window.setup_ipython = function (ws_url) {
   (function() {
     (function() {
       var column, computed_column, idx, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
-    
+
       __out.push('<form class="form-inline tablecontrolform">\n<label>Transform </label>:  <select class="tablecontrolstate">\n    <option value="groupby" selected="selected">Group By</option>\n    <option value="filtering">Filtering</option>\n    <option value="computed">Computed Columns</option>\n  </select>\n  <br/>\n  ');
-    
+
       if (this.tablecontrolstate === 'groupby') {
         __out.push('\n  <label>GroupBy </label>\n  <input type="text" class="pandasgroup" value="');
         __out.push(__sanitize(this.group));
         __out.push('"/>\n  <label>Aggregation</label>\n  <select class="pandasagg">\n    <option value="sum">sum</option>\n    <option value="mean">mean</option>\n    <option value="std">std</option>\n    <option value="max">max</option>\n    <option value="min">min</option>\n  </select>\n  ');
       }
-    
+
       __out.push('\n  ');
-    
+
       if (this.tablecontrolstate === 'filtering') {
         __out.push('\n  <label class="checkbox" >\n    ');
         if (this.filterselected) {
@@ -32058,9 +32058,9 @@ window.setup_ipython = function (ws_url) {
         }
         __out.push('\n    Filter Selection\n  </label>\n  <input type="button" class="clearselected btn btn-mini" value="Clear Selection"/>\n  <label>\n    Search\n  </label>\n  <input type="text" class="search input-large"/>\n  ');
       }
-    
+
       __out.push('\n  \n  ');
-    
+
       if (this.tablecontrolstate === 'computed') {
         __out.push('\n  <table class="table">\n    <thead>\n      <th>\n        Name\n      </th>\n      <th>\n        Value\n      </th>\n      <th>\n      </th>\n    </thead>\n    ');
         _ref = this.computed_columns;
@@ -32076,9 +32076,9 @@ window.setup_ipython = function (ws_url) {
         }
         __out.push('\n    <tr>\n      <td>\n        <input type="text" class="computedname input-mini"/>\n      </td>\n      <td>\n        <input type="text" class="computedtxtbox input-medium"/>\n      </td>\n      <td>\n      </td>\n    </tr>\n  </table>\n  ');
       }
-    
+
       __out.push('\n  \n</form>\n\n<table class="bokehdatatable table table-bordered"\n');
-    
+
       if (this.width) {
         __out.push('\n       style="max-height:');
         __out.push(__sanitize(this.height));
@@ -32090,15 +32090,15 @@ window.setup_ipython = function (ws_url) {
         __out.push(__sanitize(this.height));
         __out.push('px"\n');
       }
-    
+
       __out.push('\n       >\n  <thead>\n    ');
-    
+
       if (this.counts) {
         __out.push('\n    <th>counts</th>\n    ');
       }
-    
+
       __out.push('\n    <th>index</th>\n    ');
-    
+
       _ref1 = this.columns;
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         column = _ref1[_j];
@@ -32116,9 +32116,9 @@ window.setup_ipython = function (ws_url) {
         }
         __out.push('\n    </th>\n    ');
       }
-    
+
       __out.push('\n  </thead>\n  ');
-    
+
       _ref2 = _.range(this.length);
       for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
         idx = _ref2[_k];
@@ -32154,27 +32154,27 @@ window.setup_ipython = function (ws_url) {
         }
         __out.push('\n  </tr>\n  ');
       }
-    
+
       __out.push('\n</table>\n<form>\n  <center>\n    <div class="btn-group pagination">\n      <button class="btn btn-mini">First</button>\n      <button class="btn btn-mini">Previous</button>\n      <button class="btn btn-mini">Next</button>\n      <button class="btn btn-mini">Last</button>  \n    </div>\n    <div class="paginatedisplay">\n      Show <input type="text" class="pandassize" value="');
-    
+
       __out.push(__sanitize(this.length));
-    
+
       __out.push('"> records\n      From <input type="text" class="pandasoffset" value="');
-    
+
       __out.push(__sanitize(this.offset));
-    
+
       __out.push('">\n      to ');
-    
+
       __out.push(__sanitize(this.length + this.offset));
-    
+
       __out.push(' - \n      Total : ');
-    
+
       __out.push(__sanitize(this.totallength));
-    
+
       __out.push('\n    </div>\n  </center>\n</form>\n');
-    
+
     }).call(this);
-    
+
   }).call(__obj);
   __obj.safe = __objSafe, __obj.escape = __escape;
   return __out.join('');

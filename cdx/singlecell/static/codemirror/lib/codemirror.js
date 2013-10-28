@@ -56,7 +56,7 @@ var CodeMirror = (function() {
     // Needed to handle Tab key in KHTML
     if (khtml) inputDiv.style.height = "1px", inputDiv.style.position = "absolute";
 
-    // Check for OS X >= 10.7. If so, we need to force a width on the scrollbar, and 
+    // Check for OS X >= 10.7. If so, we need to force a width on the scrollbar, and
     // make it overlap the content. (But we only do this if the scrollbar doesn't already
     // have a natural width. If the mouse is plugged in or the user sets the system pref
     // to always show scrollbars, the scrollbar shouldn't overlap.)
@@ -564,7 +564,7 @@ var CodeMirror = (function() {
     function onDragStart(e) {
       var txt = getSelection();
       e.dataTransfer.setData("Text", txt);
-      
+
       // Use dummy image instead of default browsers image.
       if (gecko || chrome || opera) {
         var img = document.createElement('img');
@@ -879,8 +879,8 @@ var CodeMirror = (function() {
       // Position the mover div to align with the current virtual scroll position
       mover.style.top = (displayOffset * textHeight() - scrollbar.scrollTop) + "px";
     }
-  
-    // On Mac OS X Lion and up, detect whether the mouse is plugged in by measuring 
+
+    // On Mac OS X Lion and up, detect whether the mouse is plugged in by measuring
     // the width of a div with a scrollbar in it. If the width is <= 1, then
     // the mouse isn't plugged in and scrollbars should overlap the content.
     function overlapScrollbars() {
@@ -899,7 +899,7 @@ var CodeMirror = (function() {
     }
 
     function computeMaxLength() {
-      var maxLineLength = 0; 
+      var maxLineLength = 0;
       maxLine = ""; maxLineChanged = true;
       doc.iter(0, doc.size, function(line) {
         var l = line.text;

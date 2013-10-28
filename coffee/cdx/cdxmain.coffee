@@ -45,7 +45,7 @@ class CDXRouter extends Backbone.Router
 
     # hide scrollbars from ipython console
     $('#thecell').parent().css('overflow', 'hidden')
-    
+
 
 $(()->
   register_models()

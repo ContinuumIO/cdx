@@ -3,7 +3,7 @@ import os
 import json
 import cPickle as pickle
 
-from bokeh.properties import (HasProps, MetaHasProps, 
+from bokeh.properties import (HasProps, MetaHasProps,
         Any, Dict, Enum, Float, Instance, Int, List, String,
         Color, Pattern, Percent, Size)
 
@@ -26,7 +26,7 @@ class Namespace(PlotObject):
     data = Dict()
     name = String()
     arrayserver_port = Int()
-    
+
     def populate(self, todisk=True):
         ns = get_ipython().user_ns
         self.data = {}
@@ -44,7 +44,7 @@ class Namespace(PlotObject):
                 if k in self.data:
                     data[k] = v
             pickle.dump(data, f, protocol=-1)
-        
+
     @property
     def filename(self):
         return self.name + ".pickle"

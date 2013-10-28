@@ -4,8 +4,8 @@
     <td class="namespace-element namespace-title">
       <%= varname %>
     </td>
-  </tr>   
-  <% for colname, idx in @metadata[varname]._colnames: %>  
+  </tr>
+  <% for colname, idx in @metadata[varname]._colnames: %>
   <tr class="namespace-row" varname="<%= varname %>">
     <td class="cdxtooltip namespace-element">
       <a><%= colname %> </a>
