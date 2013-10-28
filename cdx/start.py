@@ -1,9 +1,11 @@
-from geventwebsocket.handler import WebSocketHandler
-from gevent.pywsgi import WSGIServer
-from flask import request, current_app, Flask
 import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
+
+from geventwebsocket.handler import WebSocketHandler
+from gevent.pywsgi import WSGIServer
+
+from flask import request, current_app, Flask
 from app import cdx_app
 
 from bokeh.server.app import bokeh_app
