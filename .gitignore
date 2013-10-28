@@ -84,3 +84,7 @@ Thumbs.db
 cdx.js
 ipython.js
 webplot.py
+/*.pickle
+/cdxpids.json
+/kernel-*.json
+/redis.db
