@@ -1,5 +1,5 @@
 plot_context = require("./common/plot_context")
-layout = require("./layout/index")
+layout = require("./layout/grid")
 bokehutils = require("./serverutils")
 utils = require("./serverutils")
 base = require("./base")
