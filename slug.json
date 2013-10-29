@@ -27,7 +27,9 @@
         "./cdx/static/vendor/singlecell/ipython/js/tooltip.js",
         "./cdx/static/vendor/singlecell/ipython/js/celltoolbar.js",
         "./cdx/static/vendor/singlecell/ipython/js/contexthint.js",        
-        "./cdx/static/vendor/singlecell/js/singlecell.js"
+        "./cdx/static/vendor/singlecell/js/singlecell.js",
+
+        "./subtree/gridster/dist/jquery.gridster.with-extras.js"
     ],
     "paths" : [
         "./coffee/cdx",

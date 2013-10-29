@@ -1,4 +1,5 @@
 plot_context = require("./common/plot_context")
+NamespaceView = require("../namespace/namespace").NamespaceView
 layout = require("./layout/grid")
 bokehutils = require("./serverutils")
 utils = require("./serverutils")
@@ -8,7 +9,6 @@ utility = utils.utility
 Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 usercontext = require("usercontext/usercontext")
 DocView = require("./doc").DocView
-namespace = require("./namespace/namespace")
 
 class CDX extends base.HasProperties
   default_view : Backbone.View
@@ -78,7 +78,7 @@ class CDXApp extends Backbone.View
     @wswrapper = wswrapper
 
   render_namespace : () ->
-    @nsview = new namespace.NamespaceView(
+    @nsview = new NamespaceView(
       model : @cdxmodel.get_obj('namespace')
     )
     @$namespace.html('')
@@ -162,69 +162,15 @@ class CDXApp extends Backbone.View
 
   render_layouts : () ->
 
-    @$namespace = $('<div class="namespaceholder hundredpct"></div>')
-    @$table = $('<div class="tableholder hundredpct"></div>')
-    @$plotholder = $('<div class="plotholder hundredpct"></div>')
-    @$plotlist = $('<div class="plotlistholder hundredpct"></div>')
-    @$ipcell = $('<div id="thecell" class="hundredpct"></div>')
-    @$ipoutput = $("<div class='ipoutput'></div>")
-
-    top_height = 13
-    namespace =
-        title: "Namespace"
-        content: @$namespace
-        x: 1
-        y: top_height
-        r: 1
-        c: 1
-
-    title =
-       title: "Table"
-       content: @$table
-       x: 6
-       y: top_height
-       r: 1
-       c: namespace.x + 1
-
-    plotholder =
-        title: "Plotholder"
-        content: @$plotholder
-        x: 6
-        y: top_height
-        r: 1
-        c: title.x + 1
-
-    plotlist =
-        title: "Plotlist"
-        content: @$plotlist
-        x: 1
-        y: top_height
-        r: 1
-        c: plotholder.x + 1
-
-    ipcell =
-        title: "Ipcell"
-        content: @$ipcell
-        x: 7
-        y: 15 - top_height
-        r: 2
-        c: 1
-
-    ipoutput =
-        title: "Ipoutput"
-        content: @$ipoutput
-        x: 7
-        y: 15 - top_height
-        r: 2
-        c: ipcell.x + 1
-
-    @elements = [namespace, title, plotholder, plotlist, ipcell, ipoutput]
-
-    @layout = new layout.GridLayout(
-      elements: @elements
-    )
-
+    @layout = new layout.GridLayout({})
     @$el.append(@layout.el)
+
+    @$namespace = $(".namespaceholder")
+    @$table = $(".tableholder")
+    @$plotholder = $(".plotholder")
+    @$plotlist = $(".plotlistholder")
+    @$ipcell = $("#thecell")
+    @$ipoutput = $(".ipoutput")
 
 utility = utils.utility
 Promises = utils.Promises

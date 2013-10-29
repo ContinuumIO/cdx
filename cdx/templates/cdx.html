@@ -19,8 +19,6 @@
     {% for jsfile in hem_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.gridster/0.1.0/jquery.gridster.min.js"></script>
-
     <script>
       require("cdxmain")      
     </script>
@@ -39,6 +37,10 @@
       </div>
     </div>
     <div id="CDX">
+
+    <div class="gridster">
+        <ul></ul>
+        </div>
     </div>
   </body>
 </html>
