@@ -1,0 +1,8 @@
+<% for element, idx in @elements: %>
+<div class="griditem">
+    <h2 class=""><%= element.title %></h2>
+    <div class="griditem-content">
+        <%= element.content %>
+    </div>
+</div>
+<% end %>

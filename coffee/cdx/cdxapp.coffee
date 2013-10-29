@@ -161,31 +161,69 @@ class CDXApp extends Backbone.View
     @$ipoutput.append(temp)
 
   render_layouts : () ->
+
     @$namespace = $('<div class="namespaceholder hundredpct"></div>')
     @$table = $('<div class="tableholder hundredpct"></div>')
     @$plotholder = $('<div class="plotholder hundredpct"></div>')
     @$plotlist = $('<div class="plotlistholder hundredpct"></div>')
-    @plotbox = new layout.HBoxView(
-      elements : [@$namespace, @$table, @$plotholder, @$plotlist]
-      height : '100%',
-      width : '100%',
-    )
-    @plotbox.sizes = [10, 40, 40, 10]
-    @plotbox.set_sizes()
     @$ipcell = $('<div id="thecell" class="hundredpct"></div>')
     @$ipoutput = $("<div class='ipoutput'></div>")
-    @iplayout = new layout.HBoxView(
-      elements : [@$ipcell, @$ipoutput]
-      height : '100%'
-      width : '100%'
+
+    top_height = 13
+    namespace =
+        title: "Namespace"
+        content: @$namespace
+        x: 1
+        y: top_height
+        r: 1
+        c: 1
+
+    title =
+       title: "Table"
+       content: @$table
+       x: 6
+       y: top_height
+       r: 1
+       c: namespace.x + 1
+
+    plotholder =
+        title: "Plotholder"
+        content: @$plotholder
+        x: 6
+        y: top_height
+        r: 1
+        c: title.x + 1
+
+    plotlist =
+        title: "Plotlist"
+        content: @$plotlist
+        x: 1
+        y: top_height
+        r: 1
+        c: plotholder.x + 1
+
+    ipcell =
+        title: "Ipcell"
+        content: @$ipcell
+        x: 7
+        y: 15 - top_height
+        r: 2
+        c: 1
+
+    ipoutput =
+        title: "Ipoutput"
+        content: @$ipoutput
+        x: 7
+        y: 15 - top_height
+        r: 2
+        c: ipcell.x + 1
+
+    @elements = [namespace, title, plotholder, plotlist, ipcell, ipoutput]
+
+    @layout = new layout.GridLayout(
+      elements: @elements
     )
-    @layout = new layout.VBoxView(
-      elements : [@plotbox.$el, @iplayout.$el]
-      height : '100%'
-      width : '100%'
-    )
-    @layout.sizes = [80,20]
-    @layout.set_sizes()
+
     @$el.append(@layout.el)
 
 utility = utils.utility

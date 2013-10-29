@@ -3,13 +3,14 @@ events = require("./events")
 hboxtemplate = require("./hboxtemplate")
 vboxtemplate = require("./vboxtemplate")
 
-
 class SlideableLayout extends ContinuumView
   dim : null #width
   mouse_coord : null #pageX
   component_selector : null #hcomponent
   content_selector : null #hcontent
   template : null
+
+
   initialize : (options) ->
     super(options)
     if options.elements

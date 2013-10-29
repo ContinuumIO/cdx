@@ -12,12 +12,15 @@
     <link href="{{ url_for('static', filename='vendor/bokehjs/css/bokeh.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/css/continuum.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/vendor/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
-    {% for jsfile in static_js %}
+    <link href="//cdnjs.cloudflare.com/ajax/libs/jquery.gridster/0.1.0/jquery.gridster.min.css" rel="stylesheet">
+      {% for jsfile in static_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
     {% for jsfile in hem_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.gridster/0.1.0/jquery.gridster.min.js"></script>
+
     <script>
       require("cdxmain")      
     </script>
