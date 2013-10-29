@@ -2,7 +2,7 @@ ContinuumView = require("../common/continuum_view").ContinuumView
 events = require("./events")
 gridtemplate = require("./gridtemplate")
 
-class GridView extends ContinuumView
+class GridLayout extends ContinuumView
 
   grid_selector: ".gridster"
   template: gridtemplate
@@ -27,4 +27,4 @@ class GridView extends ContinuumView
     gridster.add_widget(e.content, e.x, e.y, e.r, e.c) for e in @elements
 
 
-exports.GridView = GridView
+exports.GridLayout = GridLayout

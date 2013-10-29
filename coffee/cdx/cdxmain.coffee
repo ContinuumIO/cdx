@@ -1,5 +1,5 @@
 base = require("./base")
-layout = require("./layout/index")
+layout = require("./layout/grid")
 locations = base.locations
 CDXApp = require("./cdxapp").CDXApp
 class CDXRouter extends Backbone.Router
