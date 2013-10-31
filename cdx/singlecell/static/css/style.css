@@ -12,3 +12,22 @@ div#thecell{
 div#theplot {
   height: 300px;
 }
+
+.column{
+	background:#fff;
+	float:left;
+}
+
+.column .dragbox h2{
+	margin:0;
+	font-size:12px;
+	background:#f0f0f0;
+	color:#000;
+	font-family:Verdana;
+	cursor:move;
+    line-height: 12px;
+}
+.dragbox-content{
+	background:#fff;
+}
+

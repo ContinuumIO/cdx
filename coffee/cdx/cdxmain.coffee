@@ -51,6 +51,18 @@ $(()->
   register_models()
   router = new CDXRouter()
   Backbone.history.start()
+
+  $('.column').sortable({
+      handle: 'h2'
+      cursor: 'move'
+      delay: 150
+      placeholder: 'placeholder'
+      forcePlaceholderSize: true
+      opacity: .8
+      change: () ->
+        $('hcomponent.dragbox.hseparator').each (idx, element) ->
+          $(this).attr("idx", idx);
+  }).disableSelection()
 )
 
 

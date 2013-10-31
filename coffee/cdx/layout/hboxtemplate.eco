@@ -1,10 +1,12 @@
+
 <% for element, idx in @elements: %>
 <div class="hcomponent">
-  <% if idx != 0: %>
-  <div class="hseparator" idx="<%= idx %>"> </div>
-  <div class="hcontent not-first-hcontent" idx="<%= idx %>"></div>
-  <% else: %>
-  <div class="hcontent first-hcontent" idx="<%= idx %>"></div>
-  <% end %>
+    <% if idx != 0: %>
+    <div class="hseparator" id="item<%= idx %>" idx="<%= idx %>"> </div>
+    <% end %>
+    <div class="dragbox">
+        <h2>Title</h2>
+        <div class="dragbox-content hcontent" idx="<%= idx %>"></div>
+    </div>
 </div>
 <% end %>

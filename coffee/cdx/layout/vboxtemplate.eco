@@ -2,9 +2,7 @@
 <div class="vcomponent">
   <% if idx != 0: %>
   <div class="vseparator" idx="<%= idx %>"> </div>
-  <div class="vcontent not-first-vcontent" idx="<%= idx %>"></div>
-  <% else: %>
-  <div class="vcontent first-vcontent" idx="<%= idx %>"></div>
   <% end %>
+  <div class="vcontent" idx="<%= idx %>"></div>
 </div>
 <% end %>

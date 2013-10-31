@@ -8,7 +8,6 @@
     {% for cssfile in cssfiles %}
     <link href="{{ cssfile }}" rel="stylesheet" type="text/css"/>
     {% endfor %}
-    <link href="{{ url_for('static', filename='vendor/bokehjs/vendor/jquery/css/themes/base/jquery-ui.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/css/bokeh.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/css/continuum.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/vendor/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
@@ -18,6 +17,8 @@
     {% for jsfile in hem_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
+      <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+  <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script>
       require("cdxmain")      
     </script>

@@ -67,7 +67,8 @@ class HBoxView extends SlideableLayout
   content_selector : '.hcontent'
   template : hboxtemplate
   attributes :
-    class : 'cdxhbox'
+    class: 'cdxhbox  column ui-sortable'
+    unselectable: 'on'
 
   events :
     "mousedown .hseparator" :  'handle_click'
