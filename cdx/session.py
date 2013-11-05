@@ -159,5 +159,5 @@ class CDXSession(PlotServerSession):
         self.cdx.activeplot = plot
         self.cdx.plotlist._dirty = True
         stored = self.store_all()
-        print stored
+        # print stored
         return stored
