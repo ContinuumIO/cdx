@@ -10,6 +10,8 @@ from app import cdx_app
 
 import bokeh
 print "bokeh: %s" % bokeh.__version__
+import pandas
+print "pandas: %s" % pandas.version.version
 
 from bokeh.server.app import bokeh_app
 from bokeh.server.start import prepare_app as bokeh_prepare_app
