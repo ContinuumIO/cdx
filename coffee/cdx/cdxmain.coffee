@@ -34,8 +34,9 @@ class CDXRouter extends Backbone.Router
     window.setup_ipython(ipython_ws_addr)
     cdx_addr = $('body').data('cdx-addr')
     arrayserver_port = $('body').data('arrayserver-port')
-    code = "import cdx.remotedata.pandasserver as pds; pds.run(#{arrayserver_port})\n"
-    code += "from cdx.session import CDXSession; sess = CDXSession(serverloc='#{cdx_addr}', arrayserver_port=#{arrayserver_port})\n"
+    code  = "import cdx.remotedata.pandasserver as pds; pds.run(#{arrayserver_port})\n"
+    code += "from cdx.session import CDXSession\n"
+    code += "sess = CDXSession(serverloc='#{cdx_addr}', arrayserver_port=#{arrayserver_port})\n"
     code += "sess.use_doc('#{title}')\n"
     code += "import pandas as pd; auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')\n"
     code += "sess.cdx.namespace.populate(); sess.plot('weight', 'mpg', 'auto')\n"
