@@ -8,6 +8,9 @@ from gevent.pywsgi import WSGIServer
 from flask import request, current_app, Flask
 from app import cdx_app
 
+import bokeh
+print "bokeh: %s" % bokeh.__version__
+
 from bokeh.server.app import bokeh_app
 from bokeh.server.start import prepare_app as bokeh_prepare_app
 from bokeh.server.start import prepare_local as bokeh_prepare_local
