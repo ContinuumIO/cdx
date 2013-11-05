@@ -88,3 +88,6 @@ webplot.py
 /cdxpids.json
 /kernel-*.json
 /redis.db
+/cdx/static/css/application.css
+/cdx/static/js/application.js
+/hembuild
