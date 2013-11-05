@@ -32,7 +32,7 @@
     "paths" : [
         "./coffee/cdx",
         "../bokeh/bokeh/server/static/coffee",
-        "../bokeh/subtree/bokehjs/static/coffee"
+        "../bokehjs/static/coffee"
     ],
     "identifier" : "require",
     "public" : "./cdx/static",
