@@ -6,6 +6,7 @@ from bokeh import protocol
 import json
 #app = Flask('cdx.remotedata.pandasserver')
 app = Flask(__name__)
+app.debug = True
 selections = {}
 computed_columns = {}
 
@@ -28,7 +29,9 @@ def search(varname, code):
     selections[varname] = np.nonzero(result)[0].tolist()
 
 def get_data(varname, transforms):
-    sort = transforms.get('sort', [])
+    # auto = auto.reindex_axis(list(reversed(auto.columns)), axis=1)
+    columns = transforms.get('columns', []) # List[String]
+    sort = transforms.get('sort', [])       # List[SortBy(column: String, ascending: Boolean)]
     group = transforms.get('group', [])
     agg = transforms.get('agg', 'mean')
     offset = transforms.get('offset', 0)
@@ -40,6 +43,8 @@ def get_data(varname, transforms):
     data = ns[varname]
     maxlength = len(data)
     originallength = len(data)
+    if columns:
+        data = data.reindex_axis(columns, axis='columns')
     data['_counts'] = np.ones(len(data))
     data['_selected'] = np.zeros(len(data))
     data.ix[raw_selected, '_selected'] = 1
@@ -73,8 +78,14 @@ def get_data(varname, transforms):
         selected = stats['_selected']
         data['_counts'] = counts
         data['_selected'] = selected
-    del ns[varname]['_counts']
-    del ns[varname]['_selected']
+    try:
+        del ns[varname]['_counts']
+    except KeyError:
+        pass
+    try:
+        del ns[varname]['_selected']
+    except KeyError:
+        pass
     return groupobj, data, maxlength, totallength
 
 def jsonify(df):
