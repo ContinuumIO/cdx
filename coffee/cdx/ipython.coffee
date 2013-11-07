@@ -1,14 +1,14 @@
-exports.setup_ipython = (ws_url) ->
+exports.setup_ipython = (container, ws_url) ->
     patch_codemirror()
 
     IPython.tooltip = new IPython.Tooltip()
 
     kernel = new IPython.Kernel('/kernels')
     kernel._kernel_started({kernel_id: '1', ws_url: ws_url})
-    thecell = new IPython.CodeCell(kernel)
-    $("div#thecell").append(thecell.element)
-    window.thecell = thecell
-    thecell.select()
+
+    cell = new IPython.CodeCell(kernel)
+    container.append(cell.element)
+    cell.select()
 
     $(document).keydown (event) ->
         key = IPython.utils.keycodes
@@ -21,11 +21,13 @@ exports.setup_ipython = (ws_url) ->
             # ignore shift keydown
             return true
         else if event.which is key.ENTER && event.shiftKey
-            thecell.execute()
+            cell.execute()
             return false
 
     $("a#restart").click(() -> kernel.restart())
     $("a#interrupt").click(() -> kernel.interrupt())
+
+    [kernel, cell]
 
 patch_codemirror = () ->
     # monkey patch CM to be able to syntax highlight cell magics

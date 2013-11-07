@@ -32,24 +32,20 @@ class CDXRouter extends Backbone.Router
     $('#CDX').append(view.el)
     window.view = view
     ipython_ws_addr = $('body').data('ipython-ws-addr')
-    ipython.setup_ipython(ipython_ws_addr)
+
+    [kernel, cell] = ipython.setup_ipython($("div#thecell"), ipython_ws_addr)
     cdx_addr = $('body').data('cdx-addr')
     arrayserver_port = $('body').data('arrayserver-port')
+
     code  = "import cdx.remotedata.pandasserver as pds; pds.run(#{arrayserver_port})\n"
     code += "from cdx.session import CDXSession\n"
     code += "sess = CDXSession(serverloc='#{cdx_addr}', arrayserver_port=#{arrayserver_port})\n"
-    code += "sess.use_doc('#{title}')\n"
-    code += "import pandas as pd; auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')\n"
+    code += "sess.use_doc('#{title}')"
+    _.delay((() -> kernel.execute(code)), 1000) # XXX: otherwise throws InvalidStateError 11, why?
+
+    code  = "import pandas as pd; auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')\n"
     code += "sess.cdx.namespace.populate(); sess.plot('weight', 'mpg', 'auto')"
-
-    thecell.set_text(code)
-    #hacky...
-    _.delay((() => thecell.execute()), 1000)
-    view.split_ipython()
-
-    # hide scrollbars from ipython console
-    $('#thecell').parent().css('overflow', 'hidden')
-
+    cell.set_text(code)
 
 $(()->
   register_models()
