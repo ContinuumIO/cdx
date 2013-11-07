@@ -8,9 +8,6 @@ exports.setup_ipython = (ws_url) ->
     thecell = new IPython.CodeCell(kernel)
     $("div#thecell").append(thecell.element)
     window.thecell = thecell
-    thecell.code_mirror.setSize("100%", 106)
-    # set some example input
-    # focus the cell
     thecell.select()
 
     $(document).keydown (event) ->
