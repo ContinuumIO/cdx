@@ -40,7 +40,7 @@ class CDXRouter extends Backbone.Router
     code += "sess = CDXSession(serverloc='#{cdx_addr}', arrayserver_port=#{arrayserver_port})\n"
     code += "sess.use_doc('#{title}')\n"
     code += "import pandas as pd; auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')\n"
-    code += "sess.cdx.namespace.populate(); sess.plot('weight', 'mpg', 'auto')\n"
+    code += "sess.cdx.namespace.populate(); sess.plot('weight', 'mpg', 'auto')"
 
     thecell.set_text(code)
     #hacky...
