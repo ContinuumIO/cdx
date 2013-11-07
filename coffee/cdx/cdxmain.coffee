@@ -1,4 +1,5 @@
 base = require("./base")
+ipython = require("./ipython")
 layout = require("./layout/index")
 locations = base.locations
 CDXApp = require("./cdxapp").CDXApp
@@ -31,7 +32,7 @@ class CDXRouter extends Backbone.Router
     $('#CDX').append(view.el)
     window.view = view
     ipython_ws_addr = $('body').data('ipython-ws-addr')
-    window.setup_ipython(ipython_ws_addr)
+    ipython.setup_ipython(ipython_ws_addr)
     cdx_addr = $('body').data('cdx-addr')
     arrayserver_port = $('body').data('arrayserver-port')
     code  = "import cdx.remotedata.pandasserver as pds; pds.run(#{arrayserver_port})\n"

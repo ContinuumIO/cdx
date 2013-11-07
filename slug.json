@@ -26,8 +26,7 @@
         "./cdx/static/vendor/singlecell/ipython/js/completer.js",
         "./cdx/static/vendor/singlecell/ipython/js/tooltip.js",
         "./cdx/static/vendor/singlecell/ipython/js/celltoolbar.js",
-        "./cdx/static/vendor/singlecell/ipython/js/contexthint.js",
-        "./cdx/static/vendor/singlecell/js/singlecell.js"
+        "./cdx/static/vendor/singlecell/ipython/js/contexthint.js"
     ],
     "paths" : [
         "./coffee/cdx",
