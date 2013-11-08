@@ -22,6 +22,20 @@ class CDXRouter extends Backbone.Router
     view.plotbox.sizes = [0,0,80,20]
     view.plotbox.set_sizes()
 
+  initCode: (arrayserver_port, cdx_addr, title) ->
+    """
+    import cdx.remotedata.pandasserver as pds; pds.run(#{arrayserver_port})
+    from cdx.session import CDXSession
+    sess = CDXSession(serverloc='#{cdx_addr}', arrayserver_port=#{arrayserver_port})
+    sess.use_doc('#{title}')
+    """
+
+  plotCode: () ->
+    """
+    import pandas as pd; auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')
+    sess.cdx.namespace.populate(); sess.plot('weight', 'mpg', 'auto')
+    """
+
   main : (title) ->
     #hacky
     cdxlink = window.location.href.replace("#justplots", "#cdx")
@@ -37,15 +51,12 @@ class CDXRouter extends Backbone.Router
     cdx_addr = $('body').data('cdx-addr')
     arrayserver_port = $('body').data('arrayserver-port')
 
-    code  = "import cdx.remotedata.pandasserver as pds; pds.run(#{arrayserver_port})\n"
-    code += "from cdx.session import CDXSession\n"
-    code += "sess = CDXSession(serverloc='#{cdx_addr}', arrayserver_port=#{arrayserver_port})\n"
-    code += "sess.use_doc('#{title}')"
-    _.delay((() -> kernel.execute(code)), 1000) # XXX: otherwise throws InvalidStateError 11, why?
+    _.delay((() =>
+        code = @initCode(arrayserver_port, cdx_addr, title)
+        kernel.execute(code)),
+    1000) # XXX: otherwise throws InvalidStateError 11, why?
 
-    code  = "import pandas as pd; auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')\n"
-    code += "sess.cdx.namespace.populate(); sess.plot('weight', 'mpg', 'auto')"
-    cell.set_text(code)
+    cell.set_text(@plotCode())
 
 $(()->
   register_models()
