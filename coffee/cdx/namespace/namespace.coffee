@@ -11,8 +11,8 @@ class NamespaceView extends ContinuumView
   events :
     "click .namespace-row" : "rowclick"
 
-  rowclick : (e) =>
-    varname = $(e.currentTarget).attr('varname')
+  rowclick : (event) =>
+    varname = $(event.currentTarget).data('varname')
     @trigger("view", varname)
 
   delegateEvents : (events) ->

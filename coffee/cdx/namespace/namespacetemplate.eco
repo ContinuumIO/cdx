@@ -1,12 +1,12 @@
 <table class="table" cellpadding="0" cellspacing="0">
   <% for varname in _.keys(@data).sort(): %>
-    <tr class="namespace-row" varname="<%= varname %>">
+    <tr class="namespace-row" data-varname="<%= varname %>">
       <td class="namespace-element namespace-title">
         <%= varname %>
       </td>
     </tr>
     <% for colname in _.keys(@data[varname]).sort(): %>
-    <tr class="namespace-row" varname="<%= varname %>">
+    <tr class="namespace-row" data-varname="<%= varname %>">
       <td class="cdxtooltip namespace-element">
         <a><%= colname %> </a>
         <span>
