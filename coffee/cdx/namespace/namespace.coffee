@@ -21,25 +21,8 @@ class NamespaceView extends ContinuumView
 
   template : require("./namespacetemplate")
   render : () ->
-    data = @mget('data')
-    metadata = {}
-    if data
-      metadata._varnames = _.keys(data)
-    else
-      metadata._varnames = []
-    metadata._varnames.sort()
-    for own variable, variable_data of data
-      metadata[variable] = {}
-      metadata[variable]._colnames = _.keys(variable_data)
-      metadata[variable]._colnames.sort()
-      for own colname, col_data of variable_data
-        metadata[variable][colname] = {}
-        metadata[variable][colname]._statnames = _.keys(col_data)
-        metadata[variable][colname]._statnames.sort()
-    html = @template(
-      metadata: metadata
-      data: data
-    )
+    data = @mget('data') || {}
+    html = @template(data: data)
     @$el.html(html)
 
 class Namespace extends HasProperties
