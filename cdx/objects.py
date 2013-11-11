@@ -27,6 +27,11 @@ class Namespace(PlotObject):
     name = String()
     arrayserver_port = Int()
 
+    def __str__(self):
+        return "Namespace(name=%r, datasets=%s)" % (self.name, sorted(self.data.keys()))
+
+    __repr__ = __str__
+
     def _namespace(self):
         return get_ipython().user_ns
 
