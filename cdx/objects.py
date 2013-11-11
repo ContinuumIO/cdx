@@ -1,7 +1,8 @@
-import pandas as pd
 import os
 import json
 import cPickle as pickle
+
+from pandas import DataFrame
 
 from bokeh.properties import (HasProps, MetaHasProps,
         Any, Dict, Enum, Float, Instance, Int, List, String,
@@ -36,7 +37,7 @@ class Namespace(PlotObject):
         return get_ipython().user_ns
 
     def statsmodels(self):
-        """Pouplate namespace with statsmodels' datasets. """
+        """Populate namespace with statsmodels' datasets. """
         from statsmodels import datasets
 
         ns = self._namespace()
@@ -47,23 +48,28 @@ class Namespace(PlotObject):
 
         self.populate()
 
-    def populate(self, todisk=True):
+    def populate(self, to_disk=True):
+        """Scan global namespace for pandas' datasets. """
         ns = self._namespace()
-        self.data = {}
-        for k,v in ns.iteritems():
-            if isinstance(v, pd.DataFrame) and not k.startswith("_"):
-                summary = v.describe()
-                self.data[k] = summary.to_dict()
-        self.session.store_obj(self)
-        if not todisk:
+        datasets = {}
+
+        for name, dataset in ns.iteritems():
+            if isinstance(dataset, DataFrame) and not name.startswith("_"):
+                datasets[name] = list(dataset.columns)
+
+        if datasets == self.data:
             return
-        fname = self.filename
-        with open(fname, "w+") as f:
-            data = {}
-            for k,v in ns.iteritems():
-                if k in self.data:
-                    data[k] = v
-            pickle.dump(data, f, protocol=-1)
+
+        self.data = datasets
+        self.session.store_obj(self)
+
+        if not to_disk:
+            return
+
+        data = [ (name, ns[name]) for name in datasets.keys() ]
+
+        with open(self.filename, "w+") as file:
+            pickle.dump(data, file, protocol=-1)
 
     @property
     def filename(self):

@@ -59,7 +59,7 @@ class CDXSession(PlotServerSession):
             self.store_objs([cdx, cdx.plotlist])
         #load namespace
         self.cdx.namespace.load()
-        self.cdx.namespace.populate(todisk=False)
+        self.cdx.namespace.populate(to_disk=False)
 
     @property
     def source(self):
