@@ -64,7 +64,7 @@ class Namespace(PlotObject):
         if not to_disk:
             return
 
-        data = [ (name, ns[name]) for name in datasets.keys() ]
+        data = dict([ (name, ns[name]) for name in datasets.keys() ])
 
         with open(self.filename, "w+") as file:
             pickle.dump(data, file, protocol=-1)
