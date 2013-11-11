@@ -27,9 +27,7 @@ def start_ipython(pidfilename, port):
     script = join(dirname(__file__), 'singlecell', 'singlecell.py')
     cmd = [python, script, str(port)]
     mproc = ManagedProcess(cmd, 'ipython', pidfilename,
-                           stdout=sys.stdout,
-                           stderr=sys.stderr
-                           )
+        stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin)
     return mproc
 
 
