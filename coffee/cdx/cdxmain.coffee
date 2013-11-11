@@ -27,6 +27,7 @@ class CDXRouter extends Backbone.Router
     import cdx.remotedata.pandasserver as pds; pds.run(#{arrayserver_port})
     from cdx.session import CDXSession
     sess = CDXSession(serverloc='#{cdx_addr}', arrayserver_port=#{arrayserver_port})
+    get_ipython().register_post_execute(lambda: sess.cdx.namespace.populate())
     sess.use_doc('#{title}')
     """
 

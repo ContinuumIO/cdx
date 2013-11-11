@@ -46,8 +46,6 @@ class Namespace(PlotObject):
             if hasattr(dataset, "load_pandas"):
                 ns[name] = dataset.load_pandas().data
 
-        self.populate()
-
     def populate(self, to_disk=True):
         """Scan global namespace for pandas' datasets. """
         ns = self._namespace()
