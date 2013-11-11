@@ -27,8 +27,23 @@ class Namespace(PlotObject):
     name = String()
     arrayserver_port = Int()
 
+    def _namespace(self):
+        return get_ipython().user_ns
+
+    def statsmodels(self):
+        """Pouplate namespace with statsmodels' datasets. """
+        from statsmodels import datasets
+
+        ns = self._namespace()
+
+        for name, dataset in datasets.__dict__.iteritems():
+            if hasattr(dataset, "load_pandas"):
+                ns[name] = dataset.load_pandas().data
+
+        self.populate()
+
     def populate(self, todisk=True):
-        ns = get_ipython().user_ns
+        ns = self._namespace()
         self.data = {}
         for k,v in ns.iteritems():
             if isinstance(v, pd.DataFrame) and not k.startswith("_"):
@@ -50,7 +65,7 @@ class Namespace(PlotObject):
         return self.name + ".pickle"
 
     def load(self):
-        ns = get_ipython().user_ns
+        ns = self._namespace()
         if os.path.exists(self.filename):
             fname = self.filename
             with open(fname) as f:
