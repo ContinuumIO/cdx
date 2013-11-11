@@ -3,21 +3,24 @@
   <head>
     <meta charset="utf-8">
     <title>Continuum Analytics</title>
-	<!-- Vendor Styles -->
+
     <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
-    {% for cssfile in cssfiles %}
-    <link href="{{ cssfile }}" rel="stylesheet" type="text/css"/>
-    {% endfor %}
+
     <link href="{{ url_for('static', filename='vendor/bokehjs/vendor/jquery/css/themes/base/jquery-ui.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/css/bokeh.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/css/continuum.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bokehjs/vendor/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
+
+    {% for cssfile in cssfiles %}
+    <link href="{{ cssfile }}" rel="stylesheet" type="text/css"/>
+    {% endfor %}
     {% for jsfile in static_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
     {% for jsfile in hem_js %}
     <script type="text/javascript" src="{{jsfile}}"></script>
     {% endfor %}
+
     <script>
       require("cdxmain")
     </script>
@@ -25,7 +28,7 @@
   <body
      data-ipython-ws-addr={{ ipython_ws_addr }}
      data-cdx-addr={{ cdx_addr }}
-     data-arrayserver-port={{arrayserver_port}}
+     data-arrayserver-port={{ arrayserver_port }}
   >
     <div class="navbar navbar-inverse navbar-static-top">
       <div class="navbar-inner">
