@@ -23,8 +23,10 @@ class NamespaceView extends ContinuumView
   template: require("./namespacetemplate")
 
   render: () ->
-    @renderElements()
-    @$el.accordion({
+    div = $("<div/>")
+    @$el.html(div)
+    @renderElements(div)
+    div.accordion({
         header: "> .namespace-element > .namespace-dataset",
         heightStyle: "content",
     }).sortable({
@@ -32,10 +34,10 @@ class NamespaceView extends ContinuumView
         axis: "y",
     })
 
-  renderElements: () ->
+  renderElements: (el) ->
     data = @mget('data') || {}
     html = @template(data: data)
-    @$el.html(html)
+    el.html(html)
 
 class Namespace extends HasProperties
   default_view : NamespaceView
