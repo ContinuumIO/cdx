@@ -10,9 +10,9 @@ class NamespaceView extends ContinuumView
     @render()
 
   events:
-    "click .namespace-element li:first-child" : "elementClick"
+    "click .namespace-dataset": "click"
 
-  elementClick: (event) =>
+  click: (event) =>
     varname = $(event.currentTarget).data('varname')
     @trigger("view", varname)
 
@@ -23,6 +23,16 @@ class NamespaceView extends ContinuumView
   template: require("./namespacetemplate")
 
   render: () ->
+    @renderElements()
+    @$el.accordion({
+        header: "> .namespace-element > .namespace-dataset",
+        heightStyle: "content",
+    }).sortable({
+        handle: ".namespace-dataset",
+        axis: "y",
+    })
+
+  renderElements: () ->
     data = @mget('data') || {}
     html = @template(data: data)
     @$el.html(html)

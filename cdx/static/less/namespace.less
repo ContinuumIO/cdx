@@ -1,7 +1,17 @@
-.namespace-element {
-    list-style-type: none;
+.ui-accordion {
+    // TODO: investigate why JqUI doesn't add this.
+    .ui-accordion-header {
+        padding-left: 2.2em;
+    }
 
-    li:first-child {
-        cursor: pointer;
+    // TODO: remove when support for tooltips is dropped.
+    .ui-accordion-content {
+        overflow: visible;
+    }
+}
+
+.namespace-element {
+    ul {
+        list-style-type: none;
     }
 }

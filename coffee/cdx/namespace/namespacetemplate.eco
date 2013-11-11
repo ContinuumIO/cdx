@@ -1,23 +1,25 @@
 <% for varname in _.keys(@data).sort(): %>
-  <ul class="namespace-element">
-    <li data-varname="<%= varname %>">
+  <div class="namespace-element">
+    <h3 class="namespace-dataset" data-varname="<%= varname %>">
       <%= varname %>
-    </li>
-    <% for colname in _.keys(@data[varname]).sort(): %>
-      <li class="cdx-tooltip">
-        <%= colname %>
-        <span>
-          <strong>Summary Statistics</strong>
-          <table class="table">
-            <% for statname in _.keys(@data[varname][colname]).sort(): %>
-              <tr>
-                <td><%= statname %></td>
-                <td><%= @data[varname][colname][statname] %></td>
-              </tr>
-            <% end %>
-          </table>
-        </span>
-      </li>
-    <% end %>
-  </ul>
+    </h3>
+    <ul>
+      <% for colname in _.keys(@data[varname]).sort(): %>
+        <li class="cdx-tooltip">
+          <%= colname %>
+          <span>
+            <strong>Summary Statistics</strong>
+            <table class="table">
+              <% for statname in _.keys(@data[varname][colname]).sort(): %>
+                <tr>
+                  <td><%= statname %></td>
+                  <td><%= @data[varname][colname][statname] %></td>
+                </tr>
+              <% end %>
+            </table>
+          </span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
 <% end %>
