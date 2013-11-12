@@ -16,13 +16,6 @@ from bokeh.objects import PlotObject, Plot
 from bokeh.pandasobjects import PlotObject, Plot, IPythonRemoteData
 from bokeh.session import PlotContext, PlotList
 
-
-global store
-
-# plot object is a bad name
-class Table(PlotObject):
-    pass
-
 class Namespace(PlotObject):
     data = Dict()
     name = String()
