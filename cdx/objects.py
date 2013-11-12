@@ -62,6 +62,14 @@ class Namespace(PlotObject):
         with open(self.filename, "w+") as file:
             pickle.dump(data, file, protocol=-1)
 
+    def clean(self):
+        """Remove all pandas' datasets from global namespace. """
+        ns = self._namespace()
+
+        for name, dataset in dict(ns).iteritems():
+            if isinstance(dataset, DataFrame) and not name.startswith("_"):
+                del ns[name]
+
     @property
     def filename(self):
         return self.name + ".pickle"
