@@ -36,8 +36,12 @@ class NamespaceView extends ContinuumView
 
   renderElements: (el) ->
     data = @mget('data') || {}
-    html = @template(data: data)
-    el.html(html)
+    html =
+        if _.size(data) == 0
+            $("<div>No datasets</div>")
+        else
+            @template({data: data})
+     el.html(html)
 
 class Namespace extends HasProperties
   default_view : NamespaceView
