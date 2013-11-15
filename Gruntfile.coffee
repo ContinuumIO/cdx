@@ -76,6 +76,15 @@ module.exports = (grunt) ->
         options:
           amd: true
 
+    copy:
+      vendor:
+        files: [
+          expand: true
+          cwd: 'src/vendor'
+          src: '**/*'
+          dest: 'build/js/vendor'
+        ]
+
     watch:
       compile:
         files: [files("coffee.compile"), files("less.compile"), files("eco.compile")]
@@ -98,6 +107,6 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks("grunt-eco")
 
   grunt.registerTask("default", ["build"])
-  grunt.registerTask("build",   ["compile", "bokeh"])
+  grunt.registerTask("build",   ["compile", "bokeh", "copy"])
   grunt.registerTask("compile", ["coffee:compile", "less:compile", "eco:compile"])
   grunt.registerTask("bokeh",   ["coffee:bokeh", "less:bokeh", "eco:bokeh"])
