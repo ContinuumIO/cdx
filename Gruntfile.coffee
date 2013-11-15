@@ -15,26 +15,12 @@ module.exports = (grunt) ->
     else
       fs.statSync(input).mtime > fs.statSync(output).mtime
 
-  # (task: String) => String | Array[String]
+  # (task: String) => String
   files = (task) -> "<%= #{task}.cwd %>/<%= #{task}.src %>"
 
   grunt.initConfig
     bokeh: grunt.file.readJSON('bokeh.json')
     bokehjs: "<%= bokeh %>/bokehjs"
-
-    less:
-      compile:
-        expand: true
-        cwd: 'src/less'
-        src: 'cdx.less'
-        dest: 'build/css'
-        ext: '.css'
-      bokeh:
-        expand: true
-        cwd: '<%= bokehjs %>/src/less'
-        src: '*.less'
-        dest: 'build/css'
-        ext: '.css'
 
     coffee:
       compile:
@@ -55,6 +41,20 @@ module.exports = (grunt) ->
         filter: hasChanged("coffee.bokeh")
         options:
           sourceMap: true
+
+    less:
+      compile:
+        expand: true
+        cwd: 'src/less'
+        src: 'cdx.less'
+        dest: 'build/css'
+        ext: '.css'
+      bokeh:
+        expand: true
+        cwd: '<%= bokehjs %>/src/less'
+        src: '*.less'
+        dest: 'build/css'
+        ext: '.css'
 
     eco:
       compile:
