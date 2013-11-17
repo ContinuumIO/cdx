@@ -49,12 +49,16 @@ module.exports = (grunt) ->
         src: 'cdx.less'
         dest: 'build/css'
         ext: '.css'
+        options:
+          sourceMap: true
       bokeh:
         expand: true
         cwd: '<%= bokehjs %>/src/less'
         src: '*.less'
         dest: 'build/css'
         ext: '.css'
+        options:
+          sourceMap: true
 
     eco:
       compile:
