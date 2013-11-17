@@ -80,14 +80,8 @@ Thumbs.db
 
 # Things specific to this project #
 ###################################
-*.ipynb
-cdx.js
-ipython.js
-webplot.py
+/*.ipynb
 /*.pickle
 /cdxpids.json
 /kernel-*.json
 /redis.db
-/cdx/static/css/application.css
-/cdx/static/js/application.js
-/hembuild
