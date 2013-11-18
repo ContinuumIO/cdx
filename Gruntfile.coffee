@@ -142,6 +142,11 @@ module.exports = (grunt) ->
         dest: 'build/js/vendor/codemirror/lib/codemirror-amd.js'
         options:
           wrapper: ["define([], function() {\n", "return CodeMirror;\n});\n"]
+      jqueryui:
+        src: 'build/js/vendor/jquery-ui/ui/jquery-ui.js',
+        dest: 'build/js/vendor/jquery-ui/ui/jquery-ui-amd.js',
+        options:
+          wrapper: ["define(['jquery'], function(jQuery) {\n", "return jQuery;\n});\n"]
 
     watch:
       compile:

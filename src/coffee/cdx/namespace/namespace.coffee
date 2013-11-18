@@ -1,6 +1,6 @@
 define [
   "underscore"
-  "jquery"
+  "jquery_ui"
   "backbone"
   "common/continuum_view"
   "common/has_properties"
