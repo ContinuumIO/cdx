@@ -110,6 +110,18 @@ module.exports = (grunt) ->
           ])
         dest: 'build/js/vendor/ipython/ipython.js'
 
+    wrap:
+      ipython:
+        src: 'build/js/vendor/ipython/ipython.js'
+        dest: 'build/js/vendor/ipython/ipython-amd.js'
+        options:
+          wrapper: ["define(['jquery', 'codemirror'], function($, CodeMirror) {\n", "return {IPython: IPython};\n});\n"]
+      codemirror:
+        src: 'build/js/vendor/codemirror/lib/codemirror.js'
+        dest: 'build/js/vendor/codemirror/lib/codemirror-amd.js'
+        options:
+          wrapper: ["define([], function() {\n", "return CodeMirror;\n});\n"]
+
     watch:
       compile:
         files: [files("coffee.compile"), files("less.compile"), files("eco.compile")]
@@ -130,9 +142,10 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks("grunt-contrib-concat")
   grunt.loadNpmTasks("grunt-contrib-watch")
   grunt.loadNpmTasks("grunt-contrib-clean")
+  grunt.loadNpmTasks("grunt-wrap")
   grunt.loadNpmTasks("grunt-eco")
 
   grunt.registerTask("default", ["build"])
-  grunt.registerTask("build",   ["compile", "bokeh", "copy", "concat"])
+  grunt.registerTask("build",   ["compile", "bokeh", "copy", "concat", "wrap"])
   grunt.registerTask("compile", ["coffee:compile", "less:compile", "eco:compile"])
   grunt.registerTask("bokeh",   ["coffee:bokeh", "less:bokeh", "eco:bokeh"])
