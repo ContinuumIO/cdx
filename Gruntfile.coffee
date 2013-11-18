@@ -131,7 +131,7 @@ module.exports = (grunt) ->
         src: 'build/js/vendor/ipython/ipython.js'
         dest: 'build/js/vendor/ipython/ipython-amd.js'
         options:
-          wrapper: ["define(['jquery', 'codemirror'], function($, CodeMirror) {\n", "return {IPython: IPython};\n});\n"]
+          wrapper: ["define(['jquery', 'codemirror'], function($, CodeMirror) {\n", "return IPython;\n});\n"]
       codemirror:
         src: 'build/js/vendor/codemirror/lib/codemirror.js'
         dest: 'build/js/vendor/codemirror/lib/codemirror-amd.js'
