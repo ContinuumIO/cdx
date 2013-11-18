@@ -52,8 +52,8 @@ parser.add_argument("-j", "--debugjs",
                     )
 
 args = parser.parse_args()
+
 from cdx import start
-from continuumweb import hemlib
 app = start.prepare_app(
     port=args.port,
     username=args.username,
@@ -61,12 +61,9 @@ app = start.prepare_app(
     ipython_port=args.ipython_port,
     redis_port=args.redis_port,
     arrayserver_port=args.arrayserver_port,
-    debug=args.debug, debugjs=args.debugjs
-    )
+    debug=args.debug,
+    debugjs=args.debugjs)
 start.prepare_local()
-if args.debugjs:
-    print "if you are debugging javascript, you must execute cdx from the same directory as slug.json"
-    hemlib.slug_path = os.path.dirname(__file__)
 
 if __name__ == "__main__":
     from cdx import start
