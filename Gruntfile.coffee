@@ -84,7 +84,7 @@ module.exports = (grunt) ->
       vendor:
         files: [
           expand: true
-          cwd: 'src/vendor'
+          cwd: '<%= bokehjs %>/src/vendor'
           src: '**/*'
           dest: 'build/js/vendor'
         ]
