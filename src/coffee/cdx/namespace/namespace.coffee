@@ -4,7 +4,8 @@ define [
   "backbone"
   "common/continuum_view"
   "common/has_properties"
-], (_, $, Backbone, ContinuumView, HasProperties) ->
+  "./namespacetemplate"
+], (_, $, Backbone, ContinuumView, HasProperties, NamespaceTemplate) ->
 
   class NamespaceView extends ContinuumView.View
     initialize: (options) ->
@@ -22,7 +23,7 @@ define [
       super(events)
       @listenTo(@model, 'change', @render)
 
-    template: require("./namespacetemplate")
+    template: NamespaceTemplate
 
     render: () ->
       div = $("<div/>")
