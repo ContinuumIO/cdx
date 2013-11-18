@@ -69,7 +69,7 @@ module.exports = (grunt) ->
         dest: 'build/js'
         filter: hasChanged("eco.compile")
         options:
-          amd: false
+          amd: true
       bokeh:
         expand : true
         cwd: '<%= bokehjs %>/src/coffee'
