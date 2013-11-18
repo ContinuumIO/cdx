@@ -4,10 +4,9 @@ from objects import CDX, Namespace
 from bokeh.objects import (
     Range1d,
     Plot, DataRange1d, LinearAxis, Grid,
-    ColumnDataSource, GlyphRenderer, ObjectArrayDataSource,
-    PanTool, ZoomTool, SelectionTool, BoxSelectionOverlay,
-    GMapPlot, DataSlider
-    )
+    ColumnDataSource, ObjectArrayDataSource,
+    PanTool, ZoomTool, BoxSelectTool, BoxSelectionOverlay,
+    GMapPlot, DataSlider)
 from bokeh.glyphs import Circle
 from bokeh.pandasobjects import PandasPlotSource, IPythonRemoteData
 import os
