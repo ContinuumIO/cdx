@@ -4,11 +4,12 @@ define [
   "backbone"
   "common/base"
   "common/has_properties"
+  "common/bulk_save"
   "server/serverutils"
   "server/usercontext/usercontext"
   "./layout/index"
   "./namespace/namespace"
-], (_, $, Backbone, Base, HasProperties, ServerUtils, UserContext, Layout, Namespace) ->
+], (_, $, Backbone, Base, HasProperties, BulkSave, ServerUtils, UserContext, Layout, Namespace) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 
@@ -62,7 +63,7 @@ define [
           plotlist = new coll.model(doc : doc.id)
           coll.add(plotlist)
           cdx.set_obj('plotlist', plotlist)
-        Base.Collections.bulksave([cdx, doc.get_obj('plot_context'),
+        BulkSave([cdx, doc.get_obj('plot_context'),
           ns, plotlist])
         @cdxmodel = cdx
         @listenTo(@cdxmodel, 'change:activetable', @render_activetable)
@@ -106,7 +107,7 @@ define [
       pivot.set_obj('source', remotedata)
       coll.add(pivot)
       @cdxmodel.set({'activetable' : pivot.ref()}, {'silent' : true})
-      result = Base.Collections.bulksave([@cdxmodel, pivot, remotedata])
+      result = BulkSave([@cdxmodel, pivot, remotedata])
       result.done(() =>
         @cdxmodel.trigger('change:activetable')
       )
