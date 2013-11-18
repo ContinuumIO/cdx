@@ -4,12 +4,13 @@ define [
   "backbone"
   "common/base"
   "common/has_properties"
+  "common/plot_context"
   "common/bulk_save"
   "server/serverutils"
   "server/usercontext/usercontext"
   "./layout/index"
   "./namespace/namespace"
-], (_, $, Backbone, Base, HasProperties, BulkSave, ServerUtils, UserContext, Layout, Namespace) ->
+], (_, $, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, Layout, Namespace) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 
@@ -115,7 +116,7 @@ define [
     render_plotlist : () ->
       plotlist = @cdxmodel.get_obj('plotlist')
       # XXX: PNGContextView not supported anymore
-      @plotlistview = new plot_context.PNGContextView(
+      @plotlistview = new PlotContext.View(
         model : plotlist
         thumb_x : 150
         thumb_y : 150
