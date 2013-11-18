@@ -100,7 +100,7 @@ module.exports = (grunt) ->
           expand: true
           cwd: '<%= bokehjs %>/src/vendor'
           src: '**/*'
-          dest: 'build/js/vendor'
+          dest: 'build/vendor'
         ]
       favicon:
         files: [
@@ -129,29 +129,29 @@ module.exports = (grunt) ->
             "celltoolbar.js"
             "contexthint.js"
           ])
-        dest: 'build/js/vendor/ipython/ipython.js'
+        dest: 'build/vendor/ipython/ipython.js'
       ipython_css:
         src:
           ("src/vendor/ipython/css/#{file}" for file in [
             "style.min.css"
             "codemirror-ipython.css"
           ])
-        dest: 'build/js/vendor/ipython/ipython.css'
+        dest: 'build/vendor/ipython/ipython.css'
 
     wrap:
       ipython:
-        src: 'build/js/vendor/ipython/ipython.js'
-        dest: 'build/js/vendor/ipython/ipython-amd.js'
+        src: 'build/vendor/ipython/ipython.js'
+        dest: 'build/vendor/ipython/ipython-amd.js'
         options:
           wrapper: ["define(['jquery', 'codemirror'], function($, CodeMirror) {\n", "return IPython;\n});\n"]
       codemirror:
-        src: 'build/js/vendor/codemirror/lib/codemirror.js'
-        dest: 'build/js/vendor/codemirror/lib/codemirror-amd.js'
+        src: 'build/vendor/codemirror/lib/codemirror.js'
+        dest: 'build/vendor/codemirror/lib/codemirror-amd.js'
         options:
           wrapper: ["define([], function() {\n", "return CodeMirror;\n});\n"]
       jqueryui:
-        src: 'build/js/vendor/jquery-ui/ui/jquery-ui.js',
-        dest: 'build/js/vendor/jquery-ui/ui/jquery-ui-amd.js',
+        src: 'build/vendor/jquery-ui/ui/jquery-ui.js',
+        dest: 'build/vendor/jquery-ui/ui/jquery-ui-amd.js',
         options:
           wrapper: ["define(['jquery'], function(jQuery) {\n", "return jQuery;\n});\n"]
 
