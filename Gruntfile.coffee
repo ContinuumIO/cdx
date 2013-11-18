@@ -113,7 +113,7 @@ module.exports = (grunt) ->
     concat:
       options:
         separator: ""
-      ipython:
+      ipython_js:
         src:
           ("src/vendor/ipython/js/#{file}" for file in [
             "namespace.js"
@@ -130,6 +130,13 @@ module.exports = (grunt) ->
             "contexthint.js"
           ])
         dest: 'build/js/vendor/ipython/ipython.js'
+      ipython_css:
+        src:
+          ("src/vendor/ipython/css/#{file}" for file in [
+            "style.min.css"
+            "codemirror-ipython.css"
+          ])
+        dest: 'build/js/vendor/ipython/ipython.css'
 
     wrap:
       ipython:
