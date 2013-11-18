@@ -175,3 +175,12 @@ module.exports = (grunt) ->
   grunt.registerTask("build",   ["compile", "bokeh", "copy", "concat", "wrap"])
   grunt.registerTask("compile", ["coffee:compile", "less:compile", "eco:compile"])
   grunt.registerTask("bokeh",   ["coffee:bokeh", "less:bokeh", "eco:bokeh"])
+  grunt.registerTask("rebuild", ["clean", "install", "build"])
+
+  grunt.registerTask("install", () ->
+    # XXX: This doesn't work yet in grunt, but works well outside (magic!).
+    bower = require('bower')
+    bower.commands.install([])
+         .on('end', (installed) -> console.log("End"))
+         .on('error', (errors) -> console.log("Error"))
+  )
