@@ -56,7 +56,7 @@ define [
     model : Namespace
 
   return {
-    NamespaceView: NamespaceView
-    Namespace: Namespace
-    namespaces: new Namespaces
+    Model: Namespace
+    Collection: new Namespaces()
+    View: NamespaceView
   }

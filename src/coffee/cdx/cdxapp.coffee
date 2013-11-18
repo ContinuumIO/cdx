@@ -190,6 +190,7 @@ define [
       @$el.append(@layout.el)
 
   return {
-    CDXApp: CDXApp
-    cdxs: new CDXs()
+    Model: CDX
+    Collection: new CDXs()
+    View: CDXApp
   }

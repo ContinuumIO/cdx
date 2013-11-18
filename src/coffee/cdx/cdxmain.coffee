@@ -18,7 +18,7 @@ define [
       plotlink = window.location.href.replace("#cdx", "#justplots")
       $('.justcdx').attr('href', cdxlink)
       $('.justplots').attr('href', plotlink)
-      view = new CDXApp.CDXApp(title : title)
+      view = new CDXApp.View(title : title)
       $('#CDX').append(view.el)
       window.view = view
       view.layout.sizes = [100,0]
@@ -47,7 +47,7 @@ define [
       plotlink = window.location.href.replace("#cdx", "#justplots")
       $('.justcdx').attr('href', cdxlink)
       $('.justplots').attr('href', plotlink)
-      view = new CDXApp.CDXApp(title : title)
+      view = new CDXApp.View(title : title)
       $('#CDX').append(view.el)
       window.view = view
       ipython_ws_addr = $('body').data('ipython-ws-addr')
@@ -64,8 +64,9 @@ define [
       cell.set_text(@plotCode())
 
   register_models = () ->
-    Base.locations['Namespace'] = ["./namespace/namespace", "namespaces"]
-    Base.locations['CDX'] = ["./cdxapp", "cdxs"]
+    console.log("register_models")
+    Base.locations['Namespace'] = "cdx/namespace/namespace"
+    Base.locations['CDX'] = "cdx/cdxapp"
 
   $(()->
     register_models()
