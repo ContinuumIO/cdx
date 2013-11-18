@@ -84,12 +84,17 @@ module.exports = (grunt) ->
 
     copy:
       coffee:
-        files: [
+        files: [{
           expand: true
           cwd: 'src/coffee'
           src: '**/*'
           dest: 'build/js'
-        ]
+        }, {
+          expand: true
+          cwd: '<%= bokehjs %>/src/coffee'
+          src: '**/*'
+          dest: 'build/js'
+        }]
       vendor:
         files: [
           expand: true
