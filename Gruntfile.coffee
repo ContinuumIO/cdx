@@ -89,6 +89,27 @@ module.exports = (grunt) ->
           dest: 'build/js/vendor'
         ]
 
+    concat:
+      options:
+        separator: ""
+      ipython:
+        src:
+          ("src/vendor/ipython/js/#{file}" for file in [
+            "namespace.js"
+            "utils.js"
+            "events.js"
+            "kernel.js"
+            "outputarea.js"
+            "cell.js"
+            "codecell.js"
+            "config.js"
+            "completer.js"
+            "tooltip.js"
+            "celltoolbar.js"
+            "contexthint.js"
+          ])
+        dest: 'build/js/vendor/ipython/ipython.js'
+
     watch:
       compile:
         files: [files("coffee.compile"), files("less.compile"), files("eco.compile")]
@@ -106,11 +127,12 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks("grunt-contrib-coffee")
   grunt.loadNpmTasks("grunt-contrib-less")
   grunt.loadNpmTasks("grunt-contrib-copy")
+  grunt.loadNpmTasks("grunt-contrib-concat")
   grunt.loadNpmTasks("grunt-contrib-watch")
   grunt.loadNpmTasks("grunt-contrib-clean")
   grunt.loadNpmTasks("grunt-eco")
 
   grunt.registerTask("default", ["build"])
-  grunt.registerTask("build",   ["compile", "bokeh", "copy"])
+  grunt.registerTask("build",   ["compile", "bokeh", "copy", "concat"])
   grunt.registerTask("compile", ["coffee:compile", "less:compile", "eco:compile"])
   grunt.registerTask("bokeh",   ["coffee:bokeh", "less:bokeh", "eco:bokeh"])
