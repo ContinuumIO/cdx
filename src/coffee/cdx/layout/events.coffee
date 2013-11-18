@@ -1,40 +1,48 @@
-class TwoPointEventGenerator
-  # Implementation of TwoPointEventGenerator which is plot independent
-  # we should probably make the one in tools use this one?
-  constructor : () ->
-    @id = _.uniqueId('twopointeventgen')
+define [
+  "underscore"
+  "jquery"
+  "backbone"
+], (_, $, Backbone) ->
 
-  coordinate_notify : (eventname) ->
-    if _.isUndefined(eventname)
-      eventname = 'coordinates'
-    @trigger(eventname, @basepoint, @last_coords, @coords)
+  class TwoPointEventGenerator
+    # Implementation of TwoPointEventGenerator which is plot independent
+    # we should probably make the one in tools use this one?
+    constructor : () ->
+      @id = _.uniqueId('twopointeventgen')
 
-  set_coords : (pageX, pageY, isbasepoint) =>
-    @last_coords = @coords
-    @coords =
-      pageX : pageX
-      pageY : pageY
-    if isbasepoint
-      @basepoint = @coords
+    coordinate_notify : (eventname) ->
+      if _.isUndefined(eventname)
+        eventname = 'coordinates'
+      @trigger(eventname, @basepoint, @last_coords, @coords)
 
-  mousedown : (e) =>
-    #you call this function to start everything
-    @set_coords(e.pageX, e.pageY, true)
-    @coordinate_notify('dragstart')
-    $(document).on("mousemove.#{@id}", @mousemove)
-    $(document).on("mouseup.#{@id}", @mouseup)
+    set_coords : (pageX, pageY, isbasepoint) =>
+      @last_coords = @coords
+      @coords =
+        pageX : pageX
+        pageY : pageY
+      if isbasepoint
+        @basepoint = @coords
 
-  mousemove : (e) =>
-    @set_coords(e.pageX, e.pageY, true)
-    @coordinate_notify('dragmove')
-    e.preventDefault()
+    mousedown : (e) =>
+      #you call this function to start everything
+      @set_coords(e.pageX, e.pageY, true)
+      @coordinate_notify('dragstart')
+      $(document).on("mousemove.#{@id}", @mousemove)
+      $(document).on("mouseup.#{@id}", @mouseup)
 
-  mouseup : (e) =>
-    @set_coords(e.pageX, e.pageY, true)
-    @coordinate_notify('dragstop')
-    $(document).off("mousemove.#{@id}")
-    $(document).off("mouseup.#{@id}")
+    mousemove : (e) =>
+      @set_coords(e.pageX, e.pageY, true)
+      @coordinate_notify('dragmove')
+      e.preventDefault()
 
-_.extend(TwoPointEventGenerator.prototype, Backbone.Events)
+    mouseup : (e) =>
+      @set_coords(e.pageX, e.pageY, true)
+      @coordinate_notify('dragstop')
+      $(document).off("mousemove.#{@id}")
+      $(document).off("mouseup.#{@id}")
 
-exports.TwoPointEventGenerator = TwoPointEventGenerator
+  _.extend(TwoPointEventGenerator.prototype, Backbone.Events)
+
+  return {
+    TwoPointEventGenerator: TwoPointEventGenerator
+  }
