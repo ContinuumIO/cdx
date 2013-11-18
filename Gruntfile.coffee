@@ -88,6 +88,13 @@ module.exports = (grunt) ->
           src: '**/*'
           dest: 'build/js/vendor'
         ]
+      favicon:
+        files: [
+          expand: true
+          cwd: 'src'
+          src: 'favicon.ico'
+          dest: 'build'
+        ]
 
     concat:
       options:
