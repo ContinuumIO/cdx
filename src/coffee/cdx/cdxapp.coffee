@@ -79,7 +79,7 @@ define [
       @wswrapper = wswrapper
 
     render_namespace : () ->
-      @nsview = new Namespace.NamespaceView(
+      @nsview = new Namespace.View(
         model : @cdxmodel.get_obj('namespace')
       )
       @$namespace.html('')
