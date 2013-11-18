@@ -32,6 +32,7 @@ module.exports = (grunt) ->
         filter: hasChanged("coffee.compile")
         options:
           sourceMap: true
+          sourceRoot: ""
       bokeh:
         expand: true
         cwd: '<%= bokehjs %>/src/coffee'
@@ -41,6 +42,7 @@ module.exports = (grunt) ->
         filter: hasChanged("coffee.bokeh")
         options:
           sourceMap: true
+          sourceRoot: ""
 
     less:
       compile:
@@ -81,6 +83,13 @@ module.exports = (grunt) ->
           amd: true
 
     copy:
+      coffee:
+        files: [
+          expand: true
+          cwd: 'src/coffee'
+          src: '**/*'
+          dest: 'build/js'
+        ]
       vendor:
         files: [
           expand: true
