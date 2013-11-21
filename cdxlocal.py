@@ -2,7 +2,9 @@
 
 import os
 import argparse
+
 parser = argparse.ArgumentParser()
+
 parser.add_argument("--username",
                     help="username for bokeh",
                     default="defaultuser"
@@ -11,7 +13,6 @@ parser.add_argument("--userapikey",
                     help="user apikey for bokeh",
                     default="nokey"
                     )
-#ports
 
 parser.add_argument("--port",
                     help="port for cdx",
@@ -33,10 +34,17 @@ parser.add_argument("--redis-port",
                     type=int,
                     default=7000
                     )
+
 parser.add_argument("-r", "--start-redis",
                     help="start redis",
                     action="store_true",
                     default=True
+                    )
+
+parser.add_argument("-w", "--work-dir",
+                    help="working directory",
+                    type=str,
+                    default=None
                     )
 
 parser.add_argument("-d", "--debug",
@@ -55,12 +63,14 @@ args = parser.parse_args()
 
 from cdx import start
 app = start.prepare_app(
-    port=args.port,
     username=args.username,
     userapikey=args.userapikey,
+    port=args.port,
     ipython_port=args.ipython_port,
-    redis_port=args.redis_port,
     arrayserver_port=args.arrayserver_port,
+    redis_port=args.redis_port,
+    start_redis=args.start_redis,
+    work_dir=args.work_dir,
     debug=args.debug,
     debugjs=args.debugjs)
 start.prepare_local()
@@ -74,4 +84,3 @@ if __name__ == "__main__":
             start.start_app(app, verbose=True)
     else:
         start.start_app(app, verbose=True)
-

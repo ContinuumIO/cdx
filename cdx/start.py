@@ -23,22 +23,25 @@ import bokeh.pandasobjects
 
 import logging
 
-PORT = 5006
-REDIS_PORT = 6379
-HEM_PORT = 9394
-NB_PORT = 10010
 log = logging.getLogger(__name__)
 
-def prepare_app(port=5000,
-                ipython_port=10010,
-                arrayserver_port=10020,
-                redis_port=REDIS_PORT,
-                rhost='127.0.0.1',
-                start_redis=True,
-                debug=True, debugjs=True,
-                username='defaultuser',
+PORT = 5006
+REDIS_PORT = 6379
+IPYTHON_PORT = 10010
+ARRAY_PORT = 10020
+HEM_PORT = 9394
+
+def prepare_app(username='defaultuser',
                 userapikey='nokey',
-                ):
+                port=PORT,
+                ipython_port=IPYTHON_PORT,
+                arrayserver_port=ARRAY_PORT,
+                redis_port=REDIS_PORT,
+                start_redis=True,
+                work_dir=None,
+                debug=True,
+                debugjs=True,
+                rhost='127.0.0.1'):
     app = Flask("cdx")
     prepare_bokeh(app, rhost=rhost, rport=redis_port,
                   debug=debug, debugjs=debugjs)
@@ -51,6 +54,8 @@ def prepare_app(port=5000,
     cdx_app.userapikey = userapikey
     import views
     cdx_app.hem_port = HEM_PORT
+    cdx_app.work_dir = work_dir or os.getcwd()
+    cdx_app.cdx_pids = os.path.join(cdx_app.work_dir, "cdxpids.json")
     app.register_blueprint(cdx_app)
     if debug:
         app.debug = True
@@ -68,10 +73,9 @@ import os
 import atexit
 def start_services():
     if cdx_app.start_redis:
-        mproc = services.start_redis("cdxpids.json",
-                                     cdx_app.redis_port, os.getcwd())
+        mproc = services.start_redis(cdx_app.cdx_pids, cdx_app.redis_port, cdx_app.work_dir)
         cdx_app.redis_proc = mproc
-    mproc = services.start_ipython("cdxpids.json", cdx_app.ipython_port)
+    mproc = services.start_ipython(cdx_app.cdx_pids, cdx_app.ipython_port, cdx_app.work_dir)
     cdx_app.ipython_proc = mproc
     atexit.register(service_exit)
 
@@ -81,8 +85,7 @@ def service_exit():
     cdx_app.ipython_proc.close()
 
 
-def prepare_bokeh(app, rhost='127.0.0.1', rport=REDIS_PORT,
-                  debug=True, debugjs=True):
+def prepare_bokeh(app, rhost='127.0.0.1', rport=REDIS_PORT, debug=True, debugjs=True):
     bokeh_prepare_app(rhost=rhost, rport=rport)
     bokeh_app.hem_port = HEM_PORT
     app.register_blueprint(bokeh_app)
@@ -102,6 +105,3 @@ def start_app(app, verbose=False):
 
 def prepare_local():
     bokeh_prepare_local()
-
-
-

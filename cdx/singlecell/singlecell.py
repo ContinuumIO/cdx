@@ -105,7 +105,8 @@ class WebApp(web.Application):
 
 def main():
     port = int(sys.argv[1])
-    kernel_manager = MultiKernelManager()
+    work_dir = sys.argv[2]
+    kernel_manager = MultiKernelManager(connection_dir=work_dir)
 
     # we are only using one kernel:
     kernel_id = '1'

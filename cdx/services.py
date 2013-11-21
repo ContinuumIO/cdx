@@ -21,10 +21,10 @@ def start_redis(pidfilename, port, data_dir, data_file='redis.db', save=True):
     mproc.proc.stdin.close()
     return mproc
 
-def start_ipython(pidfilename, port):
+def start_ipython(pidfilename, port, work_dir):
     python = sys.executable
     script = join(dirname(__file__), 'singlecell', 'singlecell.py')
-    cmd = [python, script, str(port)]
+    cmd = [python, script, str(port), work_dir]
     mproc = ManagedProcess(cmd, 'ipython', pidfilename,
         stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin)
     return mproc
