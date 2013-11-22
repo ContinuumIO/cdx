@@ -20,7 +20,7 @@ $ cd cdx
 $ git remote add mattpap https://github.com/mattpap/cdx.git
 $ git fetch mattpap
 $ git chekout mattpap/cdx-pivot
-$ npm install && bower install
+$ npm install && node_modules/.bin/bower install
 $ grunt build
 $ echo '/work' >> .git/info/exclude
 $ ./cdxlocal.py --work-dir=work
