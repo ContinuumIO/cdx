@@ -7,7 +7,7 @@ $ git clone https://github.com/ContinuumIO/bokeh.git
 $ cd bokeh
 $ git remote add mattpap https://github.com/mattpap/bokeh.git
 $ git fetch mattpap
-$ git chekout mattpap/devel
+$ git chekout mattpap/cdx-pivot
 $ ln -s . ~/.local/lib/python2.7/site-packages/bokeh
 ```
 
@@ -19,7 +19,7 @@ $ git clone https://github.com/ContinuumIO/cdx.git
 $ cd cdx
 $ git remote add mattpap https://github.com/mattpap/cdx.git
 $ git fetch mattpap
-$ git chekout mattpap/cdx-pivot
+$ git chekout mattpap/devel
 $ npm install && node_modules/.bin/bower install
 $ grunt build
 $ echo '/work' >> .git/info/exclude
