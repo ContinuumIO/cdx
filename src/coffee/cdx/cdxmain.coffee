@@ -2,10 +2,13 @@ define [
   "underscore"
   "jquery"
   "backbone"
+  "main"
   "common/base"
   "./cdxapp"
   "./ipython"
-], (_, $, Backbone, Base, CDXApp, IPython) ->
+], (_, $, Backbone, Bokeh, Base, CDXApp, IPython) ->
+
+  Bokeh.server_page()
 
   class CDXRouter extends Backbone.Router
     routes :
