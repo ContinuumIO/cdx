@@ -109,6 +109,13 @@ module.exports = (grunt) ->
           src: 'favicon.ico'
           dest: 'build'
         ]
+      img: # TODO: fix the way Boostrap is included and remove this
+        files: [
+          expand: true
+          cwd: 'build/vendor/bootstrap/img'
+          src: '*.*'
+          dest: 'build/vendor/img'
+        ]
 
     concat:
       options:

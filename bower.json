@@ -9,7 +9,7 @@
     "underscore-amd": null,
     "backbone-amd": null,
     "bootstrap": "~2",
-    "font-awesome": null,
+    "font-awesome": "~3",
     "codemirror": null,
     "requirejs": null,
     "text": null,
