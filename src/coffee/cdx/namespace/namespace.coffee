@@ -10,7 +10,7 @@ define [
   class NamespaceView extends ContinuumView.View
     initialize: (options) ->
       super(options)
-      @render()
+      @render(options.active)
 
     events:
       "click .namespace-dataset": "click"
@@ -23,34 +23,41 @@ define [
       super(events)
       @listenTo(@model, 'change', @render)
 
+    get_active_index: (activeName) ->
+      if activeName?
+        for dataset, i in @$accordion.find(".namespace-dataset")
+          if $(dataset).data("varname") == activeName
+            return i
+
     template: NamespaceTemplate
 
-    render: () ->
-      div = $("<div/>")
-      @$el.html(div)
-      @renderElements(div)
-      div.accordion({
-          header: "> .namespace-element > .namespace-dataset",
-          heightStyle: "content",
+    render: (activeName) ->
+      @$accordion = $("<div/>")
+      @renderElements(@$accordion)
+      @$accordion.accordion({
+        header: "> .namespace-element > .namespace-dataset",
+        heightStyle: "content",
+        active: @get_active_index(activeName),
       }).sortable({
-          handle: ".namespace-dataset",
-          axis: "y",
+        handle: ".namespace-dataset",
+        axis: "y",
       })
+      @$el.html(@$accordion)
 
     renderElements: (el) ->
       data = @mget('data') || {}
       html =
-          if _.size(data) == 0
-              $("<div>No datasets</div>")
-          else
-              @template({data: data})
+        if _.size(data) == 0
+          $("<div>No datasets</div>")
+        else
+          @template({data: data})
        el.html(html)
 
   class Namespace extends HasProperties
-    default_view : NamespaceView
-    type : "Namespace"
-    defaults :
-      namespace : {}
+    default_view: NamespaceView
+    type: "Namespace"
+    defaults:
+      namespace: {}
 
   class Namespaces extends Backbone.Collection
     model : Namespace

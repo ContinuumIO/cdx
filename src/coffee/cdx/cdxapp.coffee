@@ -64,27 +64,29 @@ define [
           plotlist = new coll.model(doc : doc.id)
           coll.add(plotlist)
           cdx.set_obj('plotlist', plotlist)
-        BulkSave([cdx, doc.get_obj('plot_context'),
-          ns, plotlist])
+        BulkSave([cdx, doc.get_obj('plot_context'), ns, plotlist])
         @cdxmodel = cdx
         @listenTo(@cdxmodel, 'change:activetable', @render_activetable)
+        @listenTo(@cdxmodel, 'change:activepivot', @render_activepivot)
         @listenTo(@cdxmodel, 'change:namespace', @render_namespace)
         @listenTo(@cdxmodel, 'change:plotlist', @render_plotlist)
         @listenTo(@cdxmodel, 'change:activeplot', @render_activeplot)
         @render_namespace()
         @render_plotlist()
         @render_activetable()
+        @render_activepivot()
         @render_activeplot()
       )
 
       @wswrapper = wswrapper
 
-    render_namespace : () ->
-      @nsview = new Namespace.View(
-        model : @cdxmodel.get_obj('namespace')
-      )
-      @$namespace.html('')
-      @$namespace.append(@nsview.$el)
+    render_namespace: () ->
+      activetable = @cdxmodel.get_obj('activetable')
+      @nsview = new Namespace.View({
+        model: @cdxmodel.get_obj('namespace')
+        active: activetable?.get_obj("source").get("varname")
+      })
+      @$namespace.html(@nsview.$el)
       @listenTo(@nsview, 'view', @make_table)
 
     conninfo :
