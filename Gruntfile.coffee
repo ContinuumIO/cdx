@@ -190,6 +190,7 @@ module.exports = (grunt) ->
 
     requirejs:
       options:
+        logLevel: 2
         baseUrl: "build/js"
         name: '../vendor/almond/almond'
         paths:
