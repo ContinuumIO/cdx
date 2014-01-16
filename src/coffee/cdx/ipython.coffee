@@ -40,7 +40,6 @@ define [
     # bug reported upstream,
     # see https://github.com/marijnh/CodeMirror2/issues/670
     if not CodeMirror.getMode(1,'text/plain').indent?
-      console.log('patching CM for undefined indent')
       CodeMirror.modes.null = () -> {
         token: (stream) -> stream.skipToEnd()
         indent: () -> 0
@@ -49,7 +48,6 @@ define [
     CodeMirror.patchedGetMode = (config, mode) ->
       cmmode = CodeMirror.getMode(config, mode)
       if cmmode.indent == null
-        console.log("patch mode '#{mode}' on the fly")
         cmmode.indent = () -> 0
       cmmode
 

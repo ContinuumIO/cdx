@@ -76,11 +76,12 @@ app = start.prepare_app(
 start.prepare_local()
 
 if __name__ == "__main__":
-    from cdx import start
-    if args.debug:
-        import werkzeug.serving
-        @werkzeug.serving.run_with_reloader
-        def helper ():
-            start.start_app(app, verbose=True)
-    else:
-        start.start_app(app, verbose=True)
+    def run():
+        start.start_app(app)
+
+    #if args.debug:
+    #    import werkzeug.serving
+    #    werkzeug.serving.run_with_reloader(run)
+    #else:
+    #    run()
+    run()

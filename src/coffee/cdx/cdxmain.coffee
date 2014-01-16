@@ -6,7 +6,8 @@ define [
   "common/base"
   "./cdxapp"
   "./ipython"
-], (_, $, Backbone, Bokeh, Base, CDXApp, IPython) ->
+  "./pivot"
+], (_, $, Backbone, Bokeh, Base, CDXApp, IPython, Pivot) ->
 
   Bokeh.server_page()
 
@@ -40,9 +41,16 @@ define [
 
     plotCode: () ->
       """
+      import pandas as pd
+      auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')
+      stud = pd.read_csv('csv/student_activities.csv')
+      """
+      ###
+      """
       import pandas as pd; auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')
       sess.cdx.namespace.populate(); sess.plot('weight', 'mpg', 'auto')
       """
+      ###
 
     main : (title) ->
       #hacky
@@ -69,6 +77,7 @@ define [
   register_models = () ->
     console.log("register_models")
     Base.locations['Namespace'] = "cdx/namespace/namespace"
+    Base.locations['PivotTable'] = "cdx/pivot"
     Base.locations['CDX'] = "cdx/cdxapp"
 
   $(()->

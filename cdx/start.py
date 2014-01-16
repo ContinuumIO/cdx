@@ -77,9 +77,9 @@ def start_services():
         cdx_app.redis_proc = mproc
     mproc = services.start_ipython(cdx_app.cdx_pids, cdx_app.ipython_port, cdx_app.work_dir)
     cdx_app.ipython_proc = mproc
-    atexit.register(service_exit)
+    atexit.register(stop_services)
 
-def service_exit():
+def stop_services():
     if hasattr(cdx_app, 'redis_proc'):
         cdx_app.redis_proc.close()
     cdx_app.ipython_proc.close()
@@ -94,10 +94,9 @@ def prepare_bokeh(app, rhost='127.0.0.1', rport=REDIS_PORT, debug=True, debugjs=
     if debugjs:
         bokeh_app.debugjs = True
 
-def start_app(app, verbose=False):
+def start_app(app):
     global http_server
-    if verbose:
-        print "Starting server on port %d..." % cdx_app.port
+    print "Starting server on port %d..." % cdx_app.port
     http_server = WSGIServer(('', cdx_app.port), app,
                              handler_class=WebSocketHandler,
                              )

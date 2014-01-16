@@ -11,6 +11,15 @@ from bokeh.glyphs import Circle
 from bokeh.pandasobjects import PandasPlotSource, IPythonRemoteData
 import os
 import bokeh.plotting  as plotting
+
+def init_session(title, cdx_addr="http://localhost:5041", arrayserver_port=10020):
+    import cdx.remotedata.pandasserver as pds
+    pds.run(arrayserver_port)
+    sess = CDXSession(serverloc=cdx_addr, arrayserver_port=arrayserver_port)
+    get_ipython().register_post_execute(lambda: sess.cdx.namespace.populate())
+    sess.use_doc(title)
+    return sess
+
 class CDXSession(PlotServerSession):
     def __init__(self, username=None, serverloc=None, userapikey="nokey",
                  arrayserver_port=10020):
@@ -66,6 +75,7 @@ class CDXSession(PlotServerSession):
 
     def reset(self):
         self.cdx.activetable = None
+        self.cdx.activepivot = None
         self.cdx.plotlist.children = []
         self.cdx.plotlist._dirty = True
         self.cdx.namespace.data = {}

@@ -1,6 +1,8 @@
 define [
   "underscore"
   "jquery"
+  "jquery_ui"
+  "cdx/vendor/pivot"
   "backbone"
   "common/base"
   "common/has_properties"
@@ -8,9 +10,10 @@ define [
   "common/bulk_save"
   "server/serverutils"
   "server/usercontext/usercontext"
+  "./pngplotview"
   "./layout/index"
   "./namespace/namespace"
-], (_, $, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, Layout, Namespace) ->
+], (_, $, $1, $2, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 
@@ -20,6 +23,7 @@ define [
     defaults :
       namespace : null
       activetable : null
+      activepivot : null
       activeplot : null
       plotcontext : null
 
@@ -95,30 +99,38 @@ define [
 
     make_table : (varname) ->
       coll = Base.Collections("IPythonRemoteData")
-      remotedata = coll.filter((obj) -> obj.get('varname') == varname)
-      if remotedata.length > 0
-        remotedata = remotedata[0]
-      else
-        remotedata = new coll.model (
-          host : @conninfo.host
-          port : @conninfo.port
-          varname : varname
-        )
-      coll.add(remotedata)
-      coll = Base.Collections("PandasPivotTable")
-      pivot = new coll.model()
+      remotedata = coll.find((obj) -> obj.get('varname') == varname)
+      if not remotedata?
+        remotedata = new coll.model({
+          host: @conninfo.host
+          port: @conninfo.port
+          varname: varname
+        })
+        coll.add(remotedata)
+
+      tables = Base.Collections("PandasPivotTable")
+      table = new tables.model()
+      table.set_obj('source', remotedata)
+      tables.add(table)
+
+      pivots = Base.Collections("PivotTable")
+      pivot = new pivots.model()
       pivot.set_obj('source', remotedata)
-      coll.add(pivot)
-      @cdxmodel.set({'activetable' : pivot.ref()}, {'silent' : true})
-      result = BulkSave([@cdxmodel, pivot, remotedata])
+      pivots.add(pivot)
+
+      # XXX: doesn't work if set simultaneously
+      @cdxmodel.set({'activetable': table.ref()}, {'silent': true})
+      @cdxmodel.set({'activepivot': pivot.ref()}, {'silent': true})
+
+      result = BulkSave([@cdxmodel, table, pivot, remotedata])
       result.done(() =>
         @cdxmodel.trigger('change:activetable')
+        @cdxmodel.trigger('change:activepivot')
       )
 
     render_plotlist : () ->
       plotlist = @cdxmodel.get_obj('plotlist')
-      # XXX: PNGContextView not supported anymore
-      @plotlistview = new PlotContext.View(
+      @plotlistview = new PNGPlotView(
         model : plotlist
         thumb_x : 150
         thumb_y : 150
@@ -152,26 +164,51 @@ define [
       else
         @$plotholder.html('')
 
-    render_activetable : () ->
+    render_activetable: () ->
       activetable = @cdxmodel.get_obj('activetable')
       if activetable
-        @activetableview = new activetable.default_view(model : activetable)
-        @$table.html('').append(@activetableview.$el)
+        activetableview = new activetable.default_view({model: activetable})
+        @$table.html(activetableview.$el)
+        # TODO: remove this
+        activepivotview = new activetable.coffee_pivot_view(model: activetable)
+        @$coffeePivot.html(activepivotview.$el)
+        #activepivotview = new activetable.pandas_pivot_view(model: activetable)
+        #@$pandasPivot.html(activepivotview.$el)
       else
-        @$table.html('')
+        @$table.empty()
+        @$coffeePivot.empty()
+        #@$pandasPivot.empty()
+
+    render_activepivot: () ->
+      activepivot = @cdxmodel.get_obj('activepivot')
+      if activepivot
+        activepivotview = new activepivot.default_view({model: activepivot})
+        @$pandasPivot.html(activepivotview.$el)
+      else
+        @$pandasPivot.empty()
 
     split_ipython : () ->
       temp = $('#thecell').find('.output_wrapper')
       temp.detach()
       @$ipoutput.append(temp)
 
-    render_layouts : () ->
+    render_layouts: () ->
       @$namespace = $('<div class="namespaceholder hundredpct"></div>')
-      @$table = $('<div class="tableholder hundredpct"></div>')
+      @$tableholder = $('<div class="tableholder hundredpct"></div>')
       @$plotholder = $('<div class="plotholder hundredpct"></div>')
+      $tabs = $('<ul></ul>')
+        .append('<li><a href="#tab-table">Table</a></li>')
+        .append('<li><a href="#tab-coffee-pivot">Coffee Pivot</a></li>')
+        .append('<li><a href="#tab-pandas-pivot">Pandas Pivot</a></li>')
+      @$tableholder.html($tabs)
+      @$table = $('<div id="tab-table"></div>')
+      @$coffeePivot = $('<div id="tab-coffee-pivot"></div>')
+      @$pandasPivot = $('<div id="tab-pandas-pivot"></div>')
+      @$tableholder.append([@$table, @$coffeePivot, @$pandasPivot])
+      @$tableholder.tabs()
       @$plotlist = $('<div class="plotlistholder hundredpct"></div>')
       @plotbox = new Layout.HBoxView(
-        elements : [@$namespace, @$table, @$plotholder, @$plotlist]
+        elements : [@$namespace, @$tableholder, @$plotholder, @$plotlist]
         height : '100%',
         width : '100%',
       )

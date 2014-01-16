@@ -1,0 +1,339 @@
+define [
+  "underscore"
+  "jquery_ui"
+  "backbone"
+  "common/has_parent"
+  "common/continuum_view"
+], (_, $, Backbone, HasParent, ContinuumView) ->
+
+  class PivotTableView extends ContinuumView.View
+
+    initialize: (options) ->
+      super(options)
+      @listenTo(@model, 'destroy', @remove)
+      @listenTo(@model, 'change', @render)
+      @render()
+
+    render: () -> @pivotUI()
+
+    renderers:
+      "Table":          (pvtData) -> pivotTableRenderer(pvtData)
+      #"Table Barchart": (pvtData) -> pivotTableRenderer(pvtData).barchart()
+      #"Heatmap":        (pvtData) -> pivotTableRenderer(pvtData).heatmap()
+      #"Row Heatmap":    (pvtData) -> pivotTableRenderer(pvtData).heatmap("rowheatmap")
+      #"Col Heatmap":    (pvtData) -> pivotTableRenderer(pvtData).heatmap("colheatmap")
+
+    spanSize: (arr, i, j) ->
+      if i != 0
+        noDraw = true
+        for x in [0..j]
+          if arr[i-1][x] != arr[i][x]
+            noDraw = false
+        if noDraw
+          return -1 #do not draw cell
+      len = 0
+      while i+len < arr.length
+        stop = false
+        for x in [0..j]
+          stop = true if arr[i][x] != arr[i+len][x]
+        break if stop
+        len++
+      return len
+
+    getAggregator: (rowKey, colKey) =>
+      data = @mget("data")
+      row = data.rows.indexOf(rowKey)
+      col = data.cols.indexOf(colKey)
+      row = data.rows.length-1 if row == -1
+      col = data.cols.length-1 if col == -1
+      value = data.values[row][col]
+      return {value: (-> value), format: ((value) -> "" + value)}
+      ###
+      debugger
+      flatRowKey = @flattenKey rowKey
+      flatColKey = @flattenKey colKey
+      if rowKey.length == 0 and colKey.length == 0
+        agg = @allTotal
+      else if rowKey.length == 0
+        agg = @colTotals[flatColKey]
+      else if colKey.length == 0
+        agg = @rowTotals[flatRowKey]
+      else
+        agg = @tree[flatRowKey][flatColKey]
+      return agg ? {value: (-> null), format: -> ""}
+      ###
+
+    pivotTableRenderer: () ->
+      rowAttrs = @mget("rows")
+      colAttrs = @mget("cols")
+      rowKeys = @mget("data").rows
+      colKeys = @mget("data").cols
+
+      #now actually build the output
+      result = $("<table class='table table-bordered pvtTable'>")
+
+      #the first few rows are for col headers
+      for own j, c of colAttrs
+        tr = $("<tr>")
+        if parseInt(j) == 0 and rowAttrs.length != 0
+          tr.append $("<th>")
+            .attr("colspan", rowAttrs.length)
+            .attr("rowspan", colAttrs.length)
+        tr.append $("<th class='pvtAxisLabel'>").text(c)
+        for own i, colKey of colKeys
+          x = @spanSize(colKeys, parseInt(i), parseInt(j))
+          if x != -1
+            th = $("<th class='pvtColLabel'>").text(colKey[j]).attr("colspan", x)
+            if parseInt(j) == colAttrs.length-1 and rowAttrs.length != 0
+              th.attr("rowspan", 2)
+            tr.append th
+        if parseInt(j) == 0
+          tr.append $("<th class='pvtTotalLabel'>").text("Totals")
+            .attr("rowspan", colAttrs.length + (if rowAttrs.length ==0 then 0 else 1))
+        result.append tr
+
+      #then a row for row header headers
+      if rowAttrs.length !=0
+        tr = $("<tr>")
+        for own i, r of rowAttrs
+          tr.append $("<th class='pvtAxisLabel'>").text(r)
+        th = $("<th>")
+        if colAttrs.length ==0
+          th.addClass("pvtTotalLabel").text("Totals")
+        tr.append th
+        result.append tr
+
+      #now the actual data rows, with their row headers and totals
+      for own i, rowKey of rowKeys
+        tr = $("<tr>")
+        for own j, txt of rowKey
+          x = @spanSize(rowKeys, parseInt(i), parseInt(j))
+          if x != -1
+            th = $("<th class='pvtRowLabel'>").text(txt).attr("rowspan", x)
+            if parseInt(j) == rowAttrs.length-1 and colAttrs.length !=0
+              th.attr("colspan",2)
+            tr.append th
+        for own j, colKey of colKeys
+          aggregator = @getAggregator(rowKey, colKey)
+          val = aggregator.value()
+          tr.append $("<td class='pvtVal row#{i} col#{j}'>")
+            .text(aggregator.format val)
+            .data("value", val)
+
+        totalAggregator = @getAggregator(rowKey, [])
+        val = totalAggregator.value()
+        tr.append $("<td class='pvtTotal rowTotal'>")
+          .text(totalAggregator.format val)
+          .data("value", val)
+          .data("for", "row"+i)
+        result.append tr
+
+      #finally, the row for col totals, and a grand total
+      tr = $("<tr>")
+      th = $("<th class='pvtTotalLabel'>").text("Totals")
+      th.attr("colspan", rowAttrs.length + (if colAttrs.length == 0 then 0 else 1))
+      tr.append th
+      for own j, colKey of colKeys
+        totalAggregator = @getAggregator([], colKey)
+        val = totalAggregator.value()
+        tr.append $("<td class='pvtTotal colTotal'>")
+          .text(totalAggregator.format val)
+          .data("value", val)
+          .data("for", "col"+j)
+      totalAggregator = @getAggregator([], [])
+      val = totalAggregator.value()
+      tr.append $("<td class='pvtGrandTotal'>")
+        .text(totalAggregator.format val)
+        .data("value", val)
+      result.append tr
+
+      #squirrel this away for later
+      result.data "dimensions", [rowKeys.length, colKeys.length]
+
+      return result
+
+    pivotUI: () ->
+      opts = {
+        data: @mget("data")
+        rows: @mget("rows")
+        cols: @mget("cols")
+        vals: @mget("vals")
+        renderer: @mget("renderer")
+        renderers: @mget("renderers")
+        aggregator: @mget("aggregator")
+        aggregators: @mget("aggregators")
+        hiddenAttributes: @mget("hiddenAttributes")
+        derivedAttributes: @mget("derivedAttributes")
+      }
+
+      # figure out the cardinality and some stats
+      ###
+      axisValues = {}
+      axisValues[x] = {} for x in opts.attrs
+
+      forEachRecord opts.data, opts.derivedAttributes, (record) ->
+        for own k, v of record
+          v ?= "null"
+          axisValues[k][v] ?= 0
+          axisValues[k][v]++
+      ###
+
+      #start building the output
+      uiTable = $("<table class='table table-bordered' cellpadding='5'>")
+
+      #renderer control
+      rendererControl = $("<td>")
+
+      renderer = $("<select id='renderer'>").bind("change", -> refresh())
+      for own x of opts.renderers
+        renderer.append $("<option>").val(x).text(x)
+      rendererControl.append renderer
+
+      # axis list, including the double-click menu
+
+      colList = $("<td class='pvtAxisContainer pvtHorizList'>")
+      attrs = opts.data.attrs
+      for i, c of attrs
+        do (c) ->
+          #keys = (k for k of axisValues[c])
+          colLabel = $("<nobr>").text(c)
+          ###
+          valueList = $("<div>")
+            .css
+              "z-index": 100
+              "width": "280px"
+              "height": "350px"
+              "overflow": "scroll"
+              "border": "1px solid gray"
+              "background": "white"
+              "display": "none"
+              "position": "absolute"
+              "padding": "20px"
+          valueList.append $("<strong>").text "#{keys.length} values for #{c}"
+          if keys.length > opts.menuLimit
+            valueList.append $("<p>").text "(too many to list)"
+          else
+            btns = $("<p>")
+            btns.append $("<button>").text("Select All").bind "click", ->
+              valueList.find("input").attr "checked", true
+            btns.append $("<button>").text("Select None").bind "click", ->
+              valueList.find("input").attr "checked", false
+            valueList.append btns
+            for k in keys.sort()
+               v = axisValues[c][k]
+               filterItem = $("<label>")
+               filterItem.append $("<input type='checkbox' class='pvtFilter'>")
+                .attr("checked", true).data("filter", [c,k])
+               filterItem.append $("<span>").text "#{k} (#{v})"
+               valueList.append $("<p>").append(filterItem)
+          colLabel.bind "dblclick", (e) ->
+            valueList.css(left: e.pageX, top: e.pageY).toggle()
+            valueList.bind "click", (e) -> e.stopPropagation()
+            $(document).one "click", ->
+              refresh()
+              valueList.toggle()
+          ###
+          colList.append $("<li id='axis_#{i}'>").append(colLabel)#.append(valueList)
+
+      uiTable.append $("<tr>").append(rendererControl).append(colList)
+
+      tr1 = $("<tr>")
+
+      #aggregator menu and value area
+
+      aggregator = $("<select id='aggregator'>")
+        .css("margin-bottom", "5px")
+        .bind("change", -> refresh())
+      for own x of opts.aggregators
+        aggregator.append $("<option>").val(x).text(x)
+
+      tr1.append $("<td id='vals' class='pvtAxisContainer pvtHorizList'>")
+        .css("text-align", "center")
+        .append(aggregator).append($("<br>"))
+
+      #column axes
+      tr1.append $("<td id='cols' class='pvtAxisContainer pvtHorizList'>")
+
+      uiTable.append tr1
+
+      tr2 = $("<tr>")
+
+      #row axes
+      tr2.append $("<td valign='top' id='rows' class='pvtAxisContainer'>")
+
+      #the actual pivot table container
+      pivotTable = $("<td valign='top'>")
+      tr2.append pivotTable
+
+      uiTable.append tr2
+
+      #render the UI in its default state
+      @$el.html uiTable
+
+      #set up the UI initial state as requested by moving elements around
+      for x in opts.cols
+        @$el.find("#cols").append @$el.find("#axis_#{attrs.indexOf(x)}")
+      for x in opts.rows
+        @$el.find("#rows").append @$el.find("#axis_#{attrs.indexOf(x)}")
+      for x in opts.vals
+        @$el.find("#vals").append @$el.find("#axis_#{attrs.indexOf(x)}")
+      if opts.aggregator?
+        @$el.find("#aggregator").val opts.aggregator
+      if opts.renderer?
+        @$el.find("#renderer").val opts.renderer
+
+      refresh = =>
+        subopts = {derivedAttributes: opts.derivedAttributes}
+        subopts.cols = []
+        subopts.rows = []
+        vals = []
+        @$el.find("#rows li nobr").each -> subopts.rows.push $(this).text()
+        @$el.find("#cols li nobr").each -> subopts.cols.push $(this).text()
+        @$el.find("#vals li nobr").each -> vals.push $(this).text()
+
+        #subopts.aggregator = opts.aggregators[aggregator.val()](vals)
+        #subopts.renderer = opts.renderers[renderer.val()]
+
+        exclusions = []
+        @$el.find('input.pvtFilter').not(':checked').each ->
+          exclusions.push $(this).data("filter")
+
+        subopts.filter = (record) ->
+          for [k,v] in exclusions
+            return false if "#{record[k]}" == v
+          return true
+
+        html = @pivotTableRenderer()
+        pivotTable.html(html)
+
+      refresh()
+
+      @$el.find(".pvtAxisContainer")
+         .sortable({connectWith:".pvtAxisContainer", items: 'li'})
+         .bind("sortstop", refresh)
+
+  class PivotTable extends HasParent
+    type: "PivotTable"
+    default_view: PivotTableView
+
+    defaults:
+      source: null
+      data: {}
+      rows: ["Gender"]
+      cols: ["Class Level", "Major"]
+      vals: []
+      renderer: "table"
+      renderers: {"table": 1, "table-barchart": 1, "heatmap": 1, "row-heatmap": 1, "col-heatmap": 1}
+      aggregator: "count"
+      aggregators: {"count": 1, "sum": 1, "average": 1}
+      hiddenAttributes: []
+      derivedAttributes: []
+
+  class PivotTables extends Backbone.Collection
+    model: PivotTable
+
+  return {
+    Model: PivotTable
+    Collection: new PivotTables()
+    View: PivotTableView
+  }

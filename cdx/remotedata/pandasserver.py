@@ -162,6 +162,54 @@ def deselect(varname):
                                        raw_selected).tolist()
     return make_json(protocol.serialize_json(selections[varname]))
 
+@app.route("/array/<varname>/pivot", methods=["POST"])
+def pivot(varname):
+    if request.data:
+        options = json.loads(request.data)
+    else:
+        options = {}
+
+    rows = options.get("rows", [])
+    cols = options.get("cols", [])
+
+    values = options.get("values", None)
+    aggfunc = options.get("aggfunc", len)
+
+    # sort
+    # filter
+
+    try:
+      _dataset = namespace[varname]
+      dataset = _dataset.drop(_dataset.columns - rows - cols - [values], axis=1)
+
+      if not rows and not cols:
+        table = pd.DataFrame()
+      else:
+        table = dataset.pivot_table(rows=rows, cols=cols, values=values, aggfunc=aggfunc, fill_value=0, margins=True)
+    except:
+      table = pd.DataFrame()
+
+    if isinstance(table, pd.DataFrame):
+      if len(rows) == 1:
+          _rows = [ [x] for x in table.index.tolist() ]
+      else:
+          _rows = table.index.tolist()
+      _cols = table.columns.tolist()
+      _values = table.values.tolist()
+      _attrs = _dataset.columns.tolist()
+    elif isinstance(table, pd.Series):
+      raise ValueError("series")
+    else:
+      raise ValueError("???")
+
+    result = {
+        "attrs": _attrs,
+        "rows": _rows,
+        "cols": _cols,
+        "values": _values,
+    }
+
+    return make_json(protocol.serialize_json(result))
 
 @app.route("/test")
 def test():
