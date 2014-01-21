@@ -265,6 +265,10 @@ define [
       pivotTable = $("<td valign='top'>")
       tr2.append pivotTable
 
+      finalRender = =>
+        html = @pivotTableRenderer()
+        pivotTable.html(html)
+
       uiTable.append tr2
 
       #render the UI in its default state
@@ -283,30 +287,41 @@ define [
         @$el.find("#renderer").val opts.renderer
 
       refresh = =>
-        subopts = {derivedAttributes: opts.derivedAttributes}
-        subopts.cols = []
-        subopts.rows = []
+        #subopts = {derivedAttributes: opts.derivedAttributes}
+        #
+        cols = []
+        rows = []
         vals = []
-        @$el.find("#rows li nobr").each -> subopts.rows.push $(this).text()
-        @$el.find("#cols li nobr").each -> subopts.cols.push $(this).text()
+
+        @$el.find("#rows li nobr").each -> rows.push $(this).text()
+        @$el.find("#cols li nobr").each -> cols.push $(this).text()
         @$el.find("#vals li nobr").each -> vals.push $(this).text()
+        #@$el.
 
         #subopts.aggregator = opts.aggregators[aggregator.val()](vals)
         #subopts.renderer = opts.renderers[renderer.val()]
 
-        exclusions = []
-        @$el.find('input.pvtFilter').not(':checked').each ->
-          exclusions.push $(this).data("filter")
+        #exclusions = []
+        #@$el.find('input.pvtFilter').not(':checked').each ->
+        #  exclusions.push $(this).data("filter")
 
-        subopts.filter = (record) ->
-          for [k,v] in exclusions
-            return false if "#{record[k]}" == v
-          return true
+        #subopts.filter = (record) ->
+        #  for [k,v] in exclusions
+        #    return false if "#{record[k]}" == v
+        #  return true
 
-        html = @pivotTableRenderer()
-        pivotTable.html(html)
+        result = @model.save({
+          rows: rows
+          cols: cols
+          vals: vals
+          #renderer: renderer
+          #aggregator: aggregator
+        })
 
-      refresh()
+        result.done =>
+          finalRender()
+
+      finalRender()
 
       @$el.find(".pvtAxisContainer")
          .sortable({connectWith:".pvtAxisContainer", items: 'li'})
@@ -317,11 +332,11 @@ define [
     default_view: PivotTableView
 
     defaults:
-      source: null
-      data: {}
-      rows: ["Gender"]
-      cols: ["Class Level", "Major"]
-      vals: []
+      #source: null
+      #data: {}
+      #rows: []
+      #cols: []
+      #vals: []
       renderer: "table"
       renderers: {"table": 1, "table-barchart": 1, "heatmap": 1, "row-heatmap": 1, "col-heatmap": 1}
       aggregator: "count"
