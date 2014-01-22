@@ -70,7 +70,7 @@ define [
       colKeys = @mget("data").cols
 
       #now actually build the output
-      result = $("<table class='table table-bordered pvtTable'>")
+      result = $("<table class='pvtTable'>")
 
       #the first few rows are for col headers
       for own j, c of colAttrs
@@ -179,7 +179,7 @@ define [
       ###
 
       #start building the output
-      uiTable = $("<table class='table table-bordered' cellpadding='5'>")
+      uiTable = $("<table cellpadding='5'>")
 
       #renderer control
       rendererControl = $("<td>")
