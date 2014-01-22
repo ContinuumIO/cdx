@@ -316,7 +316,7 @@ define [
           vals: vals
           #renderer: renderer
           #aggregator: aggregator
-        })
+        }, {patch: true})
 
         result.done =>
           finalRender()
