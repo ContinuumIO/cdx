@@ -162,29 +162,15 @@ def deselect(varname):
                                        raw_selected).tolist()
     return make_json(protocol.serialize_json(selections[varname]))
 
-@app.route("/array/<varname>/pivot", methods=["POST"])
-def pivot(varname):
-    if request.data:
-        options = json.loads(request.data)
-    else:
-        options = {}
-
-    rows = options.get("rows", [])
-    cols = options.get("cols", [])
-
-    values = options.get("values", None)
-    aggfunc = options.get("aggfunc", len)
-
-    # sort
-    # filter
-
+def pivot_table(dataset, rows, cols, values=[], aggfunc=len):
     try:
-      _dataset = namespace[varname]
-      dataset = _dataset.drop(_dataset.columns - rows - cols - [values], axis=1)
+      #_dataset = namespace[varname]
+      #dataset = _dataset.drop(_dataset.columns - rows - cols - [values], axis=1)
 
       if not rows and not cols:
         table = pd.DataFrame()
       else:
+        ### TODO: use custom pivot table
         table = dataset.pivot_table(rows=rows, cols=cols, values=values, aggfunc=aggfunc, fill_value=0, margins=True)
     except:
       table = pd.DataFrame()
@@ -196,11 +182,32 @@ def pivot(varname):
           _rows = table.index.tolist()
       _cols = table.columns.tolist()
       _values = table.values.tolist()
-      _attrs = _dataset.columns.tolist()
+      #_attrs = _dataset.columns.tolist()
+      _attrs = dataset.columns.tolist()
     elif isinstance(table, pd.Series):
       raise ValueError("series")
     else:
       raise ValueError("???")
+
+    return table, (_attrs, _rows, _cols, _values)
+
+@app.route("/array/<varname>/pivot", methods=["POST"])
+def pivot(varname):
+    if request.data:
+        options = json.loads(request.data)
+    else:
+        options = {}
+
+    rows = options.get("rows", [])
+    cols = options.get("cols", [])
+
+    values = options.get("values", [])
+    aggfunc = options.get("aggfunc", len)
+
+    # sort
+    # filter
+
+    _, (_attrs, _rows, _cols, _values) = pivot_table(namespace[varname], rows, cols, values, aggfunc)
 
     result = {
         "attrs": _attrs,
