@@ -5,7 +5,7 @@ import cPickle as pickle
 from pandas import DataFrame
 
 from bokeh.properties import (HasProps, MetaHasProps,
-        Any, Dict, Enum, Float, Instance, Int, List, String,
+        Any, Dict, Enum, Float, Instance, Int, Bool, List, String,
         Color, Percent, Size)
 
 #loading dependencies
