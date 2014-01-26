@@ -162,7 +162,8 @@ def deselect(varname):
                                        raw_selected).tolist()
     return make_json(protocol.serialize_json(selections[varname]))
 
-def pivot_table(dataset, rows, cols, values=[], aggfunc=len):
+def _pivot_table(dataset, rows, cols, values, aggfunc=None):
+    from cdx.pivot import pivot_table
     try:
       #_dataset = namespace[varname]
       #dataset = _dataset.drop(_dataset.columns - rows - cols - [values], axis=1)
@@ -171,7 +172,7 @@ def pivot_table(dataset, rows, cols, values=[], aggfunc=len):
         table = pd.DataFrame()
       else:
         ### TODO: use custom pivot table
-        table = dataset.pivot_table(rows=rows, cols=cols, values=values, aggfunc=aggfunc, fill_value=0, margins=True)
+        table = pivot_table(dataset, rows=rows, cols=cols, values=values, aggfunc=aggfunc)
     except:
       table = pd.DataFrame()
 
@@ -207,12 +208,12 @@ def pivot(varname):
     cols = options.get("cols", [])
 
     values = options.get("values", [])
-    aggfunc = options.get("aggfunc", len)
+    aggfunc = options.get("aggfunc", None)
 
     # sort
     # filter
 
-    _, (_attrs, _rows, _cols, _values) = pivot_table(namespace[varname], rows, cols, values, aggfunc)
+    _, (_attrs, _rows, _cols, _values) = _pivot_table(namespace[varname], rows, cols, values, aggfunc)
 
     result = {
         "attrs": _attrs,
