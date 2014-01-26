@@ -77,7 +77,7 @@ define [
   register_models = () ->
     console.log("register_models")
     Base.locations['Namespace'] = "cdx/namespace/namespace"
-    Base.locations['PivotTable'] = "cdx/pivot"
+    Base.locations['Pivot'] = "cdx/pivot"
     Base.locations['CDX'] = "cdx/cdxapp"
 
   $(()->

@@ -113,7 +113,7 @@ define [
       table.set_obj('source', remotedata)
       tables.add(table)
 
-      pivots = Base.Collections("PivotTable")
+      pivots = Base.Collections("Pivot")
       pivot = new pivots.model()
       pivot.set_obj('source', remotedata)
       pivots.add(pivot)
@@ -172,20 +172,17 @@ define [
         # TODO: remove this
         activepivotview = new activetable.coffee_pivot_view(model: activetable)
         @$coffeePivot.html(activepivotview.$el)
-        #activepivotview = new activetable.pandas_pivot_view(model: activetable)
-        #@$pandasPivot.html(activepivotview.$el)
       else
         @$table.empty()
         @$coffeePivot.empty()
-        #@$pandasPivot.empty()
 
     render_activepivot: () ->
       activepivot = @cdxmodel.get_obj('activepivot')
       if activepivot
         activepivotview = new activepivot.default_view({model: activepivot})
-        @$pandasPivot.html(activepivotview.$el)
+        @$pivot.html(activepivotview.$el)
       else
-        @$pandasPivot.empty()
+        @$pivot.empty()
 
     split_ipython : () ->
       temp = $('#thecell').find('.output_wrapper')
@@ -199,12 +196,12 @@ define [
       $tabs = $('<ul></ul>')
         .append('<li><a href="#tab-table">Table</a></li>')
         .append('<li><a href="#tab-coffee-pivot">Coffee Pivot</a></li>')
-        .append('<li><a href="#tab-pandas-pivot">Pandas Pivot</a></li>')
+        .append('<li><a href="#tab-pivot">Pivot</a></li>')
       @$tableholder.html($tabs)
       @$table = $('<div id="tab-table"></div>')
       @$coffeePivot = $('<div id="tab-coffee-pivot"></div>')
-      @$pandasPivot = $('<div id="tab-pandas-pivot"></div>')
-      @$tableholder.append([@$table, @$coffeePivot, @$pandasPivot])
+      @$pivot = $('<div id="tab-pivot"></div>')
+      @$tableholder.append([@$table, @$coffeePivot, @$pivot])
       @$tableholder.tabs()
       @$plotlist = $('<div class="plotlistholder hundredpct"></div>')
       @plotbox = new Layout.HBoxView(

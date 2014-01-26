@@ -191,6 +191,11 @@ def pivot_table(dataset, rows, cols, values=[], aggfunc=len):
 
     return table, (_attrs, _rows, _cols, _values)
 
+@app.route("/array/<varname>/fields", methods=["GET"])
+def fields(varname):
+    fields = list(namespace[varname].columns)
+    return make_json(protocol.serialize_json(fields))
+
 @app.route("/array/<varname>/pivot", methods=["POST"])
 def pivot(varname):
     if request.data:

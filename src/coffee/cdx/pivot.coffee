@@ -3,8 +3,150 @@ define [
   "jquery_ui"
   "backbone"
   "common/has_parent"
+  "common/has_properties"
   "common/continuum_view"
-], (_, $, Backbone, HasParent, ContinuumView) ->
+], (_, $, Backbone, HasParent, HasProperties, ContinuumView) ->
+
+  ###
+  rows
+    list
+      field: string
+      order: ascending | descending
+      sort by:
+      show totals: on | off
+
+  columns
+    list
+      field: string
+      order: ascending | descending
+      sort by:
+      show totals: on | off
+
+  values
+    show_as: rows | columns
+    list
+      ref: string
+      aggregate: count | counta | countunique | average | max | min | median | sum | product | stdev | stdevp | var | varp
+
+  filters
+    list
+      ref: string
+      items: list
+
+  manual_update: false | true
+
+  <ul>
+    <li>
+      Rows <button type="button" class="btn btn-default btn-xs">Add field</button>
+      <ul>
+        <ul>
+          <li class="group-by">Group by: <span class="close pull-right">&times;</span></li>
+          <li>Order: Ascending | Descending</li>
+          <li>Sort by: </li>
+          <li>Totals: On | Off</li>
+        </ul>
+      </ul>
+    </li>
+  </ul>
+  ###
+
+  class PivotView extends ContinuumView.View
+
+    initialize: (options) ->
+      super(options)
+      @listenTo(@model, 'destroy', @remove)
+      @listenTo(@model, 'change', @render)
+      @render()
+
+    render: () ->
+      ul = $('<ul class="cdx-pivot-tool"></ul>')
+      ul.append(@renderRows())
+      ul.append(@renderColumns())
+      ul.append(@renderValues())
+      ul.append(@renderFilters())
+      ul.append(@renderUpdate())
+      @$el.html(ul)
+
+    renderAdd: () ->
+      $('<button type="button" class="pull-right btn btn-link btn-xs"><i class="fa fa-plus"></i></button>')
+
+    renderRows: () ->
+      el = $("<li></li>")
+      header = $("<div>Rows</div>")
+      add = @renderAdd()
+      header.append(add)
+      rows = $("<ul></ul>")
+      _.map @mget("rows"), (row) ->
+        groupBy = $('<li class="cdx-pivot-header">Group by: </li>')
+        remove = $('<span class="close pull-right">&times;</span>')
+        groupBy.append([row.field, remove])
+        order = $('<li>Order: Ascending | Descending</li>')
+        sortBy = $('<li>Sort by: </li>')
+        totals = $('<li>Totals: On | Off</li>')
+        rows.append($('<ul></ul>').append([groupBy, order, sortBy, totals]))
+      el.append([header, rows.sortable()])
+
+    renderColumns: () ->
+      el = $("<li></li>")
+      header = $("<div>Columns</div>")
+      add = @renderAdd()
+      header.append(add)
+      columns = $("<ul></ul>")
+      _.map @mget("columns"), (column) ->
+        groupBy = $('<li class="cdx-pivot-header">Group by: </li>')
+        remove = $('<span class="close pull-right">&times;</span>')
+        groupBy.append([column.field, remove])
+        order = $('<li>Order: Ascending | Descending</li>')
+        sortBy = $('<li>Sort by: </li>')
+        totals = $('<li>Totals: On | Off</li>')
+        columns.append($('<ul></ul>').append([groupBy, order, sortBy, totals]))
+      el.append([header, columns.sortable()])
+
+    renderValues: () ->
+      el = $("<li></li>")
+      header = $("<div>Values</div>")
+      add = @renderAdd()
+      header.append(add)
+      values = $("<ul></ul>")
+      _.map @mget("values"), (value) ->
+        display = $('<li class="cdx-pivot-header">Display: </li>')
+        remove = $('<span class="close pull-right">&times;</span>')
+        display.append([value.field, remove])
+        aggregate = $("<button></button>")
+        values.append($('<ul></ul>').append([display, aggregate]))
+      el.append([header, values.sortable()])
+
+    renderFilters: () ->
+      el = $("<li></li>")
+      header = $("<div>Filters</div>")
+      add = @renderAdd()
+      header.append(add)
+      filters = $("<ul></ul>")
+      _.map @mget("filters"), (filter) ->
+        filters.append($('<ul></ul>'))
+      el.append([header, filters.sortable()])
+
+    renderUpdate: () ->
+      el = $("<li></li>")
+      el.append('<div>Update: Manual | Automatic</div>')
+      if @mget("manual_update")
+        el.append('<button type="button" class="btn btn-primary btn-lg">Update</button>')
+      el
+
+  class Pivot extends HasParent
+    default_view: PivotView
+    type: "Pivot"
+    defaults:
+      source: null
+      fields: []
+      rows: []
+      columns: []
+      values: []
+      filters: []
+      manual_update: true
+
+  class Pivots extends Backbone.Collection
+    model: Pivot
 
   class PivotTableView extends ContinuumView.View
 
@@ -348,7 +490,7 @@ define [
     model: PivotTable
 
   return {
-    Model: PivotTable
-    Collection: new PivotTables()
-    View: PivotTableView
+    Model: Pivot
+    Collection: new Pivots()
+    View: PivotView
   }
