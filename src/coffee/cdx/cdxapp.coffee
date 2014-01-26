@@ -212,7 +212,7 @@ define [
         height : '100%',
         width : '100%',
       )
-      @plotbox.sizes = [10, 40, 40, 10]
+      @plotbox.sizes = [15, 55, 20, 10]
       @plotbox.set_sizes()
       @$ipcell = $('<div id="thecell" class="hundredpct"></div>')
       @$ipoutput = $("<div class='ipoutput'></div>")
