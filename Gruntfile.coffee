@@ -176,12 +176,12 @@ module.exports = (grunt) ->
 
     watch:
       compile:
-        files: [files("coffee.compile"), files("less.compile"), files("eco.compile")]
+        files: [files("coffee.compile"), "<%= less.compile.cwd %>/*.less", files("eco.compile")]
         tasks: ["compile"]
         options:
           spawn: false
       bokeh:
-        files: [files("coffee.bokeh"), files("less.bokeh"), files("eco.bokeh")]
+        files: [files("coffee.bokeh"), "<%= less.bokeh.cwd %>/*.less", files("eco.bokeh")]
         tasks: ["bokeh"]
         options:
           spawn: false
