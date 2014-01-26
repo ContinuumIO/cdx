@@ -6,8 +6,7 @@ from pandas.compat import range, lrange, zip
 from pandas import compat
 import numpy as np
 
-def pivot_table(data, values=[], rows=[], cols=[], aggfunc=len,
-                fill_value=0, margins=True, dropna=True):
+def pivot_table(data, values=[], rows=[], cols=[], aggfunc=None, fill_value=0):
     """
     Create a spreadsheet-style pivot table as a DataFrame. The levels in the
     pivot table will be stored in MultiIndex objects (hierarchical indexes) on
@@ -29,8 +28,6 @@ def pivot_table(data, values=[], rows=[], cols=[], aggfunc=len,
         Value to replace missing values with
     margins : boolean, default False
         Add all row / columns (e.g. for subtotal / grand totals)
-    dropna : boolean, default True
-        Do not include columns whose entries are all NaN
 
     Examples
     --------
@@ -59,42 +56,34 @@ def pivot_table(data, values=[], rows=[], cols=[], aggfunc=len,
     -------
     table : DataFrame
     """
+    assert len(values) <= 1
+
     rows = _convert_by(rows)
     cols = _convert_by(cols)
-
     keys = rows + cols
 
+    aggfunc = len if aggfunc is None else aggfunc
+
     to_filter = []
+
     for x in keys + values:
         try:
             if x in data:
                 to_filter.append(x)
         except TypeError:
             pass
+
     if len(to_filter) < len(data.columns):
         data = data[to_filter]
 
     grouped = data.groupby(keys)
     agged = grouped.agg(aggfunc)
 
-    table = agged
-    if table.index.nlevels > 1:
-        to_unstack = [agged.index.names[i]
-                      for i in range(len(rows), len(keys))]
+    if agged.index.nlevels > 1:
+        to_unstack = [ agged.index.names[i] for i in range(len(rows), len(keys)) ]
         table = agged.unstack(to_unstack)
-
-    if not dropna:
-        try:
-            m = MultiIndex.from_arrays(cartesian_product(table.index.levels))
-            table = table.reindex_axis(m, axis=0)
-        except AttributeError:
-            pass # it's a single level
-
-        try:
-            m = MultiIndex.from_arrays(cartesian_product(table.columns.levels))
-            table = table.reindex_axis(m, axis=1)
-        except AttributeError:
-            pass # it's a single level or a series
+    else:
+        table = agged
 
     if isinstance(table, DataFrame):
         if isinstance(table.columns, MultiIndex):
@@ -105,9 +94,16 @@ def pivot_table(data, values=[], rows=[], cols=[], aggfunc=len,
     if fill_value is not None:
         table = table.fillna(value=fill_value, downcast='infer')
 
-    if margins:
-        table = _add_margins(table, data, values, rows=rows,
-                             cols=cols, aggfunc=aggfunc)
+    table = _add_margins(table, data, values, rows=rows, cols=cols, aggfunc=aggfunc)
+
+    if rows and cols:
+        pass
+    elif rows:
+        pass
+    elif cols:
+        pass
+    else:
+        pass
 
     if len(rows) == 0 and len(cols) > 0:
         table = table.T
@@ -115,7 +111,6 @@ def pivot_table(data, values=[], rows=[], cols=[], aggfunc=len,
     return table
 
 def _add_margins(table, data, values, rows, cols, aggfunc):
-
     grand_margin = _compute_grand_margin(data, values, aggfunc)
 
     if not values and isinstance(table, Series):
