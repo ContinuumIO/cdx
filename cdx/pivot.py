@@ -1,17 +1,13 @@
-# pylint: disable=E1103
-
 from pandas import Series, DataFrame
 from pandas.core.index import MultiIndex
 from pandas.tools.merge import concat
 from pandas.tools.util import cartesian_product
 from pandas.compat import range, lrange, zip
 from pandas import compat
-import pandas.core.common as com
 import numpy as np
 
-
-def pivot_table(data, values=None, rows=None, cols=None, aggfunc='mean',
-                fill_value=None, margins=False, dropna=True):
+def pivot_table(data, values=[], rows=[], cols=[], aggfunc=len,
+                fill_value=0, margins=True, dropna=True):
     """
     Create a spreadsheet-style pivot table as a DataFrame. The levels in the
     pivot table will be stored in MultiIndex objects (hierarchical indexes) on
@@ -66,39 +62,17 @@ def pivot_table(data, values=None, rows=None, cols=None, aggfunc='mean',
     rows = _convert_by(rows)
     cols = _convert_by(cols)
 
-    if isinstance(aggfunc, list):
-        pieces = []
-        keys = []
-        for func in aggfunc:
-            table = pivot_table(data, values=values, rows=rows, cols=cols,
-                                fill_value=fill_value, aggfunc=func,
-                                margins=margins)
-            pieces.append(table)
-            keys.append(func.__name__)
-        return concat(pieces, keys=keys, axis=1)
-
     keys = rows + cols
 
-    values_passed = values is not None
-    if values_passed:
-        if isinstance(values, (list, tuple)):
-            values_multi = True
-        else:
-            values_multi = False
-            values = [values]
-    else:
-        values = list(data.columns.drop(keys))
-
-    if values_passed:
-        to_filter = []
-        for x in keys + values:
-            try:
-                if x in data:
-                    to_filter.append(x)
-            except TypeError:
-                pass
-        if len(to_filter) < len(data.columns):
-            data = data[to_filter]
+    to_filter = []
+    for x in keys + values:
+        try:
+            if x in data:
+                to_filter.append(x)
+        except TypeError:
+            pass
+    if len(to_filter) < len(data.columns):
+        data = data[to_filter]
 
     grouped = data.groupby(keys)
     agged = grouped.agg(aggfunc)
@@ -135,18 +109,10 @@ def pivot_table(data, values=None, rows=None, cols=None, aggfunc='mean',
         table = _add_margins(table, data, values, rows=rows,
                              cols=cols, aggfunc=aggfunc)
 
-    # discard the top level
-    if values_passed and not values_multi:
-        table = table[values[0]]
-
     if len(rows) == 0 and len(cols) > 0:
         table = table.T
 
     return table
-
-
-DataFrame.pivot_table = pivot_table
-
 
 def _add_margins(table, data, values, rows, cols, aggfunc):
 
@@ -187,9 +153,7 @@ def _add_margins(table, data, values, rows, cols, aggfunc):
 
     return result
 
-
 def _compute_grand_margin(data, values, aggfunc):
-
     if values:
         grand_margin = {}
         for k, v in data[values].iteritems():
@@ -203,7 +167,6 @@ def _compute_grand_margin(data, values, aggfunc):
         return grand_margin
     else:
         return {'All': aggfunc(data.index)}
-
 
 def _generate_marginal_results(table, data, values, rows, cols, aggfunc, grand_margin):
     if len(cols) > 0:
@@ -251,7 +214,6 @@ def _generate_marginal_results(table, data, values, rows, cols, aggfunc, grand_m
 
     return result, margin_keys, row_margin
 
-
 def _generate_marginal_results_without_values(table, data, rows, cols, aggfunc):
     if len(cols) > 0:
         # need to "interleave" the margins
@@ -286,7 +248,6 @@ def _generate_marginal_results_without_values(table, data, rows, cols, aggfunc):
         row_margin = Series(np.nan, index=result.columns)
 
     return result, margin_keys, row_margin
-
 
 def _convert_by(by):
     if by is None:
