@@ -191,7 +191,8 @@ define [
       manual_update = @mget("manual_update")
       el = $("<li></li>")
       update = $('<div>Update:&nbsp;</div>')
-      update.append(@renderOptions(["Manual", "Automatic"], if manual_update then 0 else 1))
+      update.append(@renderOptions(["Manual", "Automatic"], (if manual_update then 0 else 1),
+        (value) => @mset("manual_update", if value == "Manual" then true else false)))
       el.append(update)
       if manual_update
         button = $('<button type="button" class="btn btn-primary btn-lg">Update</button>')
