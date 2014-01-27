@@ -73,7 +73,7 @@ define [
       add = @renderAdd @usedFields(), (field) =>
         @mset("rows", @mget("rows").concat([@defaultRowColumn(field)]))
       header.append(add)
-      rows = $("<ul></ul>")
+      rows = $('<ul></ul>')
       _.each @mget("rows"), (row) =>
         groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
         remove = @renderRemove()
@@ -83,7 +83,9 @@ define [
         sortBy = $('<li>Sort by:&nbsp;</li>')
         totals = $('<li>Totals:&nbsp;</li>')
         totals.append(@renderOptions(["On", "Off"], 0))
-        rows.append($('<ul></ul>').append([groupBy, order, sortBy, totals]))
+        row = $('<ul class="cdx-pivot-box"></ul>')
+        row.append([groupBy, order, sortBy, totals])
+        rows.append(row)
       el.append([header, rows.sortable()])
 
     renderColumns: () ->
@@ -92,7 +94,7 @@ define [
       add = @renderAdd @usedFields(), (field) =>
         @mset("columns", @mget("columns").concat([@defaultRowColumn(field)]))
       header.append(add)
-      columns = $("<ul></ul>")
+      columns = $('<ul></ul>')
       _.each @mget("columns"), (column) =>
         groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
         remove = @renderRemove()
@@ -102,7 +104,9 @@ define [
         sortBy = $('<li>Sort by:&nbsp;</li>')
         totals = $('<li>Totals:&nbsp;</li>')
         totals.append(@renderOptions(["On", "Off"], 0))
-        columns.append($('<ul></ul>').append([groupBy, order, sortBy, totals]))
+        column = $('<ul class="cdx-pivot-box"></ul>')
+        column.append([groupBy, order, sortBy, totals])
+        columns.append(column)
       el.append([header, columns.sortable()])
 
     defaultValue: (field) ->
@@ -114,14 +118,16 @@ define [
       add = @renderAdd [], (field) =>
         @mset("values", @mget("values").concat([@defaultValue(field)]))
       header.append(add)
-      values = $("<ul></ul>")
+      values = $('<ul></ul>')
       _.each @mget("values"), (value) =>
         display = $('<li class="cdx-pivot-header">Display:&nbsp;</li>')
         remove = @renderRemove()
         display.append([value.field, remove])
         aggregate = $('<li>Aggregate:&nbsp;</li>')
         aggregate.append(@renderOptions(@model.aggregates, 0))
-        values.append($('<ul></ul>').append([display, aggregate]))
+        value = $('<ul class="cdx-pivot-box"></ul>')
+        value.append([display, aggregate])
+        values.append(value)
       el.append([header, values.sortable()])
 
     defaultFilter: (field) ->
@@ -133,9 +139,10 @@ define [
       add = @renderAdd [], (field) =>
         @mset("filters", @mget("filters").concat([@defaultFilter(field)]))
       header.append(add)
-      filters = $("<ul></ul>")
+      filters = $('<ul></ul>')
       _.each @mget("filters"), (filter) =>
-        filters.append($('<ul></ul>'))
+        filter = $('<ul class="cdx-pivot-box"></ul>')
+        filters.append(filter)
       el.append([header, filters.sortable()])
 
     renderUpdate: () ->
