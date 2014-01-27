@@ -215,7 +215,7 @@ define [
           tr.append $("<th>")
             .attr("colspan", rowAttrs.length)
             .attr("rowspan", colAttrs.length)
-        tr.append $("<th class='pvtAxisLabel'>").text(c)
+        tr.append $("<th class='pvtAxisLabel'>").text(c.field)
         for own i, colKey of colKeys
           x = @spanSize(colKeys, parseInt(i), parseInt(j))
           if x != -1
@@ -232,7 +232,7 @@ define [
       if rowAttrs.length !=0
         tr = $("<tr>")
         for own i, r of rowAttrs
-          tr.append $("<th class='pvtAxisLabel'>").text(r)
+          tr.append $("<th class='pvtAxisLabel'>").text(r.field)
         th = $("<th>")
         if colAttrs.length ==0
           th.addClass("pvtTotalLabel").text("Totals")
