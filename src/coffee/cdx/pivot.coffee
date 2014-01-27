@@ -19,20 +19,20 @@ define [
       @mset(attr, @mget(attr).concat([value]))
 
     render: () ->
-      toolbox = @renderToolbox()
-      pivot = @renderPivotTable()
-      @$el.empty()
-      @$el.append([toolbox, pivot])
+      html = $('<table class="cdx-pivot"><tbody><tr></tr></tbody></table>')
+      html.find("tr")
+          .append($('<td class="cdx-pivot-toolbox"></td>').append(@renderToolbox()))
+          .append($('<td class="cdx-pivot-table"></td>').append(@renderPivotTable()))
+      @$el.html(html)
 
     renderToolbox: () ->
-      ul = $('<ul></ul>')
-      ul.append(@renderRows())
-      ul.append(@renderColumns())
-      ul.append(@renderValues())
-      ul.append(@renderFilters())
-      ul.append(@renderUpdate())
-      toolbox = $('<div class="cdx-pivot-toolbox"></div>')
-      toolbox.append(ul)
+      toolbox = $('<ul></ul>')
+      toolbox.append(@renderRows())
+      toolbox.append(@renderColumns())
+      toolbox.append(@renderValues())
+      toolbox.append(@renderFilters())
+      toolbox.append(@renderUpdate())
+      toolbox
 
     renderAdd: (exclude, handler) ->
       dropdown = $('<div class="dropdown pull-right"></div>')
