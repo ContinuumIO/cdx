@@ -169,12 +169,8 @@ define [
       if activetable
         activetableview = new activetable.default_view({model: activetable})
         @$table.html(activetableview.$el)
-        # TODO: remove this
-        activepivotview = new activetable.coffee_pivot_view(model: activetable)
-        @$coffeePivot.html(activepivotview.$el)
       else
         @$table.empty()
-        @$coffeePivot.empty()
 
     render_activepivot: () ->
       activepivot = @cdxmodel.get_obj('activepivot')
@@ -195,13 +191,11 @@ define [
       @$plotholder = $('<div class="plotholder hundredpct"></div>')
       $tabs = $('<ul></ul>')
         .append('<li><a href="#tab-table">Table</a></li>')
-        .append('<li><a href="#tab-coffee-pivot">Coffee Pivot</a></li>')
         .append('<li><a href="#tab-pivot">Pivot</a></li>')
       @$tableholder.html($tabs)
       @$table = $('<div id="tab-table"></div>')
-      @$coffeePivot = $('<div id="tab-coffee-pivot"></div>')
       @$pivot = $('<div id="tab-pivot"></div>')
-      @$tableholder.append([@$table, @$coffeePivot, @$pivot])
+      @$tableholder.append([@$table, @$pivot])
       @$tableholder.tabs()
       @$plotlist = $('<div class="plotlistholder hundredpct"></div>')
       @plotbox = new Layout.HBoxView(
