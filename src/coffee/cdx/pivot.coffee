@@ -66,7 +66,7 @@ define [
       dropdown.append([button.dropdown(), menu])
 
     defaultRowColumn: (field) ->
-      {field: field, order: "ascending", sort_by: 'index', totals: true}
+      {field: field, order: "ascending", sort_by: field, totals: true}
 
     usedFields: () ->
       _.map(@mget("rows").concat(@mget("columns")), (item) -> item.field)
@@ -84,6 +84,7 @@ define [
         order = $('<li>Order:&nbsp;</li>')
         order.append(@renderOptions(["Ascending", "Descending"], 0))
         sortBy = $('<li>Sort by:&nbsp;</li>')
+        sortBy.append(@renderOptions([row.field], 0))
         totals = $('<li>Totals:&nbsp;</li>')
         totals.append(@renderOptions(["On", "Off"], 0))
         row = $('<ul class="cdx-pivot-box"></ul>')
@@ -104,6 +105,7 @@ define [
         order = $('<li>Order:&nbsp;</li>')
         order.append(@renderOptions(["Ascending", "Descending"], 0))
         sortBy = $('<li>Sort by:&nbsp;</li>')
+        sortBy.append(@renderOptions([column.field], 0))
         totals = $('<li>Totals:&nbsp;</li>')
         totals.append(@renderOptions(["On", "Off"], 0))
         column = $('<ul class="cdx-pivot-box"></ul>')
