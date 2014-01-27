@@ -19,11 +19,15 @@ define [
       @mset(attr, @mget(attr).concat([value]))
 
     render: () ->
-      html = $('<table class="cdx-pivot"><tbody><tr></tr></tbody></table>')
-      html.find("tr")
-          .append($('<td class="cdx-pivot-toolbox" valign="top"></td>').append(@renderToolbox()))
-          .append($('<td class="cdx-pivot-table" valign="top"></td>').append(@renderPivotTable()))
+      html = $('<table class="cdx-pivot"></table>')
+      description = $('<tr></tr>').append($('<td class="cdx-pivot-description"></td>').append(@renderDescription()))
+      pivot_table = $('<tr></tr>').append($('<td class="cdx-pivot-toolbox" valign="top"></td>').append(@renderToolbox()))
+                                  .append($('<td class="cdx-pivot-table" valign="top"></td>').append(@renderPivotTable()))
+      html.append([description, pivot_table])
       @$el.html(html)
+
+    renderDescription: () ->
+      $('<div></div>').text(@mget("description"))
 
     renderToolbox: () ->
       toolbox = $('<ul></ul>')
@@ -289,6 +293,8 @@ define [
     default_view: PivotView
     type: "Pivot"
     defaults:
+      title: "Pivot Table"
+      description: ""
       source: null
       data: {}
       fields: []

@@ -17,6 +17,8 @@ from bokeh.pandasobjects import PlotObject, Plot, IPythonRemoteData
 from bokeh.session import PlotContext, PlotList
 
 class Pivot(PlotObject):
+    title = String("Pivot Table")
+    description = String("")
     source = Instance(has_ref=True)
     data = Dict()
     fields = List()
