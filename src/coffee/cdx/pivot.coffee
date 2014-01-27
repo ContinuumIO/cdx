@@ -67,14 +67,14 @@ define [
       ul.append(@renderUpdate())
       @$el.html(ul)
 
-    renderAdd: () ->
+    renderAdd: (exclude=[]) ->
       dropdown = $('<div class="dropdown pull-right"></div>')
       button = $('<button class="btn btn-link btn-xs dropdown-toggle"><i class="fa fa-plus"></i></button>')
-      dropdown.append([button.dropdown(), @renderFields()])
+      dropdown.append([button.dropdown(), @renderFields(exclude)])
       dropdown
 
-    renderFields: () ->
-      fields = @mget("fields")
+    renderFields: (exclude) ->
+      fields = _.difference(@mget("fields"), exclude)
       menu = $('<ul class="dropdown-menu"></ul>')
       items = _.map fields, (field) ->
         link = $('<a tabindex="-1" href="javascript://"></a>')
@@ -86,7 +86,7 @@ define [
     renderRows: () ->
       el = $("<li></li>")
       header = $("<div>Rows</div>")
-      add = @renderAdd()
+      add = @renderAdd(_.map(@mget("columns"), (column) -> column.field))
       header.append(add)
       rows = $("<ul></ul>")
       _.each @mget("rows"), (row) ->
@@ -102,7 +102,7 @@ define [
     renderColumns: () ->
       el = $("<li></li>")
       header = $("<div>Columns</div>")
-      add = @renderAdd()
+      add = @renderAdd(_.map(@mget("rows"), (row) -> row.field))
       header.append(add)
       columns = $("<ul></ul>")
       _.each @mget("columns"), (column) ->
