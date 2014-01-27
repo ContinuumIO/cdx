@@ -1,8 +1,11 @@
 @import "build/vendor/bootstrap/less/variables.less";
 @import "build/vendor/bootstrap/less/mixins.less";
 
-.cdx-pivot-tool {
-    width: 200px;
+@toolboxWidth: 200px;
+
+.cdx-pivot-toolbox {
+    float: left;
+    width: @toolboxWidth;
 
     ul {
         padding: 0;
@@ -23,6 +26,10 @@
             background-color: lighten(#000, 90%);
         }
     }
+}
+
+.cdx-pivot-table {
+    float: left;
 }
 
 table.pvtTable {

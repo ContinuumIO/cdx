@@ -18,6 +18,7 @@ from bokeh.session import PlotContext, PlotList
 
 class Pivot(PlotObject):
     source = Instance(has_ref=True)
+    data = Dict()
     fields = List()
     rows = List()
     columns = List()
@@ -30,13 +31,20 @@ class Pivot(PlotObject):
         self.on_change('columns', self, 'get_data')
         self.on_change('values', self, 'get_data')
         self.on_change('filters', self, 'get_data')
-        self.on_change('manual_update', self, 'get_data')
 
         if not self.fields:
             self.fields = self.source.fields()
 
+        if not self.data:
+            self.get_data()
+
     def get_data(self, obj=None, attrname=None, old=None, new=None):
-        print "get_data()"
+        self.data = self.source.pivot(dict(
+            rows=self.rows,
+            columns=self.columns,
+            values=self.values,
+            filters=self.filters,
+        ))
 
 class Namespace(PlotObject):
     data = Dict()

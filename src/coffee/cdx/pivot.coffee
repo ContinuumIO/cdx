@@ -15,18 +15,24 @@ define [
       @listenTo(@model, 'change', @render)
       @render()
 
+    mpush: (attr, value) ->
+      @mset(attr, @mget(attr).concat([value]))
+
     render: () ->
-      @$el.addClass("cdx-pivot-tool")
+      toolbox = @renderToolbox()
+      pivot = @renderPivotTable()
+      @$el.empty()
+      @$el.append([toolbox, pivot])
+
+    renderToolbox: () ->
       ul = $('<ul></ul>')
       ul.append(@renderRows())
       ul.append(@renderColumns())
       ul.append(@renderValues())
       ul.append(@renderFilters())
       ul.append(@renderUpdate())
-      @$el.html(ul)
-
-    mpush: (attr, value) ->
-      @mset(attr, @mget(attr).concat([value]))
+      toolbox = $('<div class="cdx-pivot-toolbox"></div>')
+      toolbox.append(ul)
 
     renderAdd: (exclude, handler) ->
       dropdown = $('<div class="dropdown pull-right"></div>')
@@ -163,39 +169,6 @@ define [
         el.append(button)
       el
 
-  class Pivot extends HasParent
-    default_view: PivotView
-    type: "Pivot"
-    defaults:
-      source: null
-      fields: []
-      rows: []
-      columns: []
-      values: []
-      filters: []
-      manual_update: true
-    aggregates: ["count", "counta", "countunique", "average", "max", "min", "median", "sum", "product", "stdev", "stdevp", "var", "varp"]
-
-  class Pivots extends Backbone.Collection
-    model: Pivot
-
-  class PivotTableView extends ContinuumView.View
-
-    initialize: (options) ->
-      super(options)
-      @listenTo(@model, 'destroy', @remove)
-      @listenTo(@model, 'change', @render)
-      @render()
-
-    render: () -> @pivotUI()
-
-    renderers:
-      "Table":          (pvtData) -> pivotTableRenderer(pvtData)
-      #"Table Barchart": (pvtData) -> pivotTableRenderer(pvtData).barchart()
-      #"Heatmap":        (pvtData) -> pivotTableRenderer(pvtData).heatmap()
-      #"Row Heatmap":    (pvtData) -> pivotTableRenderer(pvtData).heatmap("rowheatmap")
-      #"Col Heatmap":    (pvtData) -> pivotTableRenderer(pvtData).heatmap("colheatmap")
-
     spanSize: (arr, i, j) ->
       if i != 0
         noDraw = true
@@ -219,31 +192,21 @@ define [
       col = data.cols.indexOf(colKey)
       row = data.rows.length-1 if row == -1
       col = data.cols.length-1 if col == -1
-      value = data.values[row][col]
-      return {value: (-> value), format: ((value) -> "" + value)}
-      ###
-      debugger
-      flatRowKey = @flattenKey rowKey
-      flatColKey = @flattenKey colKey
-      if rowKey.length == 0 and colKey.length == 0
-        agg = @allTotal
-      else if rowKey.length == 0
-        agg = @colTotals[flatColKey]
-      else if colKey.length == 0
-        agg = @rowTotals[flatRowKey]
+      if row == -1 or col == -1
+        value = null
       else
-        agg = @tree[flatRowKey][flatColKey]
-      return agg ? {value: (-> null), format: -> ""}
-      ###
+        value = data.values[row][col]
+      return {value: (-> value), format: ((value) -> "" + value)}
 
-    pivotTableRenderer: () ->
+    renderPivotTable: () ->
       rowAttrs = @mget("rows")
-      colAttrs = @mget("cols")
+      colAttrs = @mget("columns")
+
       rowKeys = @mget("data").rows
       colKeys = @mget("data").cols
 
       #now actually build the output
-      result = $("<table class='pvtTable'>")
+      result = $("<table class='cdx-pivot-table pvtTable'>")
 
       #the first few rows are for col headers
       for own j, c of colAttrs
@@ -320,205 +283,24 @@ define [
         .data("value", val)
       result.append tr
 
-      #squirrel this away for later
-      result.data "dimensions", [rowKeys.length, colKeys.length]
+      result
 
-      return result
-
-    pivotUI: () ->
-      opts = {
-        data: @mget("data")
-        rows: @mget("rows")
-        cols: @mget("cols")
-        vals: @mget("vals")
-        renderer: @mget("renderer")
-        renderers: @mget("renderers")
-        aggregator: @mget("aggregator")
-        aggregators: @mget("aggregators")
-        hiddenAttributes: @mget("hiddenAttributes")
-        derivedAttributes: @mget("derivedAttributes")
-      }
-
-      # figure out the cardinality and some stats
-      ###
-      axisValues = {}
-      axisValues[x] = {} for x in opts.attrs
-
-      forEachRecord opts.data, opts.derivedAttributes, (record) ->
-        for own k, v of record
-          v ?= "null"
-          axisValues[k][v] ?= 0
-          axisValues[k][v]++
-      ###
-
-      #start building the output
-      uiTable = $("<table cellpadding='5'>")
-
-      #renderer control
-      rendererControl = $("<td>")
-
-      renderer = $("<select id='renderer'>").bind("change", -> refresh())
-      for own x of opts.renderers
-        renderer.append $("<option>").val(x).text(x)
-      rendererControl.append renderer
-
-      # axis list, including the double-click menu
-
-      colList = $("<td class='pvtAxisContainer pvtHorizList'>")
-      attrs = opts.data.attrs
-      for i, c of attrs
-        do (c) ->
-          #keys = (k for k of axisValues[c])
-          colLabel = $("<nobr>").text(c)
-          ###
-          valueList = $("<div>")
-            .css
-              "z-index": 100
-              "width": "280px"
-              "height": "350px"
-              "overflow": "scroll"
-              "border": "1px solid gray"
-              "background": "white"
-              "display": "none"
-              "position": "absolute"
-              "padding": "20px"
-          valueList.append $("<strong>").text "#{keys.length} values for #{c}"
-          if keys.length > opts.menuLimit
-            valueList.append $("<p>").text "(too many to list)"
-          else
-            btns = $("<p>")
-            btns.append $("<button>").text("Select All").bind "click", ->
-              valueList.find("input").attr "checked", true
-            btns.append $("<button>").text("Select None").bind "click", ->
-              valueList.find("input").attr "checked", false
-            valueList.append btns
-            for k in keys.sort()
-               v = axisValues[c][k]
-               filterItem = $("<label>")
-               filterItem.append $("<input type='checkbox' class='pvtFilter'>")
-                .attr("checked", true).data("filter", [c,k])
-               filterItem.append $("<span>").text "#{k} (#{v})"
-               valueList.append $("<p>").append(filterItem)
-          colLabel.bind "dblclick", (e) ->
-            valueList.css(left: e.pageX, top: e.pageY).toggle()
-            valueList.bind "click", (e) -> e.stopPropagation()
-            $(document).one "click", ->
-              refresh()
-              valueList.toggle()
-          ###
-          colList.append $("<li id='axis_#{i}'>").append(colLabel)#.append(valueList)
-
-      uiTable.append $("<tr>").append(rendererControl).append(colList)
-
-      tr1 = $("<tr>")
-
-      #aggregator menu and value area
-
-      aggregator = $("<select id='aggregator'>")
-        .css("margin-bottom", "5px")
-        .bind("change", -> refresh())
-      for own x of opts.aggregators
-        aggregator.append $("<option>").val(x).text(x)
-
-      tr1.append $("<td id='vals' class='pvtAxisContainer pvtHorizList'>")
-        .css("text-align", "center")
-        .append(aggregator).append($("<br>"))
-
-      #column axes
-      tr1.append $("<td id='cols' class='pvtAxisContainer pvtHorizList'>")
-
-      uiTable.append tr1
-
-      tr2 = $("<tr>")
-
-      #row axes
-      tr2.append $("<td valign='top' id='rows' class='pvtAxisContainer'>")
-
-      #the actual pivot table container
-      pivotTable = $("<td valign='top'>")
-      tr2.append pivotTable
-
-      finalRender = =>
-        html = @pivotTableRenderer()
-        pivotTable.html(html)
-
-      uiTable.append tr2
-
-      #render the UI in its default state
-      @$el.html uiTable
-
-      #set up the UI initial state as requested by moving elements around
-      for x in opts.cols
-        @$el.find("#cols").append @$el.find("#axis_#{attrs.indexOf(x)}")
-      for x in opts.rows
-        @$el.find("#rows").append @$el.find("#axis_#{attrs.indexOf(x)}")
-      for x in opts.vals
-        @$el.find("#vals").append @$el.find("#axis_#{attrs.indexOf(x)}")
-      if opts.aggregator?
-        @$el.find("#aggregator").val opts.aggregator
-      if opts.renderer?
-        @$el.find("#renderer").val opts.renderer
-
-      refresh = =>
-        #subopts = {derivedAttributes: opts.derivedAttributes}
-        #
-        cols = []
-        rows = []
-        vals = []
-
-        @$el.find("#rows li nobr").each -> rows.push $(this).text()
-        @$el.find("#cols li nobr").each -> cols.push $(this).text()
-        @$el.find("#vals li nobr").each -> vals.push $(this).text()
-        #@$el.
-
-        #subopts.aggregator = opts.aggregators[aggregator.val()](vals)
-        #subopts.renderer = opts.renderers[renderer.val()]
-
-        #exclusions = []
-        #@$el.find('input.pvtFilter').not(':checked').each ->
-        #  exclusions.push $(this).data("filter")
-
-        #subopts.filter = (record) ->
-        #  for [k,v] in exclusions
-        #    return false if "#{record[k]}" == v
-        #  return true
-
-        result = @model.save({
-          rows: rows
-          cols: cols
-          vals: vals
-          #renderer: renderer
-          #aggregator: aggregator
-        }, {patch: true})
-
-        result.done =>
-          finalRender()
-
-      finalRender()
-
-      @$el.find(".pvtAxisContainer")
-         .sortable({connectWith:".pvtAxisContainer", items: 'li'})
-         .bind("sortstop", refresh)
-
-  class PivotTable extends HasParent
-    type: "PivotTable"
-    default_view: PivotTableView
-
+  class Pivot extends HasParent
+    default_view: PivotView
+    type: "Pivot"
     defaults:
-      #source: null
-      #data: {}
-      #rows: []
-      #cols: []
-      #vals: []
-      renderer: "table"
-      renderers: {"table": 1, "table-barchart": 1, "heatmap": 1, "row-heatmap": 1, "col-heatmap": 1}
-      aggregator: "count"
-      aggregators: {"count": 1, "sum": 1, "average": 1}
-      hiddenAttributes: []
-      derivedAttributes: []
+      source: null
+      data: {}
+      fields: []
+      rows: []
+      columns: []
+      values: []
+      filters: []
+      manual_update: true
+    aggregates: ["count", "counta", "countunique", "average", "max", "min", "median", "sum", "product", "stdev", "stdevp", "var", "varp"]
 
-  class PivotTables extends Backbone.Collection
-    model: PivotTable
+  class Pivots extends Backbone.Collection
+    model: Pivot
 
   return {
     Model: Pivot
