@@ -16,7 +16,8 @@ define [
       @render()
 
     render: () ->
-      ul = $('<ul class="cdx-pivot-tool"></ul>')
+      @$el.addClass("cdx-pivot-tool")
+      ul = $('<ul></ul>')
       ul.append(@renderRows())
       ul.append(@renderColumns())
       ul.append(@renderValues())
@@ -24,13 +25,13 @@ define [
       ul.append(@renderUpdate())
       @$el.html(ul)
 
-    renderAdd: (exclude=[]) ->
+    renderAdd: (exclude, handler) ->
       dropdown = $('<div class="dropdown pull-right"></div>')
       button = $('<button class="btn btn-link btn-xs dropdown-toggle"><i class="fa fa-plus"></i></button>')
-      dropdown.append([button.dropdown(), @renderFields(exclude)])
+      dropdown.append([button.dropdown(), @renderFields(exclude, handler)])
       dropdown
 
-    renderFields: (exclude) ->
+    renderFields: (exclude, handler) ->
       fields = _.difference(@mget("fields"), exclude)
       menu = $('<ul class="dropdown-menu"></ul>')
       items = _.map fields, (field) ->
@@ -39,13 +40,14 @@ define [
         item = $('<li></li>')
         item.append(link)
       menu.append(items)
+      menu.click (event) -> handler($(event.target).text())
 
     renderRemove: () ->
       $('<span class="close pull-right">&times;</span>')
 
     renderOptions: (options, value) ->
       menu = $('<ul class="dropdown-menu"></ul>')
-      items = _.map options, (option) ->
+      items = _.map options, (option) =>
         link = $('<a tabindex="-1" href="javascript://"></a>')
         link.text(option)
         item = $('<li></li>')
@@ -59,13 +61,20 @@ define [
       button.append($('<span class="caret"></span>'))
       dropdown.append([button.dropdown(), menu])
 
+    defaultRowColumn: (field) ->
+      {field: field, order: "ascending", sort_by: 'index', totals: true}
+
+    usedFields: () ->
+      _.map(@mget("rows").concat(@mget("columns")), (item) -> item.field)
+
     renderRows: () ->
       el = $("<li></li>")
       header = $("<div>Rows</div>")
-      add = @renderAdd(_.map(@mget("columns"), (column) -> column.field))
+      add = @renderAdd @usedFields(), (field) =>
+        @mset("rows", @mget("rows").concat([@defaultRowColumn(field)]))
       header.append(add)
       rows = $("<ul></ul>")
-      _.each @mget("rows"), (row) ->
+      _.each @mget("rows"), (row) =>
         groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
         remove = @renderRemove()
         groupBy.append([row.field, remove])
@@ -80,10 +89,11 @@ define [
     renderColumns: () ->
       el = $("<li></li>")
       header = $("<div>Columns</div>")
-      add = @renderAdd(_.map(@mget("rows"), (row) -> row.field))
+      add = @renderAdd @usedFields(), (field) =>
+        @mset("columns", @mget("columns").concat([@defaultRowColumn(field)]))
       header.append(add)
       columns = $("<ul></ul>")
-      _.each @mget("columns"), (column) ->
+      _.each @mget("columns"), (column) =>
         groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
         remove = @renderRemove()
         groupBy.append([column.field, remove])
@@ -95,27 +105,36 @@ define [
         columns.append($('<ul></ul>').append([groupBy, order, sortBy, totals]))
       el.append([header, columns.sortable()])
 
+    defaultValue: (field) ->
+      {field: field, aggregate: "count"}
+
     renderValues: () ->
       el = $("<li></li>")
       header = $("<div>Values</div>")
-      add = @renderAdd()
+      add = @renderAdd [], (field) =>
+        @mset("values", @mget("values").concat([@defaultValue(field)]))
       header.append(add)
       values = $("<ul></ul>")
-      _.each @mget("values"), (value) ->
+      _.each @mget("values"), (value) =>
         display = $('<li class="cdx-pivot-header">Display:&nbsp;</li>')
         remove = @renderRemove()
         display.append([value.field, remove])
-        aggregate = @renderOptions(@model.aggregates, 0)
+        aggregate = $('<li>Aggregate:&nbsp;</li>')
+        aggregate.append(@renderOptions(@model.aggregates, 0))
         values.append($('<ul></ul>').append([display, aggregate]))
       el.append([header, values.sortable()])
+
+    defaultFilter: (field) ->
+      {field: field}
 
     renderFilters: () ->
       el = $("<li></li>")
       header = $("<div>Filters</div>")
-      add = @renderAdd()
+      add = @renderAdd [], (field) =>
+        @mset("filters", @mget("filters").concat([@defaultFilter(field)]))
       header.append(add)
       filters = $("<ul></ul>")
-      _.each @mget("filters"), (filter) ->
+      _.each @mget("filters"), (filter) =>
         filters.append($('<ul></ul>'))
       el.append([header, filters.sortable()])
 
