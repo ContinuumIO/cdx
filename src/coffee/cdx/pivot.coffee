@@ -68,7 +68,20 @@ define [
       @$el.html(ul)
 
     renderAdd: () ->
-      $('<button type="button" class="pull-right btn btn-link btn-xs"><i class="fa fa-plus"></i></button>')
+      dropdown = $('<div class="dropdown pull-right"></div>')
+      button = $('<button class="btn btn-link btn-xs dropdown-toggle"><i class="fa fa-plus"></i></button>')
+      dropdown.append([button.dropdown(), @renderFields()])
+      dropdown
+
+    renderFields: () ->
+      fields = @mget("fields")
+      menu = $('<ul class="dropdown-menu"></ul>')
+      items = _.map fields, (field) ->
+        link = $('<a tabindex="-1" href="javascript://"></a>')
+        link.text(field)
+        item = $('<li></li>')
+        item.append(link)
+      menu.append(items)
 
     renderRows: () ->
       el = $("<li></li>")
@@ -76,7 +89,7 @@ define [
       add = @renderAdd()
       header.append(add)
       rows = $("<ul></ul>")
-      _.map @mget("rows"), (row) ->
+      _.each @mget("rows"), (row) ->
         groupBy = $('<li class="cdx-pivot-header">Group by: </li>')
         remove = $('<span class="close pull-right">&times;</span>')
         groupBy.append([row.field, remove])
@@ -92,7 +105,7 @@ define [
       add = @renderAdd()
       header.append(add)
       columns = $("<ul></ul>")
-      _.map @mget("columns"), (column) ->
+      _.each @mget("columns"), (column) ->
         groupBy = $('<li class="cdx-pivot-header">Group by: </li>')
         remove = $('<span class="close pull-right">&times;</span>')
         groupBy.append([column.field, remove])
@@ -108,7 +121,7 @@ define [
       add = @renderAdd()
       header.append(add)
       values = $("<ul></ul>")
-      _.map @mget("values"), (value) ->
+      _.each @mget("values"), (value) ->
         display = $('<li class="cdx-pivot-header">Display: </li>')
         remove = $('<span class="close pull-right">&times;</span>')
         display.append([value.field, remove])
@@ -122,7 +135,7 @@ define [
       add = @renderAdd()
       header.append(add)
       filters = $("<ul></ul>")
-      _.map @mget("filters"), (filter) ->
+      _.each @mget("filters"), (filter) ->
         filters.append($('<ul></ul>'))
       el.append([header, filters.sortable()])
 
