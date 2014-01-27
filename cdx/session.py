@@ -152,7 +152,7 @@ class CDXSession(PlotServerSession):
             title = title
             )
 
-        select_tool = SelectionTool()
+        select_tool = BoxSelectTool()
         overlay = BoxSelectionOverlay(tool=select_tool)
         plot.renderers.append(overlay)
         plot.tools.append(select_tool)
