@@ -1,6 +1,6 @@
 import pandas as pd
 from bokeh.session import PlotServerSession, PlotList
-from objects import CDX, Namespace
+from objects import CDX, Namespace, RemoteDataSource
 from bokeh.objects import (
     Range1d,
     Plot, DataRange1d, LinearAxis, Grid,
@@ -8,7 +8,7 @@ from bokeh.objects import (
     PanTool, ZoomTool, BoxSelectTool, BoxSelectionOverlay,
     GMapPlot, DataSlider)
 from bokeh.glyphs import Circle
-from bokeh.pandasobjects import PandasPlotSource, IPythonRemoteData
+from bokeh.pandasobjects import PandasPlotSource
 import os
 import bokeh.plotting  as plotting
 
@@ -89,14 +89,14 @@ class CDXSession(PlotServerSession):
         if len(plot_source) > 0:
             return plot_source[0]
         remote_source = [m for m in self._models.values() \
-                       if isinstance(m, IPythonRemoteData) and \
+                       if isinstance(m, RemoteDataSource) and \
                        m.varname == varname]
         if len(remote_source) > 0:
             remote_source = remote_source[0]
         else:
-            remote_source = IPythonRemoteData(host='localhost',
-                                              port=self.arrayserver_port,
-                                              varname=varname)
+            remote_source = RemoteDataSource(host='localhost',
+                                             port=self.arrayserver_port,
+                                             varname=varname)
             self.add(remote_source)
         plot_source = PandasPlotSource(source=remote_source)
         self.add(plot_source)

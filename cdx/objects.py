@@ -2,6 +2,8 @@ import os
 import json
 import cPickle as pickle
 
+import requests
+
 from pandas import DataFrame
 
 from bokeh.properties import (HasProps, MetaHasProps,
@@ -13,8 +15,80 @@ import bokeh.objects
 import bokeh.glyphs
 
 from bokeh.objects import PlotObject, Plot
-from bokeh.pandasobjects import PlotObject, Plot, IPythonRemoteData
+from bokeh.pandasobjects import PlotObject, Plot
 from bokeh.session import PlotContext, PlotList
+from bokeh import protocol
+
+class RemoteDataSource(PlotObject):
+    host = String("localhost")
+    port = Int(10020)
+    varname = String()
+    computed_columns = List()
+    metadata = Dict()
+
+    #hack... we're just using this field right now to trigger events
+    selected = Int(0)
+    data = Int(0)
+
+    # from IPython.kernel import KernelManager
+    # kernel = KernelManager(connection_file="kernel-1.json")
+    # kernel.load_connection_file()
+    # client = kernel.client()
+    # client.start_channels()
+    # client.shell_channel.execute("x = 1", store_history=False)
+
+    def _url(self, func=None):
+        remotedata = self
+        func = "/" + func if func is not None else ""
+        url = "http://%s:%s/array/%s%s" % \
+            (remotedata.host, remotedata.port, remotedata.varname, func)
+        return url
+
+    def _trigger_events(self):
+        self.selected = self.selected + 1
+
+    def setselect(self, select, transform):
+        data = transform
+        data['selected'] = select
+        requests.post(self._url("setselect"), data=protocol.serialize_json(data))
+        self._trigger_events()
+
+    def search(self, search):
+        requests.post(self._url("search"), data=search)
+        self._trigger_events()
+
+    def select(self, select, transform):
+        data = transform
+        data['selected'] = select
+        requests.post(self._url("select"), data=protocol.serialize_json(data))
+        self._trigger_events()
+
+    def deselect(self, deselect, transform):
+        data = transform
+        data['selected'] = deselect
+        requests.post(self._url("selected"), data=protocol.serialize_json(data))
+        self._trigger_events()
+
+    def pivot(self, transform):
+        data = requests.post(self._url("pivot"), data=protocol.serialize_json(transform)).json()
+        self._trigger_events()
+        return data
+
+    def fields(self):
+        data = requests.get(self._url("fields"), data=protocol.serialize_json({})).json()
+        self._trigger_events()
+        return data
+
+    def get_data(self, transform):
+        data = requests.get(self._url(), data=protocol.serialize_json(transform)).json()
+        self.metadata = data.pop('metadata', {})
+        return data
+
+    def set_computed_columns(self, computed_columns):
+        data = requests.get(self._url("computed"), data=protocol.serialize_json(computed_columns)).json()
+        self.computed_columns = computed_columns
+        self.data += 1
+        return data
 
 class Pivot(PlotObject):
     title = String("Pivot Table")

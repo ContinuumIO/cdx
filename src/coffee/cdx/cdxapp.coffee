@@ -98,7 +98,7 @@ define [
       port : 10020
 
     make_table : (varname) ->
-      coll = Base.Collections("IPythonRemoteData")
+      coll = Base.Collections("RemoteDataSource")
       remotedata = coll.find((obj) -> obj.get('varname') == varname)
       if not remotedata?
         remotedata = new coll.model({
