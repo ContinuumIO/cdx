@@ -164,29 +164,30 @@ def deselect(varname):
 
 def _pivot_table(dataset, rows, cols, values, aggfunc=None):
     from cdx.pivot import pivot_table
+
     try:
-      if not rows and not cols:
-        table = pd.DataFrame()
-      else:
-        table = pivot_table(dataset, rows=rows, cols=cols, values=values, aggfunc=aggfunc)
+        if not rows and not cols:
+            table = pd.DataFrame()
+        else:
+            table = pivot_table(dataset, rows=rows, cols=cols, values=values, aggfunc=aggfunc)
     except:
-      table = pd.DataFrame()
+        table = pd.DataFrame()
 
     if isinstance(table, pd.DataFrame):
-      if len(rows) == 1:
-          _rows = [ [x] for x in table.index.tolist() ]
+        if len(rows) == 1:
+            _rows = [ [x] for x in table.index.tolist() ]
+        else:
+            _rows = table.index.tolist()
+        if len(cols) == 1:
+            _cols = [ [x] for x in table.columns.tolist() ]
+        else:
+            _cols = table.columns.tolist()
+        _values = table.values.tolist()
+        _attrs = dataset.columns.tolist()
+      elif isinstance(table, pd.Series):
+          raise ValueError("series")
       else:
-          _rows = table.index.tolist()
-      if len(cols) == 1:
-          _cols = [ [x] for x in table.columns.tolist() ]
-      else:
-          _cols = table.columns.tolist()
-      _values = table.values.tolist()
-      _attrs = dataset.columns.tolist()
-    elif isinstance(table, pd.Series):
-      raise ValueError("series")
-    else:
-      raise ValueError("???")
+          raise ValueError("???")
 
     return table, (_attrs, _rows, _cols, _values)
 
