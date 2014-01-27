@@ -145,7 +145,9 @@ define [
       update.append(@renderOptions(["Manual", "Automatic"], if manual_update then 0 else 1))
       el.append(update)
       if manual_update
-        el.append('<button type="button" class="btn btn-primary btn-lg">Update</button>')
+        button = $('<button type="button" class="btn btn-primary btn-lg">Update</button>')
+        button.click (event) => @model.save()
+        el.append(button)
       el
 
   class Pivot extends HasParent
