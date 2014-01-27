@@ -184,10 +184,10 @@ def _pivot_table(dataset, rows, cols, values, aggfunc=None):
             _cols = table.columns.tolist()
         _values = table.values.tolist()
         _attrs = dataset.columns.tolist()
-      elif isinstance(table, pd.Series):
-          raise ValueError("series")
-      else:
-          raise ValueError("???")
+    elif isinstance(table, pd.Series):
+        raise ValueError("series")
+    else:
+        raise ValueError("???")
 
     return table, (_attrs, _rows, _cols, _values)
 
