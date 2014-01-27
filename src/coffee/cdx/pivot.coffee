@@ -7,49 +7,6 @@ define [
   "common/continuum_view"
 ], (_, $, Backbone, HasParent, HasProperties, ContinuumView) ->
 
-  ###
-  rows
-    list
-      field: string
-      order: ascending | descending
-      sort by:
-      show totals: on | off
-
-  columns
-    list
-      field: string
-      order: ascending | descending
-      sort by:
-      show totals: on | off
-
-  values
-    show_as: rows | columns
-    list
-      ref: string
-      aggregate: count | counta | countunique | average | max | min | median | sum | product | stdev | stdevp | var | varp
-
-  filters
-    list
-      ref: string
-      items: list
-
-  manual_update: false | true
-
-  <ul>
-    <li>
-      Rows <button type="button" class="btn btn-default btn-xs">Add field</button>
-      <ul>
-        <ul>
-          <li class="group-by">Group by: <span class="close pull-right">&times;</span></li>
-          <li>Order: Ascending | Descending</li>
-          <li>Sort by: </li>
-          <li>Totals: On | Off</li>
-        </ul>
-      </ul>
-    </li>
-  </ul>
-  ###
-
   class PivotView extends ContinuumView.View
 
     initialize: (options) ->
