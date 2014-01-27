@@ -83,6 +83,25 @@ define [
         item.append(link)
       menu.append(items)
 
+    renderRemove: () ->
+      $('<span class="close pull-right">&times;</span>')
+
+    renderOptions: (options, value) ->
+      menu = $('<ul class="dropdown-menu"></ul>')
+      items = _.map options, (option) ->
+        link = $('<a tabindex="-1" href="javascript://"></a>')
+        link.text(option)
+        item = $('<li></li>')
+        item.append(link)
+      menu.append(items)
+      dropdown = $('<span class="dropdown"></span>')
+      button = $('<button class="btn btn-link btn-xs dropdown-toggle"></button>')
+      text = if typeof(value) == 'number' then options[value] else value
+      button.text(text)
+      button.append('&nbsp;')
+      button.append($('<span class="caret"></span>'))
+      dropdown.append([button.dropdown(), menu])
+
     renderRows: () ->
       el = $("<li></li>")
       header = $("<div>Rows</div>")
@@ -90,12 +109,14 @@ define [
       header.append(add)
       rows = $("<ul></ul>")
       _.each @mget("rows"), (row) ->
-        groupBy = $('<li class="cdx-pivot-header">Group by: </li>')
-        remove = $('<span class="close pull-right">&times;</span>')
+        groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
+        remove = @renderRemove()
         groupBy.append([row.field, remove])
-        order = $('<li>Order: Ascending | Descending</li>')
-        sortBy = $('<li>Sort by: </li>')
-        totals = $('<li>Totals: On | Off</li>')
+        order = $('<li>Order:&nbsp;</li>')
+        order.append(@renderOptions(["Ascending", "Descending"], 0))
+        sortBy = $('<li>Sort by:&nbsp;</li>')
+        totals = $('<li>Totals:&nbsp;</li>')
+        totals.append(@renderOptions(["On", "Off"], 0))
         rows.append($('<ul></ul>').append([groupBy, order, sortBy, totals]))
       el.append([header, rows.sortable()])
 
@@ -106,12 +127,14 @@ define [
       header.append(add)
       columns = $("<ul></ul>")
       _.each @mget("columns"), (column) ->
-        groupBy = $('<li class="cdx-pivot-header">Group by: </li>')
-        remove = $('<span class="close pull-right">&times;</span>')
+        groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
+        remove = @renderRemove()
         groupBy.append([column.field, remove])
-        order = $('<li>Order: Ascending | Descending</li>')
-        sortBy = $('<li>Sort by: </li>')
-        totals = $('<li>Totals: On | Off</li>')
+        order = $('<li>Order:&nbsp;</li>')
+        order.append(@renderOptions(["Ascending", "Descending"], 0))
+        sortBy = $('<li>Sort by:&nbsp;</li>')
+        totals = $('<li>Totals:&nbsp;</li>')
+        totals.append(@renderOptions(["On", "Off"], 0))
         columns.append($('<ul></ul>').append([groupBy, order, sortBy, totals]))
       el.append([header, columns.sortable()])
 
@@ -122,10 +145,10 @@ define [
       header.append(add)
       values = $("<ul></ul>")
       _.each @mget("values"), (value) ->
-        display = $('<li class="cdx-pivot-header">Display: </li>')
-        remove = $('<span class="close pull-right">&times;</span>')
+        display = $('<li class="cdx-pivot-header">Display:&nbsp;</li>')
+        remove = @renderRemove()
         display.append([value.field, remove])
-        aggregate = $("<button></button>")
+        aggregate = @renderOptions(@model.aggregates, 0)
         values.append($('<ul></ul>').append([display, aggregate]))
       el.append([header, values.sortable()])
 
@@ -140,9 +163,12 @@ define [
       el.append([header, filters.sortable()])
 
     renderUpdate: () ->
+      manual_update = @mget("manual_update")
       el = $("<li></li>")
-      el.append('<div>Update: Manual | Automatic</div>')
-      if @mget("manual_update")
+      update = $('<div>Update:&nbsp;</div>')
+      update.append(@renderOptions(["Manual", "Automatic"], if manual_update then 0 else 1))
+      el.append(update)
+      if manual_update
         el.append('<button type="button" class="btn btn-primary btn-lg">Update</button>')
       el
 
@@ -157,6 +183,7 @@ define [
       values: []
       filters: []
       manual_update: true
+    aggregates: ["count", "counta", "countunique", "average", "max", "min", "median", "sum", "product", "stdev", "stdevp", "var", "varp"]
 
   class Pivots extends Backbone.Collection
     model: Pivot
