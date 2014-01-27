@@ -25,6 +25,9 @@ define [
       ul.append(@renderUpdate())
       @$el.html(ul)
 
+    mpush: (attr, value) ->
+      @mset(attr, @mget(attr).concat([value]))
+
     renderAdd: (exclude, handler) ->
       dropdown = $('<div class="dropdown pull-right"></div>')
       button = $('<button class="btn btn-link btn-xs dropdown-toggle"><i class="fa fa-plus"></i></button>')
@@ -42,8 +45,9 @@ define [
       menu.append(items)
       menu.click (event) -> handler($(event.target).text())
 
-    renderRemove: () ->
-      $('<span class="close pull-right">&times;</span>')
+    renderRemove: (attr, field) ->
+      handler = (event) => @mset(attr, _.reject(@mget(attr), (item) -> item.field == field))
+      $('<span class="close pull-right">&times;</span>').click(handler)
 
     renderOptions: (options, value) ->
       menu = $('<ul class="dropdown-menu"></ul>')
@@ -70,13 +74,12 @@ define [
     renderRows: () ->
       el = $("<li></li>")
       header = $("<div>Rows</div>")
-      add = @renderAdd @usedFields(), (field) =>
-        @mset("rows", @mget("rows").concat([@defaultRowColumn(field)]))
+      add = @renderAdd @usedFields(), (field) => @mpush("rows", @defaultRowColumn(field))
       header.append(add)
       rows = $('<ul></ul>')
       _.each @mget("rows"), (row) =>
         groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
-        remove = @renderRemove()
+        remove = @renderRemove("rows", row.field)
         groupBy.append([row.field, remove])
         order = $('<li>Order:&nbsp;</li>')
         order.append(@renderOptions(["Ascending", "Descending"], 0))
@@ -91,13 +94,12 @@ define [
     renderColumns: () ->
       el = $("<li></li>")
       header = $("<div>Columns</div>")
-      add = @renderAdd @usedFields(), (field) =>
-        @mset("columns", @mget("columns").concat([@defaultRowColumn(field)]))
+      add = @renderAdd @usedFields(), (field) => @mpush("columns", @defaultRowColumn(field))
       header.append(add)
       columns = $('<ul></ul>')
       _.each @mget("columns"), (column) =>
         groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
-        remove = @renderRemove()
+        remove = @renderRemove("columns", column.field)
         groupBy.append([column.field, remove])
         order = $('<li>Order:&nbsp;</li>')
         order.append(@renderOptions(["Ascending", "Descending"], 0))
@@ -115,13 +117,12 @@ define [
     renderValues: () ->
       el = $("<li></li>")
       header = $("<div>Values</div>")
-      add = @renderAdd [], (field) =>
-        @mset("values", @mget("values").concat([@defaultValue(field)]))
+      add = @renderAdd [], (field) => @mpush("values", @defaultValue(field))
       header.append(add)
       values = $('<ul></ul>')
       _.each @mget("values"), (value) =>
         display = $('<li class="cdx-pivot-header">Display:&nbsp;</li>')
-        remove = @renderRemove()
+        remove = @renderRemove("values", value.field)
         display.append([value.field, remove])
         aggregate = $('<li>Aggregate:&nbsp;</li>')
         aggregate.append(@renderOptions(@model.aggregates, 0))
@@ -136,12 +137,15 @@ define [
     renderFilters: () ->
       el = $("<li></li>")
       header = $("<div>Filters</div>")
-      add = @renderAdd [], (field) =>
-        @mset("filters", @mget("filters").concat([@defaultFilter(field)]))
+      add = @renderAdd [], (field) => @mpush("filters", @defaultFilter(field))
       header.append(add)
       filters = $('<ul></ul>')
       _.each @mget("filters"), (filter) =>
+        header = $('<li class="cdx-pivot-header">Filter:&nbsp;</li>')
+        remove = @renderRemove("filters", filter.field)
+        header.append([value.field, remove])
         filter = $('<ul class="cdx-pivot-box"></ul>')
+        filter.append([header])
         filters.append(filter)
       el.append([header, filters.sortable()])
 
