@@ -165,13 +165,9 @@ def deselect(varname):
 def _pivot_table(dataset, rows, cols, values, aggfunc=None):
     from cdx.pivot import pivot_table
     try:
-      #_dataset = namespace[varname]
-      #dataset = _dataset.drop(_dataset.columns - rows - cols - [values], axis=1)
-
       if not rows and not cols:
         table = pd.DataFrame()
       else:
-        ### TODO: use custom pivot table
         table = pivot_table(dataset, rows=rows, cols=cols, values=values, aggfunc=aggfunc)
     except:
       table = pd.DataFrame()
@@ -181,9 +177,11 @@ def _pivot_table(dataset, rows, cols, values, aggfunc=None):
           _rows = [ [x] for x in table.index.tolist() ]
       else:
           _rows = table.index.tolist()
-      _cols = table.columns.tolist()
+      if len(cols) == 1:
+          _cols = [ [x] for x in table.columns.tolist() ]
+      else:
+          _cols = table.columns.tolist()
       _values = table.values.tolist()
-      #_attrs = _dataset.columns.tolist()
       _attrs = dataset.columns.tolist()
     elif isinstance(table, pd.Series):
       raise ValueError("series")
@@ -205,15 +203,21 @@ def pivot(varname):
         options = {}
 
     rows = options.get("rows", [])
-    cols = options.get("cols", [])
-
+    columns = options.get("columns", [])
     values = options.get("values", [])
-    aggfunc = options.get("aggfunc", None)
+    filters = options.get("filters", [])
 
-    # sort
-    # filter
+    def fields(items):
+       return [ item["field"] for item in items ]
 
-    _, (_attrs, _rows, _cols, _values) = _pivot_table(namespace[varname], rows, cols, values, aggfunc)
+    row_fields = fields(rows)
+    column_fields = fields(columns)
+    value_fields = fields(values)
+    filter_fields = fields(filters)
+
+    aggfunc = len
+
+    _, (_attrs, _rows, _cols, _values) = _pivot_table(namespace[varname], row_fields, column_fields, value_fields, aggfunc)
 
     result = {
         "attrs": _attrs,
