@@ -21,8 +21,8 @@ define [
     render: () ->
       html = $('<table class="cdx-pivot"><tbody><tr></tr></tbody></table>')
       html.find("tr")
-          .append($('<td class="cdx-pivot-toolbox"></td>').append(@renderToolbox()))
-          .append($('<td class="cdx-pivot-table"></td>').append(@renderPivotTable()))
+          .append($('<td class="cdx-pivot-toolbox" valign="top"></td>').append(@renderToolbox()))
+          .append($('<td class="cdx-pivot-table" valign="top"></td>').append(@renderPivotTable()))
       @$el.html(html)
 
     renderToolbox: () ->
