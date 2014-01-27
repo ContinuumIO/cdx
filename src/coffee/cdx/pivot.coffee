@@ -18,6 +18,11 @@ define [
     mpush: (attr, value) ->
       @mset(attr, @mget(attr).concat([value]))
 
+    mupdate: (attr, fn) ->
+      value = _.clone(@mget(attr))
+      fn(value)
+      @mset(attr, value)
+
     render: () ->
       html = $('<table class="cdx-pivot"></table>')
       description = $('<tr></tr>').append($('<td class="cdx-pivot-description"></td>').append(@renderDescription()))
@@ -59,7 +64,7 @@ define [
       handler = (event) => @mset(attr, _.reject(@mget(attr), (item) -> item.field == field))
       $('<span class="close pull-right">&times;</span>').click(handler)
 
-    renderOptions: (options, value) ->
+    renderOptions: (options, value, handler) ->
       menu = $('<ul class="dropdown-menu"></ul>')
       items = _.map options, (option) =>
         link = $('<a tabindex="-1" href="javascript://"></a>')
@@ -67,6 +72,7 @@ define [
         item = $('<li></li>')
         item.append(link)
       menu.append(items)
+      menu.click (event) => handler($(event.target).text())
       dropdown = $('<span class="dropdown"></span>')
       button = $('<button class="btn btn-link btn-xs dropdown-toggle"></button>')
       text = if typeof(value) == 'number' then options[value] else value
@@ -87,16 +93,19 @@ define [
       add = @renderAdd @usedFields(), (field) => @mpush("rows", @defaultRowColumn(field))
       header.append(add)
       rows = $('<ul></ul>')
-      _.each @mget("rows"), (row) =>
+      _.each @mget("rows"), (row, index) =>
         groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
         remove = @renderRemove("rows", row.field)
         groupBy.append([row.field, remove])
         order = $('<li>Order:&nbsp;</li>')
-        order.append(@renderOptions(["Ascending", "Descending"], 0))
+        order.append(@renderOptions(["ascending", "descending"], row.order,
+          (value) => @mupdate("rows", (rows) -> rows[index].order = value)))
         sortBy = $('<li>Sort by:&nbsp;</li>')
-        sortBy.append(@renderOptions([row.field], 0))
+        sortBy.append(@renderOptions([row.field], row.sort_by,
+          (value) => @mupdate("rows", (rows) -> rows[index].sort_by = value)))
         totals = $('<li>Totals:&nbsp;</li>')
-        totals.append(@renderOptions(["On", "Off"], 0))
+        totals.append(@renderOptions(["on", "off"], (if row.totals then 0 else 1),
+          (value) => @mupdate("rows", (rows) -> rows[index].totals = if value == "on" then true else false)))
         row = $('<ul class="cdx-pivot-box"></ul>')
         row.append([groupBy, order, sortBy, totals])
         rows.append(row)
@@ -108,16 +117,19 @@ define [
       add = @renderAdd @usedFields(), (field) => @mpush("columns", @defaultRowColumn(field))
       header.append(add)
       columns = $('<ul></ul>')
-      _.each @mget("columns"), (column) =>
+      _.each @mget("columns"), (column, index) =>
         groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
         remove = @renderRemove("columns", column.field)
         groupBy.append([column.field, remove])
         order = $('<li>Order:&nbsp;</li>')
-        order.append(@renderOptions(["Ascending", "Descending"], 0))
+        order.append(@renderOptions(["ascending", "descending"], column.order,
+          (value) => @mupdate("columns", (columns) -> columns[index].order = value)))
         sortBy = $('<li>Sort by:&nbsp;</li>')
-        sortBy.append(@renderOptions([column.field], 0))
+        sortBy.append(@renderOptions([column.field], column.sort_by,
+          (value) => @mupdate("columns", (columns) -> columns[index].sort_by = value)))
         totals = $('<li>Totals:&nbsp;</li>')
-        totals.append(@renderOptions(["On", "Off"], 0))
+        totals.append(@renderOptions(["on", "off"], (if column.totals then 0 else 1),
+          (value) => @mupdate("columns", (columns) -> columns[index].totals = if value == "on" then true else false)))
         column = $('<ul class="cdx-pivot-box"></ul>')
         column.append([groupBy, order, sortBy, totals])
         columns.append(column)
@@ -132,12 +144,13 @@ define [
       add = @renderAdd [], (field) => @mpush("values", @defaultValue(field))
       header.append(add)
       values = $('<ul></ul>')
-      _.each @mget("values"), (value) =>
+      _.each @mget("values"), (value, index) =>
         display = $('<li class="cdx-pivot-header">Display:&nbsp;</li>')
         remove = @renderRemove("values", value.field)
         display.append([value.field, remove])
         aggregate = $('<li>Aggregate:&nbsp;</li>')
-        aggregate.append(@renderOptions(@model.aggregates, 0))
+        aggregate.append(@renderOptions(@model.aggregates, value.aggregate,
+          (aggregate) => @mupdate("values", (values) -> values[index].aggregate = aggregate)))
         value = $('<ul class="cdx-pivot-box"></ul>')
         value.append([display, aggregate])
         values.append(value)
