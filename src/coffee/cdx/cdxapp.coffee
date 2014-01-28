@@ -106,7 +106,7 @@ define [
         })
         coll.add(remotedata)
 
-      tables = Base.Collections("PandasPivotTable")
+      tables = Base.Collections("DataTable")
       table = new tables.model()
       table.set_obj('source', remotedata)
       tables.add(table)

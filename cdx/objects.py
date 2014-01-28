@@ -88,6 +88,76 @@ class RemoteDataSource(PlotObject):
         self.data += 1
         return data
 
+class DataTable(PlotObject):
+    source = Instance(has_ref=True)
+    sort = List()
+    group = List()
+    offset = Int(default=0)
+    length = Int(default=100)
+    maxlength = Int()
+    totallength = Int()
+    precision = Dict()
+    tabledata = Dict()
+    filterselected = Bool(default=False)
+    def setup_events(self):
+        self.on_change('sort', self, 'get_data')
+        self.on_change('group', self, 'get_data')
+        self.on_change('length', self, 'get_data')
+        self.on_change('offset', self, 'get_data')
+        self.on_change('precision', self, 'get_data')
+        self.on_change('filterselected', self, 'get_data')
+        self.source.on_change('selected', self, 'get_data')
+        self.source.on_change('data', self, 'get_data')
+        self.source.on_change('computed_columns', self, 'get_data')
+        if not self.tabledata:
+            self.get_data()
+
+    def format_data(self, jsondata):
+        """inplace manipulation of jsondata
+        """
+        precision = self.precision
+        for colname, data in jsondata.iteritems():
+            if colname == '_selected' or colname == '_counts':
+                continue
+            if self.source.metadata.get(colname, {}).get('date'):
+                isdate = True
+            else:
+                isdate = False
+            for idx, val in enumerate(data):
+                if isdate:
+                    timeobj = time.localtime(val/1000.0)
+                    data[idx] = time.strftime("%Y-%m-%d %H:%M:%S", timeobj)
+                if isinstance(val, float):
+                    data[idx] = "%%.%df" % precision.get(colname,2)%data[idx]
+
+    def transform(self):
+        return dict(sort=self.sort,
+                    group=self.group,
+                    offset=self.offset,
+                    length=self.length,
+                    filterselected=self.filterselected,
+                    )
+
+    def setselect(self, select):
+        self.source.setselect(select, self.transform())
+        self.get_data()
+
+    def select(self, select):
+        self.source.select(select, self.transform())
+        self.get_data()
+
+    def deselect(self, deselect):
+        self.source.deselect(deselect, self.transform())
+        self.get_data()
+
+    def get_data(self, obj=None, attrname=None, old=None, new=None):
+        data = self.source.get_data(self.transform())
+        print(data['data']['_selected'])
+        self.maxlength = data.pop('maxlength')
+        self.totallength = data.pop('totallength')
+        self.format_data(data['data'])
+        self.tabledata = data
+
 class Pivot(PlotObject):
     title = String("Pivot Table")
     description = String("")
