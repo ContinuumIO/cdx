@@ -136,7 +136,7 @@ class DataTable(PlotObject):
         self.totallength = data.pop('totallength')
         self.tabledata = data
 
-class Pivot(PlotObject):
+class PivotTable(PlotObject):
     title = String("Pivot Table")
     description = String("")
     source = Instance(has_ref=True)

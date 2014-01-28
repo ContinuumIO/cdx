@@ -7,9 +7,9 @@ define [
   "./cdxapp"
   "./ipython"
   "./data_table"
-  "./pivot"
+  "./pivot_table"
   "./remote_data_source"
-], (_, $, Backbone, Bokeh, Base, CDXApp, IPython, data_table, pivot, remote_data_source) ->
+], (_, $, Backbone, Bokeh, Base, CDXApp, IPython, data_table, pivot_table, remote_data_source) ->
 
   Bokeh.server_page()
 
@@ -60,8 +60,8 @@ define [
     console.log("register_models")
     Base.locations['RemoteDataSource'] = "cdx/remote_data_source"
     Base.locations['DataTable'] = "cdx/data_table"
+    Base.locations['PivotTable'] = "cdx/pivot_table"
     Base.locations['Namespace'] = "cdx/namespace/namespace"
-    Base.locations['Pivot'] = "cdx/pivot"
     Base.locations['CDX'] = "cdx/cdxapp"
 
   $(()->

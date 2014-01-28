@@ -111,7 +111,7 @@ define [
       table.set_obj('source', remotedata)
       tables.add(table)
 
-      pivots = Base.Collections("Pivot")
+      pivots = Base.Collections("PivotTable")
       pivot = new pivots.model()
       pivot.set_obj('source', remotedata)
       pivots.add(pivot)
@@ -184,8 +184,8 @@ define [
 
     render_tabs: () ->
       $tabs = $('<ul class="nav nav-tabs"></ul>')
-      $table_tab = $('<li><a href="#tab-table">Table</a></li>').addClass('active')
-      $pivot_tab = $('<li><a href="#tab-pivot">Pivot</a></li>')
+      $table_tab = $('<li><a href="#tab-table">Data Table</a></li>').addClass('active')
+      $pivot_tab = $('<li><a href="#tab-pivot">Pivot Table</a></li>')
       $table_tab.click(@show_tab)
       $pivot_tab.click(@show_tab)
       $tabs.append([$table_tab, $pivot_tab])

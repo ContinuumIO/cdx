@@ -8,7 +8,7 @@ define [
   "common/continuum_view"
 ], (_, $, $$1, Backbone, HasParent, HasProperties, ContinuumView) ->
 
-  class PivotView extends ContinuumView.View
+  class PivotTableView extends ContinuumView.View
 
     initialize: (options) ->
       super(options)
@@ -317,9 +317,9 @@ define [
 
       result
 
-  class Pivot extends HasParent
-    default_view: PivotView
-    type: "Pivot"
+  class PivotTable extends HasParent
+    default_view: PivotTableView
+    type: "PivotTable"
     defaults:
       title: "Pivot Table"
       description: ""
@@ -333,11 +333,11 @@ define [
       manual_update: true
     aggregates: ["count", "counta", "countunique", "average", "max", "min", "median", "sum", "product", "stdev", "stdevp", "var", "varp"]
 
-  class Pivots extends Backbone.Collection
-    model: Pivot
+  class PivotTables extends Backbone.Collection
+    model: PivotTable
 
   return {
-    Model: Pivot
-    Collection: new Pivots()
-    View: PivotView
+    Model: PivotTable
+    Collection: new PivotTables()
+    View: PivotTableView
   }
