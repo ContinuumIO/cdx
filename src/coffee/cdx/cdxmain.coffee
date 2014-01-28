@@ -15,21 +15,6 @@ define [
   class CDXRouter extends Backbone.Router
     routes :
       "cdx/:title" : 'main'
-      "justplots/:title" : 'justplots'
-
-    justplots : (title) ->
-      #hacky
-      cdxlink = window.location.href.replace("#justplots", "#cdx")
-      plotlink = window.location.href.replace("#cdx", "#justplots")
-      $('.justcdx').attr('href', cdxlink)
-      $('.justplots').attr('href', plotlink)
-      view = new CDXApp.View(title : title)
-      $('#CDX').append(view.el)
-      window.view = view
-      view.layout.sizes = [100,0]
-      view.layout.set_sizes()
-      view.plotbox.sizes = [0,0,80,20]
-      view.plotbox.set_sizes()
 
     initCode: (arrayserver_port, cdx_addr, title) ->
       """
@@ -54,11 +39,6 @@ define [
       ###
 
     main : (title) ->
-      #hacky
-      cdxlink = window.location.href.replace("#justplots", "#cdx")
-      plotlink = window.location.href.replace("#cdx", "#justplots")
-      $('.justcdx').attr('href', cdxlink)
-      $('.justplots').attr('href', plotlink)
       view = new CDXApp.View(title : title)
       $('#CDX').append(view.el)
       window.view = view
