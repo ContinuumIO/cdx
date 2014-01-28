@@ -2,7 +2,7 @@ define [
   "underscore"
   "jquery"
   "jquery_ui/sortable"
-  "bootstrap3"
+  "bootstrap"
   "backbone"
   "common/has_parent"
   "common/has_properties"

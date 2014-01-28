@@ -2,7 +2,7 @@ define [
   "underscore"
   "jquery"
   "jquery_terminal"
-  "bootstrap3"
+  "bootstrap"
   "backbone"
   "common/base"
   "common/has_properties"
