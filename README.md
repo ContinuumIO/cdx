@@ -1,15 +1,12 @@
 Continuum Data Explorer (CDX)
 =============================
 
-### To install (TODO):
+### Installation
 
-- clone this repo
-- clone https://github.com/ContinuumIO/continuumweb
-- install continuumweb
-- install Bokeh from the cdx subtree `cd subtree/Bokeh; python setup.py install; cd ../../`
-- install cdx `python setup.py install`
+- clone this repository (https://github.com/ContinuumIO/cdx)
+- install CDX `python setup.py install`
 
-We recommend using Anaconda 1.6+ to setup Bokeh's and CDX's dependencies.
+We recommend using Anaconda 1.8+ to setup Bokeh's and CDX's dependencies.
 
 ### To start:
 

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ipython console --existing work/kernel-1.json
+ipython console --existing cdx-work/kernel-1.json
