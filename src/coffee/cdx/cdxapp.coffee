@@ -2,6 +2,7 @@ define [
   "underscore"
   "jquery"
   "jquery_terminal"
+  "bootstrap3"
   "backbone"
   "common/base"
   "common/has_properties"
@@ -12,7 +13,7 @@ define [
   "./pngplotview"
   "./layout/index"
   "./namespace/namespace"
-], (_, $, $$1, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
+], (_, $, $$1, $$2, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 

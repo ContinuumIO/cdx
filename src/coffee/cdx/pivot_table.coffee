@@ -2,11 +2,12 @@ define [
   "underscore"
   "jquery"
   "jquery_ui/sortable"
+  "bootstrap3"
   "backbone"
   "common/has_parent"
   "common/has_properties"
   "common/continuum_view"
-], (_, $, $$1, Backbone, HasParent, HasProperties, ContinuumView) ->
+], (_, $, $$1, $$2, Backbone, HasParent, HasProperties, ContinuumView) ->
 
   class PivotTableView extends ContinuumView.View
 

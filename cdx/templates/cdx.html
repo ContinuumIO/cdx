@@ -19,9 +19,6 @@
     <link href="{{ url_for('static', filename='css/bokeh.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/cdx.css') }}" rel="stylesheet">
 
-    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}" type="text/javascript"></script>
-    <script src="{{ url_for('static', filename='vendor/bootstrap/dist/js/bootstrap.min.js') }}" type="text/javascript"></script>
-
     <script src="{{ url_for('static', filename='vendor/requirejs/require.js') }}" type="text/javascript"></script>
 
     <script>
@@ -29,12 +26,18 @@
         baseUrl: "/static/js",
         paths: {
           jquery_terminal: "/static/vendor/jquery.terminal/js/jquery.terminal-min",
+          bootstrap3: "/static/vendor/bootstrap/dist/js/bootstrap",
           CodeMirror: "/static/vendor/codemirror/lib/codemirror",
-          IPython: "/static/vendor/ipython/ipython"
+          IPython: "/static/vendor/ipython/ipython",
         },
         shim: {
           jquery_terminal: {
-            deps: ["jquery", "jquery_mousewheel"]
+            deps: ["jquery", "jquery_mousewheel"],
+            exports: "$.fn.terminal"
+          },
+          bootstrap3: {
+            deps: ["jquery"],
+            exports: "$.fn.tab"
           },
           CodeMirror: {
             deps: [],
