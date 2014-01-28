@@ -178,6 +178,19 @@ define [
       else
         @$pivot.empty()
 
+    render_pivot_table_menu: () ->
+      items = ["Delete", "Duplicate", "Protect", "Hide", "Edit"]
+      menu = $('<ul class="dropdown-menu"></ul>')
+      menu_items = _.map items, (item) =>
+        link = $('<a tabindex="-1" href="javascript://"></a>').text(item)
+        menu_item = $('<li></li>')
+        menu_item.append(link)
+      menu.append(menu_items)
+      dropdown = $('<span class="dropdown"></span>')
+      button = $('<button class="btn btn-link btn-xs dropdown-toggle"></button>')
+      button.append($('<span class="caret"></span>'))
+      dropdown.append([button.dropdown(), menu])
+
     show_tab: (event) ->
       event.preventDefault()
       $(event.target).tab('show')
@@ -186,6 +199,7 @@ define [
       $tabs = $('<ul class="nav nav-tabs"></ul>')
       $table_tab = $('<li><a href="#tab-table">Data Table</a></li>').addClass('active')
       $pivot_tab = $('<li><a href="#tab-pivot">Pivot Table</a></li>')
+      $pivot_tab.find("a").append(@render_pivot_table_menu())
       $table_tab.click(@show_tab)
       $pivot_tab.click(@show_tab)
       $tabs.append([$table_tab, $pivot_tab])
