@@ -1,8 +1,8 @@
 define [
   "jquery"
-  "ipython"
-  "codemirror"
-], ($, IPython, CodeMirror) ->
+  "CodeMirror"
+  "IPython"
+], ($, CodeMirror, IPython) ->
 
   setup_ipython = (container, ws_url) ->
     patch_codemirror()

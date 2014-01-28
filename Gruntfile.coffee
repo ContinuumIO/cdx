@@ -158,16 +158,6 @@ module.exports = (grunt) ->
         dest: 'build/cdx.css'
 
     wrap:
-      ipython:
-        src: 'build/vendor/ipython/ipython.js'
-        dest: 'build/vendor/ipython/ipython-amd.js'
-        options:
-          wrapper: ["define(['jquery', 'codemirror'], function($, CodeMirror) {\n", "return IPython;\n});\n"]
-      codemirror:
-        src: 'build/vendor/codemirror/lib/codemirror.js'
-        dest: 'build/vendor/codemirror/lib/codemirror-amd.js'
-        options:
-          wrapper: ["define([], function() {\n", "return CodeMirror;\n});\n"]
       jqueryui:
         src: 'build/vendor/jquery-ui/ui/jquery-ui.js',
         dest: 'build/vendor/jquery-ui/ui/jquery-ui-amd.js',
@@ -202,8 +192,8 @@ module.exports = (grunt) ->
           timezone: "../vendor/timezone/src/timezone"
           sprintf: "../vendor/sprintf/src/sprintf"
           bootstrap: "../vendor/bootstrap/bootstrap-2.0.4"
-          codemirror: "../vendor/codemirror/lib/codemirror-amd"
-          ipython: "../vendor/ipython/ipython-amd"
+          codemirror: "../vendor/codemirror/lib/codemirror"
+          ipython: "../vendor/ipython/ipython"
         shim:
           sprintf:
             exports: 'sprintf'

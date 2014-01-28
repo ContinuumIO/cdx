@@ -29,11 +29,21 @@
         baseUrl: "/static/js",
         paths: {
           jquery_terminal: "/static/vendor/jquery.terminal/js/jquery.terminal-min",
-          codemirror: "/static/vendor/codemirror/lib/codemirror-amd",
-          ipython: "/static/vendor/ipython/ipython-amd"
+          CodeMirror: "/static/vendor/codemirror/lib/codemirror",
+          IPython: "/static/vendor/ipython/ipython"
         },
         shim: {
-          jquery_terminal: ["jquery", "jquery_mousewheel"]
+          jquery_terminal: {
+            deps: ["jquery", "jquery_mousewheel"]
+          },
+          CodeMirror: {
+            deps: [],
+            exports: "CodeMirror"
+          },
+          IPython: {
+            deps: ["jquery", "CodeMirror"],
+            exports: "IPython"
+          }
         }
       });
       require(["main", "cdx/cdxmain"]);
