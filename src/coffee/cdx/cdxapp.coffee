@@ -242,8 +242,29 @@ define [
       @layout.set_sizes()
       @$el.append(@layout.el)
 
-    input_handler: (command, term) =>
-      term.echo("executing: " + command)
+    input_handler: (code, term) =>
+      term.pause()
+
+      callbacks = {
+        execute_reply: (content) =>
+          term.resume()
+        output: (msg_type, content) =>
+          output = switch msg_type
+            when 'pyout', 'display_data'
+              content.data['text/plain']
+            when 'pyerr'
+              content.traceback?.join("\n")
+            when 'stream'
+              content.data
+
+          if output? and output.length > 0
+            output = output + '\n' if output[output.length-1] != '\n'
+            term.echo(output)
+      }
+
+      msg_id = @kernel.execute(code, callbacks, {silent: false})
+      console.log("CDX -> IPython (#{msg_id})")
+
       return
 
   return {
