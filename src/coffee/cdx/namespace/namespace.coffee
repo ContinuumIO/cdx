@@ -1,11 +1,13 @@
 define [
   "underscore"
-  "jquery_ui"
+  "jquery"
+  "jquery_ui/sortable"
+  "jquery_ui/accordion"
   "backbone"
   "common/continuum_view"
   "common/has_properties"
   "./namespacetemplate"
-], (_, $, Backbone, ContinuumView, HasProperties, NamespaceTemplate) ->
+], (_, $, $$1, $$2, Backbone, ContinuumView, HasProperties, NamespaceTemplate) ->
 
   class NamespaceView extends ContinuumView.View
     initialize: (options) ->

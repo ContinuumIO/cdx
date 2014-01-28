@@ -14,9 +14,7 @@ from bokeh.properties import (HasProps, MetaHasProps,
 import bokeh.objects
 import bokeh.glyphs
 
-from bokeh.objects import PlotObject, Plot
-from bokeh.pandasobjects import PlotObject, Plot
-from bokeh.session import PlotContext, PlotList
+from bokeh.objects import PlotObject, PlotContext, Plot, PlotList
 from bokeh import protocol
 
 class RemoteDataSource(PlotObject):

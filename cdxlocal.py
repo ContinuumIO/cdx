@@ -73,7 +73,6 @@ app = start.prepare_app(
     work_dir=args.work_dir,
     debug=args.debug,
     debugjs=args.debugjs)
-start.prepare_local()
 
 if __name__ == "__main__":
     def run():

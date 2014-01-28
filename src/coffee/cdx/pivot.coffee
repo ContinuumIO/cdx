@@ -1,11 +1,12 @@
 define [
   "underscore"
-  "jquery_ui"
+  "jquery"
+  "jquery_ui/sortable"
   "backbone"
   "common/has_parent"
   "common/has_properties"
   "common/continuum_view"
-], (_, $, Backbone, HasParent, HasProperties, ContinuumView) ->
+], (_, $, $$1, Backbone, HasParent, HasProperties, ContinuumView) ->
 
   class PivotView extends ContinuumView.View
 

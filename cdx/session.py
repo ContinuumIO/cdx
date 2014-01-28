@@ -1,12 +1,8 @@
 import pandas as pd
-from bokeh.session import PlotServerSession, PlotList
-from objects import CDX, Namespace, RemoteDataSource
-from bokeh.objects import (
-    Range1d,
-    Plot, DataRange1d, LinearAxis, Grid,
-    ColumnDataSource, ObjectArrayDataSource,
-    PanTool, ZoomTool, BoxSelectTool, BoxSelectionOverlay,
-    GMapPlot, DataSlider)
+from bokeh.session import PlotServerSession
+from objects import CDX, Namespace, RemoteDataSource, PlotList
+from bokeh.objects import (Range1d, Plot, Grid, PanTool, WheelZoomTool,
+    BoxSelectTool, BoxSelectionOverlay, GMapPlot, DataSlider)
 from bokeh.glyphs import Circle
 from bokeh.pandasobjects import PandasPlotSource
 import os

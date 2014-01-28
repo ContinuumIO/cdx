@@ -15,7 +15,6 @@ print "pandas: %s" % pandas.version.version
 
 from bokeh.server.app import bokeh_app
 from bokeh.server.start import prepare_app as bokeh_prepare_app
-from bokeh.server.start import prepare_local as bokeh_prepare_local
 
 #import objects so that we can resolve them
 import cdx.objects
@@ -101,6 +100,3 @@ def start_app(app):
                              handler_class=WebSocketHandler,
                              )
     http_server.serve_forever()
-
-def prepare_local():
-    bokeh_prepare_local()
