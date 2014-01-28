@@ -83,7 +83,7 @@ define [
       dropdown.append([button.dropdown(), menu])
 
     makeSortable: (attr, $el) ->
-      $el.sortable({handle: ".cdx-pivot-header"}).on 'sortstop', (ui) =>
+      $el.sortable({handle: ".cdx-pivot-header", axis: "y"}).on 'sortstop', (ui) =>
         fields = ($(child).data('cdx-field') for child in $el.children())
         @mset(attr, _.sortBy(@mget(attr), (item) -> fields.indexOf(item.field)))
 
