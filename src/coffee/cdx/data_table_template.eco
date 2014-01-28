@@ -1,21 +1,22 @@
 <table class="table table-bordered">
   <thead>
     <% if @counts: %>
-    <th>counts</th>
+      <th>counts</th>
     <% end %>
     <th>index</th>
     <% for column in @columns: %>
-    <% if not @skip[column]: %>
-    <th><a class="pandascolumn"><%= column %></a>
-
-      <% if @sort_ascendings[column] == true: %>
-      <i class="icon-caret-up"></i>
-      <% else if @sort_ascendings[column] == false: %>
-      <i class="icon-caret-down"></i>
+      <% if not @skip[column]: %>
+        <th style="white-space: nowrap;" data-cdx-column="<%= column %>">
+          <a class="pandascolumn"><%= column %></a>
+          <% if @sort_ascendings[column] == true: %>
+            <i class="cdx-column-sort fa fa-sort-up"></i>
+          <% else if @sort_ascendings[column] == false: %>
+            <i class="cdx-column-sort fa fa-sort-down"></i>
+          <% else: %>
+            <i class="cdx-column-sort fa fa-sort"></i>
+          <% end %>
+        </th>
       <% end %>
-
-      <% end %>
-    </th>
     <% end %>
   </thead>
   <% for idx in _.range(@length): %>

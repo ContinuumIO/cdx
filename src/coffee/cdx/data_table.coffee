@@ -28,7 +28,7 @@ define [
       "click .pandasnext": 'pandasnext'
       "click .pandasend": 'pandasend'
       "click .controlsmore": 'toggle_more_controls'
-      "click .pandascolumn": 'sort'
+      "click .cdx-column-sort": 'sort'
       "click .pandasrow": 'rowclick'
       "click .filterselected": 'toggle_filterselected'
       "click .clearselected": 'clearselected'
@@ -83,9 +83,9 @@ define [
         resp = @model.rpc('deselect', [[rownum]])
       return null
 
-    sort: (e) =>
-      colname = $(e.currentTarget).text()
-      @model.toggle_column_sort(colname)
+    sort: (event) =>
+      column = $(event.currentTarget).parent().data("cdx-column")
+      @model.toggle_column_sort(column)
 
     toggle_more_controls: () =>
       if @controls_hide
