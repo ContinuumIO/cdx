@@ -23,7 +23,6 @@ define [
       "keyup .pandasoffset": 'pandasoffset'
       "keyup .pandassize": 'pandassize'
       "change .pandasagg": 'pandasagg'
-      "change .tablecontrolstate": 'tablecontrolstate'
       "click .pandasbeginning": 'pandasbeginning'
       "click .pandasback": 'pandasback'
       "click .pandasnext": 'pandasnext'
@@ -127,9 +126,6 @@ define [
         @model.save('length', size, {wait:true})
         e.preventDefault()
 
-    tablecontrolstate: () ->
-      @mset('tablecontrolstate', @$('.tablecontrolstate').val())
-
     pandasagg: () ->
       @model.save('agg', @$el.find('.pandasagg').val(), {'wait':true})
 
@@ -184,7 +180,6 @@ define [
           _counts: true
           _selected: true
           index: true
-        tablecontrolstate: @mget('tablecontrolstate')
         computed_columns: @mget_obj('source').get('computed_columns')
         columns: @mget('tabledata').column_names
         data: @mget('tabledata').data
@@ -207,9 +202,6 @@ define [
       @$el.html(html)
       @$(".pandasagg")
         .find("option[value=\"#{@mget('agg')}\"]")
-        .attr('selected', 'selected')
-      @$(".tablecontrolstate")
-        .find("option[value=\"#{@mget('tablecontrolstate')}\"]")
         .attr('selected', 'selected')
       @$el.addClass("bokehtable")
 
@@ -288,7 +280,6 @@ define [
         tabledata: null
         columns_names: []
         width: null
-        tablecontrolstate: 'groupby'
       }
 
   class DataTables extends Backbone.Collection
