@@ -22,34 +22,37 @@
     <script src="{{ url_for('static', filename='vendor/requirejs/require.js') }}" type="text/javascript"></script>
 
     <script>
-      require.config({
-        baseUrl: "/static/js",
-        paths: {
-          jquery_terminal: "/static/vendor/jquery.terminal/js/jquery.terminal-min",
-          bootstrap3: "/static/vendor/bootstrap/dist/js/bootstrap",
-          CodeMirror: "/static/vendor/codemirror/lib/codemirror",
-          IPython: "/static/vendor/ipython/ipython",
-        },
-        shim: {
-          jquery_terminal: {
-            deps: ["jquery", "jquery_mousewheel"],
-            exports: "$.fn.terminal"
+      (function() {
+        var vendor = "{{ url_for('static', filename='vendor') }}";
+        require.config({
+          baseUrl: "{{ url_for('static', filename='js') }}",
+          paths: {
+            jquery_terminal: vendor + "/jquery.terminal/js/jquery.terminal-min",
+            bootstrap3: vendor + "/bootstrap/dist/js/bootstrap",
+            CodeMirror: vendor + "/codemirror/lib/codemirror",
+            IPython: vendor + "/ipython/ipython",
           },
-          bootstrap3: {
-            deps: ["jquery"],
-            exports: "$.fn.tab"
-          },
-          CodeMirror: {
-            deps: [],
-            exports: "CodeMirror"
-          },
-          IPython: {
-            deps: ["jquery", "CodeMirror"],
-            exports: "IPython"
+          shim: {
+            jquery_terminal: {
+              deps: ["jquery", "jquery_mousewheel"],
+              exports: "$.fn.terminal"
+            },
+            bootstrap3: {
+              deps: ["jquery"],
+              exports: "$.fn.tab"
+            },
+            CodeMirror: {
+              deps: [],
+              exports: "CodeMirror"
+            },
+            IPython: {
+              deps: ["jquery", "CodeMirror"],
+              exports: "IPython"
+            }
           }
-        }
-      });
-      require(["main", "cdx/cdxmain"]);
+        });
+        require(["main", "cdx/cdxmain"]);
+      })();
     </script>
   </head>
   <body data-ipython-ws-addr={{ ipython_ws_addr }} data-cdx-addr={{ cdx_addr }} data-arrayserver-port={{ arrayserver_port }}>
