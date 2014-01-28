@@ -1,10 +1,4 @@
-<table class="bokehdatatable table table-bordered"
-<% if @width: %>
-       style="max-height:<%= @height %>px;max-width:<%= @width %>px"
-<% else: %>
-       style="max-height:<%= @height %>px"
-<% end %>
-       >
+<table class="table table-bordered">
   <thead>
     <% if @counts: %>
     <th>counts</th>
@@ -54,7 +48,7 @@
       Show <input type="text" class="pandassize" value="<%= @length %>"> records
       From <input type="text" class="pandasoffset" value="<%= @offset %>">
       to <%= @length + @offset %> -
-      Total : <%= @totallength %>
+      Total: <%= @totallength %>
     </div>
   </center>
 </form>

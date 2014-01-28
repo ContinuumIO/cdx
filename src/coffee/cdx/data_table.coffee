@@ -185,8 +185,6 @@ define [
         data: @mget('tabledata').data
         group: group
         sort_ascendings: sort_ascendings
-        height: @mget('height')
-        width: @mget('width')
         offset: @mget('offset')
         length: @model.length()
         filterselected: @mget('filterselected')
@@ -279,7 +277,6 @@ define [
         maxlength: 1000
         tabledata: null
         columns_names: []
-        width: null
       }
 
   class DataTables extends Backbone.Collection
