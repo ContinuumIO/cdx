@@ -189,7 +189,7 @@ define [
         menu_item.append(link)
       menu.append(menu_items)
       dropdown = $('<span class="dropdown"></span>')
-      button = $('<button class="btn btn-link btn-xs dropdown-toggle"></button>')
+      button = $('<button class="btn btn-link btn-xs dropdown-toggle" data-toggle="dropdown"></button>')
       button.append($('<span class="caret"></span>'))
       dropdown.append([button.dropdown(), menu])
 
