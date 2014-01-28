@@ -1,6 +1,7 @@
 define [
   "underscore"
   "jquery"
+  "jquery_terminal"
   "backbone"
   "common/base"
   "common/has_properties"
@@ -11,7 +12,7 @@ define [
   "./pngplotview"
   "./layout/index"
   "./namespace/namespace"
-], (_, $, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
+], (_, $, $$1, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 
@@ -223,9 +224,10 @@ define [
       @plotbox.sizes = [15, 55, 20, 10]
       @plotbox.set_sizes()
       @$ipcell = $('<div id="thecell" class="hundredpct"></div>')
-      @$ipoutput = $("<div class='ipoutput'></div>")
+      @$terminal = $("<div class='cdx-terminal'></div>")
+      @$terminal.terminal(@input_handler, {prompt: '>>> ', name: "", greetings: false})
       @iplayout = new Layout.HBoxView(
-        elements : [@$ipcell, @$ipoutput]
+        elements : [@$ipcell, @$terminal]
         height : '100%'
         width : '100%'
       )
@@ -237,6 +239,10 @@ define [
       @layout.sizes = [80,20]
       @layout.set_sizes()
       @$el.append(@layout.el)
+
+    input_handler: (command, term) =>
+      term.echo("executing: " + command)
+      return
 
   return {
     Model: CDX

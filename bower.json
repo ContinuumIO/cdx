@@ -5,6 +5,7 @@
     "almond": null,
     "jquery": null,
     "jquery-mousewheel": null,
+    "jquery.terminal": null,
     "jquery-ui": null,
     "underscore-amd": null,
     "backbone-amd": null,
