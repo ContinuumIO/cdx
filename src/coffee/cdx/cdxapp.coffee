@@ -181,19 +181,19 @@ define [
 
     render_layouts: () ->
       @$namespace = $('<div class="namespaceholder hundredpct"></div>')
-      @$tableholder = $('<div class="tableholder hundredpct"></div>')
+      @$tabsholder = $('<div class="tabsholder hundredpct"></div>')
       @$plotholder = $('<div class="plotholder hundredpct"></div>')
       $tabs = $('<ul></ul>')
         .append('<li><a href="#tab-table">Table</a></li>')
         .append('<li><a href="#tab-pivot">Pivot</a></li>')
-      @$tableholder.html($tabs)
+      @$tabsholder.html($tabs)
       @$table = $('<div id="tab-table"></div>')
       @$pivot = $('<div id="tab-pivot"></div>')
-      @$tableholder.append([@$table, @$pivot])
-      @$tableholder.tabs()
+      @$tabsholder.append([@$table, @$pivot])
+      @$tabsholder.tabs()
       @$plotlist = $('<div class="plotlistholder hundredpct"></div>')
       @plotbox = new Layout.HBoxView(
-        elements : [@$namespace, @$tableholder, @$plotholder, @$plotlist]
+        elements : [@$namespace, @$tabsholder, @$plotholder, @$plotlist]
         height : '100%',
         width : '100%',
       )
