@@ -3,6 +3,7 @@
   "version": "0.1.1",
   "dependencies": {
     "grunt": "~0.4",
+    "grunt-cli": "~0.1",
     "bower": "~1.1",
     "requirejs": "~2.1",
     "grunt-contrib-coffee": "~0.7.0",
