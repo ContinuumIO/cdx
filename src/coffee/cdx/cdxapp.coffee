@@ -1,7 +1,6 @@
 define [
   "underscore"
   "jquery"
-  "jquery_ui/tabs"
   "backbone"
   "common/base"
   "common/has_properties"
@@ -12,7 +11,7 @@ define [
   "./pngplotview"
   "./layout/index"
   "./namespace/namespace"
-], (_, $, $$1, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
+], (_, $, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 
@@ -134,7 +133,7 @@ define [
         thumb_x : 150
         thumb_y : 150
       )
-      @$plotlist.html('').append(@plotlistview.$el)
+      @$plotlistholder.html(@plotlistview.$el)
       @listenTo(@plotlistview, 'showplot', @showplot)
 
     showplot : (ref) ->
@@ -179,21 +178,31 @@ define [
       else
         @$pivot.empty()
 
+    show_tab: (event) ->
+      event.preventDefault()
+      $(event.target).tab('show')
+
+    render_tabs: () ->
+      $tabs = $('<ul class="nav nav-tabs"></ul>')
+      $table_tab = $('<li><a href="#tab-table">Table</a></li>').addClass('active')
+      $pivot_tab = $('<li><a href="#tab-pivot">Pivot</a></li>')
+      $table_tab.click(@show_tab)
+      $pivot_tab.click(@show_tab)
+      $tabs.append([$table_tab, $pivot_tab])
+      $tabs_content = $('<div class="tab-content"></div>')
+      @$table = $('<div id="tab-table" class="tab-pane"></div>').addClass('active')
+      @$pivot = $('<div id="tab-pivot" class="tab-pane"></div>')
+      $tabs_content.append([@$table, @$pivot])
+      @$tabsholder.html($tabs).append($tabs_content)
+
     render_layouts: () ->
       @$namespace = $('<div class="namespaceholder hundredpct"></div>')
       @$tabsholder = $('<div class="tabsholder hundredpct"></div>')
       @$plotholder = $('<div class="plotholder hundredpct"></div>')
-      $tabs = $('<ul></ul>')
-        .append('<li><a href="#tab-table">Table</a></li>')
-        .append('<li><a href="#tab-pivot">Pivot</a></li>')
-      @$tabsholder.html($tabs)
-      @$table = $('<div id="tab-table"></div>')
-      @$pivot = $('<div id="tab-pivot"></div>')
-      @$tabsholder.append([@$table, @$pivot])
-      @$tabsholder.tabs()
-      @$plotlist = $('<div class="plotlistholder hundredpct"></div>')
+      @$plotlistholder = $('<div class="plotlistholder hundredpct"></div>')
+      @render_tabs()
       @plotbox = new Layout.HBoxView(
-        elements : [@$namespace, @$tabsholder, @$plotholder, @$plotlist]
+        elements : [@$namespace, @$tabsholder, @$plotholder, @$plotlistholder]
         height : '100%',
         width : '100%',
       )
