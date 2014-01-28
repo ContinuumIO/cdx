@@ -179,11 +179,6 @@ define [
       else
         @$pivot.empty()
 
-    split_ipython : () ->
-      temp = $('#thecell').find('.output_wrapper')
-      temp.detach()
-      @$ipoutput.append(temp)
-
     render_layouts: () ->
       @$namespace = $('<div class="namespaceholder hundredpct"></div>')
       @$tableholder = $('<div class="tableholder hundredpct"></div>')
