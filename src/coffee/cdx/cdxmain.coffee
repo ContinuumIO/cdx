@@ -9,7 +9,7 @@ define [
   "./data_table"
   "./pivot_table"
   "./remote_data_source"
-], (_, $, Backbone, Bokeh, Base, CDXApp, IPython, data_table, pivot_table, remote_data_source) ->
+], (_, $, Backbone, Bokeh, Base, CDXApp, ipython, data_table, pivot_table, remote_data_source) ->
 
   Bokeh.server_page()
 
@@ -26,35 +26,21 @@ define [
       sess.use_doc('#{title}')
       """
 
-    plotCode: () ->
-      """
-      import pandas as pd
-      auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')
-      stud = pd.read_csv('csv/student_activities.csv')
-      """
-      ###
-      """
-      import pandas as pd; auto = pd.read_csv('cdx/remotedata/auto-mpg.csv')
-      sess.cdx.namespace.populate(); sess.plot('weight', 'mpg', 'auto')
-      """
-      ###
+    main: (title) ->
+      $body = $('body')
 
-    main : (title) ->
-      view = new CDXApp.View(title : title)
-      $('#CDX').append(view.el)
-      window.view = view
-      ipython_ws_addr = $('body').data('ipython-ws-addr')
+      cdx_addr = $body.data('cdx-addr')
+      ipython_ws_addr = $body.data('ipython-ws-addr')
+      arrayserver_port = $body.data('arrayserver-port')
 
-      [kernel, cell] = IPython.setup_ipython($("div#thecell"), ipython_ws_addr)
-      cdx_addr = $('body').data('cdx-addr')
-      arrayserver_port = $('body').data('arrayserver-port')
+      kernel = ipython.init_kernel(ipython_ws_addr)
+      view = new CDXApp.View({title: title, kernel: kernel})
+      $('#CDX').html(view.el)
 
       _.delay((() =>
           code = @initCode(arrayserver_port, cdx_addr, title)
           kernel.execute(code)),
       1000) # XXX: otherwise throws InvalidStateError 11, why?
-
-      cell.set_text(@plotCode())
 
   register_models = () ->
     console.log("register_models")

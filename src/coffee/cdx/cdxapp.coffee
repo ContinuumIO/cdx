@@ -36,12 +36,14 @@ define [
 
     delegateEvents : (events) ->
       super(events)
+
     initialize : (options) ->
       title = options.title
+      @kernel = options.kernel
       @render_layouts()
       @init_bokeh(title)
 
-    init_bokeh : (title) ->
+    init_bokeh: (title) ->
       wswrapper = ServerUtils.utility.make_websocket()
       doc = new UserContext.Doc(title : title)
       load = doc.load(true)
@@ -224,11 +226,10 @@ define [
       )
       @plotbox.sizes = [15, 55, 20, 10]
       @plotbox.set_sizes()
-      @$ipcell = $('<div id="thecell" class="hundredpct"></div>')
       @$terminal = $("<div class='cdx-terminal'></div>")
       @$terminal.terminal(@input_handler, {prompt: '>>> ', name: "", greetings: false})
       @iplayout = new Layout.HBoxView(
-        elements : [@$ipcell, @$terminal]
+        elements : [@$terminal]
         height : '100%'
         width : '100%'
       )
