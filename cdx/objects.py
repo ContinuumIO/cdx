@@ -96,7 +96,6 @@ class DataTable(PlotObject):
     length = Int(default=100)
     maxlength = Int()
     totallength = Int()
-    precision = Dict()
     tabledata = Dict()
     filterselected = Bool(default=False)
     def setup_events(self):
@@ -104,31 +103,12 @@ class DataTable(PlotObject):
         self.on_change('group', self, 'get_data')
         self.on_change('length', self, 'get_data')
         self.on_change('offset', self, 'get_data')
-        self.on_change('precision', self, 'get_data')
         self.on_change('filterselected', self, 'get_data')
         self.source.on_change('selected', self, 'get_data')
         self.source.on_change('data', self, 'get_data')
         self.source.on_change('computed_columns', self, 'get_data')
         if not self.tabledata:
             self.get_data()
-
-    def format_data(self, jsondata):
-        """inplace manipulation of jsondata
-        """
-        precision = self.precision
-        for colname, data in jsondata.iteritems():
-            if colname == '_selected' or colname == '_counts':
-                continue
-            if self.source.metadata.get(colname, {}).get('date'):
-                isdate = True
-            else:
-                isdate = False
-            for idx, val in enumerate(data):
-                if isdate:
-                    timeobj = time.localtime(val/1000.0)
-                    data[idx] = time.strftime("%Y-%m-%d %H:%M:%S", timeobj)
-                if isinstance(val, float):
-                    data[idx] = "%%.%df" % precision.get(colname,2)%data[idx]
 
     def transform(self):
         return dict(sort=self.sort,
@@ -152,10 +132,8 @@ class DataTable(PlotObject):
 
     def get_data(self, obj=None, attrname=None, old=None, new=None):
         data = self.source.get_data(self.transform())
-        print(data['data']['_selected'])
         self.maxlength = data.pop('maxlength')
         self.totallength = data.pop('totallength')
-        self.format_data(data['data'])
         self.tabledata = data
 
 class Pivot(PlotObject):
