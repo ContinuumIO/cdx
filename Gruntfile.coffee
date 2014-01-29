@@ -137,32 +137,22 @@ module.exports = (grunt) ->
             "contexthint.js"
           ])
         dest: 'build/vendor/ipython/ipython.js'
-      ipython_css:
-        src:
-          ("src/vendor/ipython/css/#{file}" for file in [
-            "style.min.css"
-            "codemirror-ipython.css"
-          ])
-        dest: 'build/vendor/ipython/ipython.css'
+      css_vendor:
+        src: [
+          "build/vendor/codemirror/lib/codemirror.css"
+          "build/vendor/bootstrap/dist/css/bootstrap.css"
+          "build/vendor/bootstrap/dist/css/bootstrap-theme.css"
+          "build/vendor/font-awesome/css/font-awesome.css"
+          "build/vendor/jquery.terminal/css/jquery.terminal.css"
+        ]
+        dest: 'build/cdx-vendor.css'
       css:
         src: [
-          "build/vendor/jquery-ui/themes/smoothness/jquery-ui.css"
-          "build/vendor/bootstrap/css/bootstrap.css"
-          "build/vendor/font-awesome/css/font-awesome.css"
-          "build/vendor/codemirror/lib/codemirror.css"
-          "build/vendor/ipython/ipython.css"
           "build/css/continuum.css"
-          "build/css/bokeh.css"
+          "build/css/main.css"
           "build/css/cdx.css"
         ]
         dest: 'build/cdx.css'
-
-    wrap:
-      jqueryui:
-        src: 'build/vendor/jquery-ui/ui/jquery-ui.js',
-        dest: 'build/vendor/jquery-ui/ui/jquery-ui-amd.js',
-        options:
-          wrapper: ["define(['jquery'], function(jQuery) {\n", "return jQuery;\n});\n"]
 
     watch:
       compile:
@@ -224,11 +214,10 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks("grunt-contrib-clean")
   grunt.loadNpmTasks("grunt-contrib-requirejs")
   grunt.loadNpmTasks("grunt-contrib-cssmin")
-  grunt.loadNpmTasks("grunt-wrap")
   grunt.loadNpmTasks("grunt-eco")
 
   grunt.registerTask("default", ["build"])
-  grunt.registerTask("build",   ["compile", "bokeh", "copy", "concat", "wrap"])
+  grunt.registerTask("build",   ["compile", "bokeh", "copy", "concat"])
   grunt.registerTask("compile", ["coffee:compile", "less:compile", "eco:compile"])
   grunt.registerTask("bokeh",   ["coffee:bokeh", "less:bokeh", "eco:bokeh"])
   grunt.registerTask("rebuild", ["clean", "install", "build"])

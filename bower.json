@@ -6,7 +6,7 @@
     "jquery": null,
     "jquery-mousewheel": null,
     "jquery.terminal": null,
-    "jquery-ui": null,
+    "jquery-ui-amd": null,
     "underscore-amd": null,
     "backbone-amd": null,
     "bootstrap": "~3",
