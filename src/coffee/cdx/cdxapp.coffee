@@ -227,7 +227,13 @@ define [
       @plotbox.sizes = [15, 55, 20, 10]
       @plotbox.set_sizes()
       @$terminal = $("<div class='cdx-terminal'></div>")
-      @$terminal.terminal(@input_handler, {prompt: '>>> ', name: "", greetings: false})
+      @$terminal.terminal(@evaluate_handler, {
+        name: "ipython",
+        greetings: false,
+        prompt: '>>> ',
+        tabcompletion: true,
+        completion: @complete_handler,
+      })
       @iplayout = new Layout.HBoxView(
         elements : [@$terminal]
         height : '100%'
@@ -242,7 +248,7 @@ define [
       @layout.set_sizes()
       @$el.append(@layout.el)
 
-    input_handler: (code, term) =>
+    evaluate_handler: (code, term) =>
       term.pause()
 
       callbacks = {
@@ -263,9 +269,21 @@ define [
       }
 
       msg_id = @kernel.execute(code, callbacks, {silent: false})
-      console.log("CDX -> IPython (#{msg_id})")
+      console.log("CDX -> IPython (evaluate:#{msg_id})")
 
       return
+
+    complete_handler: (term, code, complete) =>
+      term.pause()
+
+      callbacks = {
+        complete_reply: (content) =>
+          complete(content.matches)
+          term.resume()
+      }
+
+      msg_id = @kernel.complete(code, code.length, callbacks)
+      console.log("CDX -> IPython (complete:#{msg_id})")
 
   return {
     Model: CDX
