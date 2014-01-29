@@ -251,8 +251,15 @@ define [
     evaluate_handler: (code, term) =>
       term.pause()
 
+      display = (output) =>
+        if output? and output.length > 0
+          output = output + '\n' if output[output.length-1] != '\n'
+          term.echo(output)
+
       callbacks = {
         execute_reply: (content) =>
+          for data in content.payload
+            display(data.text)
           term.resume()
         output: (msg_type, content) =>
           output = switch msg_type
@@ -262,10 +269,7 @@ define [
               content.traceback?.join("\n")
             when 'stream'
               content.data
-
-          if output? and output.length > 0
-            output = output + '\n' if output[output.length-1] != '\n'
-            term.echo(output)
+          display(output)
       }
 
       msg_id = @kernel.execute(code, callbacks, {silent: false})
