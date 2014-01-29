@@ -109,7 +109,7 @@ class CDXSession(PlotServerSession):
         kwargs['line_alpha'] = alpha
         kwargs['nonselection_alpha'] = nonselection_alpha
         if 'tools' not in kwargs:
-            kwargs['tools'] = 'pan,zoom,select'
+            kwargs['tools'] = 'pan,wheel_zoom,select'
         if type == "scatter":
             plotfunc = plotting.scatter
         elif type == "line":
