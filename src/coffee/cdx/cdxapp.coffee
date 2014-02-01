@@ -225,7 +225,7 @@ define [
         height : '100%',
         width : '100%',
       )
-      @plotbox.sizes = [15, 55, 20, 10]
+      @plotbox.sizes = [15, 40, 35, 10]
       @plotbox.set_sizes()
       @$terminal = $("<div class='cdx-terminal'></div>")
       @$terminal.terminal(@evaluate_handler, {
