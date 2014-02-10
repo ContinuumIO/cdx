@@ -99,7 +99,7 @@ module.exports = (grunt) ->
         files: [
           expand: true
           cwd: '<%= bokehjs %>/src/vendor'
-          src: '**/*'
+          src: ['rbush/**/*', 'bootstrap/modal.js']
           dest: 'build/vendor'
         ]
       favicon:
