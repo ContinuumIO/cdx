@@ -37,9 +37,16 @@ define [
       view = new CDXApp.View({title: title, kernel: kernel})
       $('#CDX').html(view.el)
 
+      callbacks = {
+        execute_reply: (content) =>
+          console.log(content)
+        output: (msg_type, content) =>
+          console.log(msg_type, content)
+      }
+
       _.delay((() =>
           code = @initCode(arrayserver_port, cdx_addr, title)
-          kernel.execute(code)),
+          kernel.execute(code, callbacks, {silent: false})),
       1000) # XXX: otherwise throws InvalidStateError 11, why?
 
   register_models = () ->
