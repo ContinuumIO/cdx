@@ -1,16 +1,29 @@
 import pandas as pd
 import numpy as np
-from flask import Flask, request
-from bokeh.server.views import make_json
+from flask import Flask, request, current_app
 from bokeh import protocol
 import json
-#app = Flask('cdx.remotedata.pandasserver')
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+
+def make_json(jsonstring, status_code=200, headers={}):
+    """like jsonify, except accepts string, so we can do our own custom
+    json serialization.  should move this to continuumweb later
+    """
+    return current_app.response_class(response=jsonstring,
+                                      status=status_code,
+                                      headers=headers,
+                                      mimetype='application/json')
+
 app = Flask(__name__)
 app.debug = True
 selections = {}
 computed_columns = {}
 
-#should memoize this
+# should memoize this
 namespace = None
 
 def computed_column(data, column_spec):
@@ -244,6 +257,8 @@ def shutdown():
 
 def run(port):
     global namespace
+    namespace = get_ipython().user_ns
+
     global server
     if server:
         shutdown()
@@ -258,7 +273,6 @@ def run(port):
             exit_func()
         get_ipython().exit = new_exit
     import threading
-    namespace = get_ipython().user_ns
     t = threading.Thread(target=_run, args=(server,))
     t.start()
 
