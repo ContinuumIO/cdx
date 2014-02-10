@@ -219,7 +219,7 @@ define [
         (value) => @mset("manual_update", if value == "Manual" then true else false)))
       el.append(update)
       if manual_update
-        button = $('<button type="button" class="btn btn-primary btn-lg">Update</button>')
+        button = $('<button type="button" class="btn btn-primary">Update</button>')
         button.click (event) => @model.save()
         el.append(button)
       el
