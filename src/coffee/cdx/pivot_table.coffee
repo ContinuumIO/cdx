@@ -14,8 +14,15 @@ define [
     initialize: (options) ->
       super(options)
       @listenTo(@model, 'destroy', @remove)
-      @listenTo(@model, 'change', @render)
+      @listenTo(@model, 'change', @rerenderToolbox)
+      @listenTo(@model, 'change:data', @rerenderPivotTable)
       @render()
+
+    mset: () ->
+      if @mget("manual_update")
+        @model.set.apply(@model, arguments)
+      else
+        @model.save.apply(@model, arguments)
 
     mpush: (attr, value) ->
       @mset(attr, @mget(attr).concat([value]))
@@ -27,14 +34,29 @@ define [
 
     render: () ->
       html = $('<table class="cdx-pivot"></table>')
-      description = $('<tr></tr>').append($('<td class="cdx-pivot-description"></td>').append(@renderDescription()))
-      pivot_table = $('<tr></tr>').append($('<td class="cdx-pivot-toolbox" valign="top"></td>').append(@renderToolbox()))
-                                  .append($('<td class="cdx-pivot-table" valign="top"></td>').append(@renderPivotTable()))
-      html.append([description, pivot_table])
+
+      @$description = $('<td class="cdx-pivot-description" valign="center"></td>')
+      @$toolbox = $('<td class="cdx-pivot-toolbox" valign="top"></td>')
+      @$pivot = $('<td class="cdx-pivot-table" valign="top"></td>')
+
+      @$description.append(@renderDescription())
+      @$toolbox.append(@renderToolbox())
+      @$pivot.append(@renderPivotTable())
+
+      html.append([
+        $('<tr></tr>').append(@$desciption),
+        $('<tr></tr>').append([@$toolbox, @$pivot]),
+      ])
       @$el.html(html)
 
-    renderDescription: () ->
-      $('<div></div>').text(@mget("description"))
+    rerenderPivotTable: () ->
+      console.log("rerenderPivotTable")
+      @$pivot.html(@renderPivotTable())
+
+    rerenderToolbox: () ->
+      console.log("rerenderToolbox")
+      console.log(@mget("rows"))
+      @$toolbox.html(@renderToolbox())
 
     renderToolbox: () ->
       toolbox = $('<ul></ul>')
@@ -201,6 +223,9 @@ define [
         button.click (event) => @model.save()
         el.append(button)
       el
+
+    renderDescription: () ->
+      $('<div></div>').text(@mget("description"))
 
     spanSize: (arr, i, j) ->
       if i != 0
