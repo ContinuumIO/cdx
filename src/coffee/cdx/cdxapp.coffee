@@ -13,7 +13,7 @@ define [
   "./pngplotview"
   "./layout/index"
   "./namespace/namespace"
-], (_, $, $$1, $$2, Backbone, Base, HasProperties, PlotContext, BulkSave, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
+], (_, $, $$1, $$2, Backbone, Base, HasProperties, PlotContext, bulk_save, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 
@@ -73,7 +73,7 @@ define [
           coll.add(plotlist)
           @cdx.set_obj('plotlist', plotlist)
 
-        BulkSave([@cdx, doc.get_obj('plot_context'), ns, plotlist])
+        bulk_save([@cdx, doc.get_obj('plot_context'), ns, plotlist])
 
         @listenTo(@cdx, 'change:activetable', @render_activetable)
         @listenTo(@cdx, 'change:namespace', @render_namespace)
@@ -99,34 +99,33 @@ define [
       host : 'localhost'
       port : 10020
 
-    make_table : (varname) ->
-      coll = Base.Collections("RemoteDataSource")
-      remotedata = coll.find((obj) -> obj.get('varname') == varname)
-      if not remotedata?
-        remotedata = new coll.model({
-          host: @conninfo.host
-          port: @conninfo.port
-          varname: varname
+    get_source: (varname) ->
+      collection = Base.Collections("RemoteDataSource")
+      source = collection.find((obj) -> obj.get('varname') == varname)
+
+      if not source?
+        source = new collection.model({
+          host: @conninfo.host,
+          port: @conninfo.port,
+          varname: varname,
         })
-        coll.add(remotedata)
+        collection.add(source)
+
+      source
+
+    make_table: (varname) ->
+      source = @get_source(varname)
 
       tables = Base.Collections("DataTable")
       table = new tables.model()
-      table.set_obj('source', remotedata)
+      table.set_obj('source', source)
       tables.add(table)
-
-      pivots = Base.Collections("PivotTable")
-      pivot = new pivots.model()
-      pivot.set_obj('source', remotedata)
-      pivots.add(pivot)
 
       # XXX: doesn't work if set simultaneously
       @cdx.set({'activetable': table.ref()}, {'silent': true})
 
-      result = BulkSave([@cdx, table, pivot, remotedata])
-      result.done(() =>
+      bulk_save([@cdx, table, source]).done () =>
         @cdx.trigger('change:activetable')
-      )
 
     render_plotlist : () ->
       plotlist = @cdx.get_obj('plotlist')
@@ -213,7 +212,7 @@ define [
       updated_pivot_tables = pivot_tables.concat([pivot_table.ref()])
       @cdx.set("pivot_tables", updated_pivot_tables, {silent: true})
 
-      BulkSave([@cdx, pivot_table]).done () =>
+      bulk_save([@cdx, pivot_table]).done () =>
         @cdx.trigger('change:pivot_tables')
 
     del_pivot_table: (id) =>
