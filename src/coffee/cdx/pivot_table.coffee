@@ -192,7 +192,7 @@ define [
       el.append([header, $columns])
 
     defaultValue: (field) ->
-      {field: field, aggregate: "count", renderer: "default"}
+      {field: field, aggregate: "count", renderer: "default", formatter: "none"}
 
     renderValues: () ->
       el = $("<li></li>")
@@ -212,9 +212,12 @@ define [
         renderer = $('<li>Renderer:&nbsp;</li>')
         renderer.append(@renderOptions(@model.renderers, value.renderer,
           (renderer) => @mupdate("values", (values) -> values[index].renderer = renderer)))
+        formatter = $('<li>Formatter:&nbsp;</li>')
+        formatter.append(@renderOptions(@model.formatters, value.formatter,
+          (formatter) => @mupdate("values", (values) -> values[index].formatter = formatter)))
         $value = $('<ul class="cdx-pivot-box"></ul>')
         $value.data('cdx-field', value.field)
-        $value.append([display, aggregate, renderer])
+        $value.append([display, aggregate, renderer, formatter])
         $values.append($value)
       @makeSortable("values", $values)
       el.append([header, $values])
@@ -389,6 +392,7 @@ define [
       manual_update: true
     aggregates: ["count", "counta", "countunique", "average", "max", "min", "median", "sum", "product", "stdev", "stdevp", "var", "varp"]
     renderers: ["default", "heatmap"]
+    formatters: ["none"]
 
   class PivotTables extends Backbone.Collection
     model: PivotTable
