@@ -54,7 +54,7 @@ define [
       $elements = $('<ul class="nav nav-pills nav-stacked"></ul>')
 
       for name in _.keys(datasets).sort()
-        $header = $('<a class="cdx-namespace-header"></a>').data('varname', name).text(name)
+        $header = $('<a href="#" class="cdx-namespace-header"></a>').data('varname', name).text(name)
         items = ($('<li></li>').text(colname) for colname in datasets[name])
         $columns = $('<ul></ul>').append(items)
         $element = $('<li class="cdx-namespace-element"></li>').append([$header, $columns])
