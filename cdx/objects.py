@@ -238,7 +238,7 @@ class Namespace(PlotObject):
 class CDX(PlotObject):
     namespace = Instance(Namespace, has_ref=True)
     activetable = Instance(Plot, has_ref=True)
-    activepivot = Instance(Plot, has_ref=True)
     activeplot = Instance(Plot, has_ref=True)
     plotlist = Instance(PlotList, has_ref=True)
     plotcontext = Instance(PlotContext, has_ref=True) # list of to level UI elems
+    pivot_tables = List(Instance(PivotTable, has_ref=True), has_ref=True)

@@ -23,9 +23,9 @@ define [
     defaults :
       namespace : null
       activetable : null
-      activepivot : null
       activeplot : null
       plotcontext : null
+      pivot_tables: []
 
   class CDXs extends Backbone.Collection
     model : CDX
@@ -73,14 +73,13 @@ define [
         BulkSave([cdx, doc.get_obj('plot_context'), ns, plotlist])
         @cdxmodel = cdx
         @listenTo(@cdxmodel, 'change:activetable', @render_activetable)
-        @listenTo(@cdxmodel, 'change:activepivot', @render_activepivot)
         @listenTo(@cdxmodel, 'change:namespace', @render_namespace)
         @listenTo(@cdxmodel, 'change:plotlist', @render_plotlist)
         @listenTo(@cdxmodel, 'change:activeplot', @render_activeplot)
+        @listenTo(@cdxmodel, 'change:pivot_tables', @render_pivot_tables)
         @render_namespace()
+        @render_tabs()
         @render_plotlist()
-        @render_activetable()
-        @render_activepivot()
         @render_activeplot()
       )
 
@@ -122,12 +121,10 @@ define [
 
       # XXX: doesn't work if set simultaneously
       @cdxmodel.set({'activetable': table.ref()}, {'silent': true})
-      @cdxmodel.set({'activepivot': pivot.ref()}, {'silent': true})
 
       result = BulkSave([@cdxmodel, table, pivot, remotedata])
       result.done(() =>
         @cdxmodel.trigger('change:activetable')
-        @cdxmodel.trigger('change:activepivot')
       )
 
     render_plotlist : () ->
@@ -174,14 +171,6 @@ define [
       else
         @$table.empty()
 
-    render_activepivot: () ->
-      activepivot = @cdxmodel.get_obj('activepivot')
-      if activepivot
-        activepivotview = new activepivot.default_view({model: activepivot})
-        @$pivot.html(activepivotview.$el)
-      else
-        @$pivot.empty()
-
     render_pivot_table_menu: () ->
       items = ["Delete", "Duplicate", "Protect", "Hide", "Edit"]
       menu = $('<ul class="dropdown-menu"></ul>')
@@ -195,31 +184,77 @@ define [
       button.append($('<span class="caret"></span>'))
       dropdown.append([button.dropdown(), menu])
 
+    render_pivot_tables: () ->
+      @render_tabs()
+
     show_tab: (event) ->
       event.preventDefault()
       $(event.target).tab('show')
 
+    on_show_table_tab: (event) =>
+      @render_activetable()
+
+    on_show_pivot_tab: (event) =>
+      id = $(event.target).data("pivot-table")
+      collection = Base.Collections("PivotTable")
+      pivot_table = collection.find((obj) -> obj.get('id') == id)
+      pivot_table_view = new pivot_table.default_view({model: pivot_table})
+      $("#tab-pivot-" + id).html(pivot_table_view.$el)
+
+    add_pivot_table: (event) =>
+      collection = Base.Collections("PivotTable")
+      pivot_table = new collection.model()
+      pivot_table.set_obj('source', @cdxmodel.get_obj("activetable").get_obj("source"))
+      collection.add(pivot_table)
+
+      pivot_tables = @cdxmodel.get('pivot_tables')
+      updated_pivot_tables = pivot_tables.concat([pivot_table.ref()])
+      @cdxmodel.set("pivot_tables", updated_pivot_tables, {silent: true})
+
+      BulkSave([@cdxmodel, pivot_table]).done () =>
+        @cdxmodel.trigger('change:pivot_tables')
+
     render_tabs: () ->
       $tabs = $('<ul class="nav nav-tabs"></ul>')
-      $table_tab = $('<li><a href="#tab-table">Data Table</a></li>').addClass('active')
-      $pivot_tab = $('<li><a href="#tab-pivot">Pivot Table</a></li>')
-      $pivot_tab.find("a").append(@render_pivot_table_menu())
-      $table_tab.click(@show_tab)
-      $pivot_tab.click(@show_tab)
-      $add = $('<button class="btn btn-link pull-right cdx-add-tab"><i class="fa fa-plus"></i></button>')
-      $tabs.append([$table_tab, $pivot_tab, $add])
+      $table_link = $('<a href="#tab-table">Data Table</a>')
+      $table_link.click(@show_tab)
+      $table_link.on('show.bs.tab', @on_show_table_tab)
+      $table_tab = $('<li></li>').html($table_link)
+      $tabs.append($table_tab)
+
       $tabs_content = $('<div class="tab-content"></div>')
-      @$table = $('<div id="tab-table" class="tab-pane"></div>').addClass('active')
-      @$pivot = $('<div id="tab-pivot" class="tab-pane"></div>')
-      $tabs_content.append([@$table, @$pivot])
-      @$tabsholder.html($tabs).append($tabs_content)
+      @$table = $('<div id="tab-table" class="tab-pane"></div>')
+      $tabs_content.append(@$table)
+
+      pivot_tables = @cdxmodel.get_obj('pivot_tables')
+      _.each pivot_tables, (pivot_table) =>
+        id = pivot_table.get("id")
+
+        tab_id = "tab-pivot-" + id
+        tab_title = pivot_table.get("title")
+
+        $tab_link = $('<a></a>').attr("href", "#" + tab_id).data("pivot-table", id).text(tab_title)
+        $tab_link.append(@render_pivot_table_menu())
+        $tab_link.click(@show_tab)
+        $tab_link.on('show.bs.tab', @on_show_pivot_tab)
+        $tab = $('<li></li>').html($tab_link)
+        $tabs.append($tab)
+
+        $tab_content = $('<div class="tab-pane"></div>').attr("id", tab_id)
+        $tabs_content.append($tab_content)
+
+      $add = $('<button class="btn btn-link pull-right cdx-add-tab"><i class="fa fa-plus"></i></button>')
+      $add.click(@add_pivot_table)
+      $tabs.append($add)
+
+      @$tabsholder.empty().append([$tabs, $tabs_content])
+      $table_tab.find("a").tab('show')
 
     render_layouts: () ->
       @$namespace = $('<div class="namespaceholder hundredpct"></div>')
       @$tabsholder = $('<div class="tabsholder hundredpct"></div>')
       @$plotholder = $('<div class="plotholder hundredpct"></div>')
       @$plotlistholder = $('<div class="plotlistholder hundredpct"></div>')
-      @render_tabs()
       @plotbox = new Layout.HBoxView(
         elements : [@$namespace, @$tabsholder, @$plotholder, @$plotlistholder]
         height : '100%',
