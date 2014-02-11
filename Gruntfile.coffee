@@ -114,19 +114,11 @@ module.exports = (grunt) ->
         separator: ""
       ipython_js:
         src:
-          ("src/vendor/ipython/js/#{file}" for file in [
-            "namespace.js"
-            "utils.js"
-            "events.js"
-            "kernel.js"
-            "outputarea.js"
-            "cell.js"
-            "codecell.js"
-            "config.js"
-            "completer.js"
-            "tooltip.js"
-            "celltoolbar.js"
-            "contexthint.js"
+          ("src/vendor/ipython/#{file}" for file in [
+            "base/js/namespace.js"
+            "base/js/utils.js"
+            "base/js/events.js"
+            "services/kernels/js/kernel.js"
           ])
         dest: 'build/vendor/ipython/ipython.js'
       css_vendor:
