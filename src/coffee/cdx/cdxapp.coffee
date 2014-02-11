@@ -1,7 +1,6 @@
 define [
   "underscore"
   "jquery"
-  "jquery_terminal"
   "bootstrap"
   "backbone"
   "common/base"
@@ -13,7 +12,8 @@ define [
   "./pngplotview"
   "./layout/index"
   "./namespace"
-], (_, $, $$1, $$2, Backbone, Base, HasProperties, PlotContext, bulk_save, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
+  "./ipython_terminal"
+], (_, $, $$1, Backbone, Base, HasProperties, PlotContext, bulk_save, ServerUtils, UserContext, PNGPlotView, Layout, Namespace, IPythonTerminal) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
 
@@ -270,16 +270,9 @@ define [
       )
       @plotbox.sizes = [15, 40, 35, 10]
       @plotbox.set_sizes()
-      @$terminal = $("<div class='cdx-terminal'></div>")
-      @$terminal.terminal(@evaluate_handler, {
-        name: "ipython",
-        greetings: false,
-        prompt: '>>> ',
-        tabcompletion: true,
-        completion: @complete_handler,
-      })
+      @$terminal = new IPythonTerminal.View(@kernel)
       @iplayout = new Layout.HBoxView(
-        elements : [@$terminal]
+        elements : [@$terminal.$el]
         height : '100%'
         width : '100%'
       )
@@ -291,47 +284,6 @@ define [
       @layout.sizes = [80,20]
       @layout.set_sizes()
       @$el.append(@layout.el)
-
-    evaluate_handler: (code, term) =>
-      term.pause()
-
-      display = (output) =>
-        if output? and output.length > 0
-          output = output + '\n' if output[output.length-1] != '\n'
-          term.echo(output)
-
-      callbacks = {
-        execute_reply: (content) =>
-          for data in content.payload
-            display(data.text)
-          term.resume()
-        output: (msg_type, content) =>
-          output = switch msg_type
-            when 'pyout', 'display_data'
-              content.data['text/plain']
-            when 'pyerr'
-              content.traceback?.join("\n")
-            when 'stream'
-              content.data
-          display(output)
-      }
-
-      msg_id = @kernel.execute(code, callbacks, {silent: false})
-      console.log("CDX -> IPython (evaluate:#{msg_id})")
-
-      return
-
-    complete_handler: (term, code, complete) =>
-      term.pause()
-
-      callbacks = {
-        complete_reply: (content) =>
-          complete(content.matches)
-          term.resume()
-      }
-
-      msg_id = @kernel.complete(code, code.length, callbacks)
-      console.log("CDX -> IPython (complete:#{msg_id})")
 
   return {
     Model: CDX
