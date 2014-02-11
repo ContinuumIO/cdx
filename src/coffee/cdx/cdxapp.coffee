@@ -75,11 +75,11 @@ define [
 
         bulk_save([@cdx, doc.get_obj('plot_context'), ns, plotlist])
 
-        @listenTo(@cdx, 'change:activetable', @render_activetable)
         @listenTo(@cdx, 'change:namespace', @render_namespace)
         @listenTo(@cdx, 'change:plotlist', @render_plotlist)
         @listenTo(@cdx, 'change:activeplot', @render_activeplot)
-        @listenTo(@cdx, 'change:pivot_tables', @render_pivot_tables)
+        @listenTo(@cdx, 'change:activetable', @render_tabs)
+        @listenTo(@cdx, 'change:pivot_tables', @render_tabs)
 
         @render_namespace()
         @render_tabs()
@@ -121,7 +121,6 @@ define [
       table.set_obj('source', source)
       tables.add(table)
 
-      # XXX: doesn't work if set simultaneously
       @cdx.set({'activetable': table.ref()}, {'silent': true})
 
       bulk_save([@cdx, table, source]).done () =>
@@ -184,9 +183,6 @@ define [
       button = $('<button class="btn btn-link btn-xs dropdown-toggle" data-toggle="dropdown"></button>')
       button.append($('<span class="caret"></span>'))
       dropdown.append([button.dropdown(), menu])
-
-    render_pivot_tables: () ->
-      @render_tabs()
 
     show_tab: (event) ->
       event.preventDefault()
