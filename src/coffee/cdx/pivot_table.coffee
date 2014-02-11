@@ -48,9 +48,9 @@ define [
       @$toolbox = $('<td class="cdx-pivot-toolbox" valign="top"></td>')
       @$pivot = $('<td class="cdx-pivot-table" valign="top"></td>')
 
-      @$description.append(@renderDescription())
-      @$toolbox.append(@renderToolbox())
-      @$pivot.append(@renderPivotTable())
+      @$description.html(@renderDescription())
+      @$toolbox.html(@renderToolbox())
+      @$pivot.html(@renderWait())
 
       html.append([
         $('<tr></tr>').append(@$desciption),
@@ -58,13 +58,19 @@ define [
       ])
       @$el.html(html)
 
+      @delayRenderPivotTable()
+
+    renderWait: () ->
+      $('<span class="cdx-wait">Rendering ...</span>')
+
     rerenderPivotTable: () ->
-      console.log("rerenderPivotTable")
-      @$pivot.html(@renderPivotTable())
+      @$pivot.html(@renderWait())
+      @delayRenderPivotTable()
+
+    delayRenderPivotTable: () ->
+      _.delay((() => @$pivot.html(@renderPivotTable())), 50)
 
     rerenderToolbox: () ->
-      console.log("rerenderToolbox")
-      console.log(@mget("rows"))
       @$toolbox.html(@renderToolbox())
 
     renderToolbox: () ->
