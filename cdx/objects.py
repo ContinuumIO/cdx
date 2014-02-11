@@ -141,7 +141,7 @@ class PivotTable(PlotObject):
     description = String("")
     source = Instance(has_ref=True)
     data = Dict()
-    fields = List()
+    fields = List() # List[{name: String, dtype: String}]
     rows = List()
     columns = List()
     values = List()
