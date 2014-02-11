@@ -28,7 +28,7 @@ define [
       @mset(attr, @mget(attr).concat([value]))
 
     mupdate: (attr, fn) ->
-      value = _.clone(@mget(attr))
+      value = _.map(@mget(attr), (item) => _.clone(item))
       fn(value)
       @mset(attr, value)
 
