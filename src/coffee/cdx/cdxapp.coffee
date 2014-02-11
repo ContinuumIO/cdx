@@ -41,54 +41,55 @@ define [
       title = options.title
       @kernel = options.kernel
       @render_layouts()
-      @init_bokeh(title)
+      @init_cdx(title)
 
-    init_bokeh: (title) ->
-      wswrapper = ServerUtils.utility.make_websocket()
+    init_cdx: (title) ->
+      @wswrapper = ServerUtils.utility.make_websocket()
+
       doc = new UserContext.Doc(title : title)
-      load = doc.load(true)
-      load.done((data) =>
-        cdx = Base.Collections('CDX').first()
-        if not cdx
+      doc.load(true).done (data) =>
+        @cdx = Base.Collections('CDX').first()
+        if not @cdx
           coll = Base.Collections('CDX')
-          cdx = new coll.model(doc : doc.id)
-          coll.add(cdx)
+          @cdx = new coll.model({doc : doc.id})
+          coll.add(@cdx)
           pc = doc.get_obj('plot_context')
           children = _.clone(pc.get('children'))
-          children.push(cdx.ref())
+          children.push(@cdx.ref())
           pc.set('children', children)
-          cdx.set_obj('plotcontext', pc)
-        ns = cdx.get_obj('namespace')
+          @cdx.set_obj('plotcontext', pc)
+
+        ns = @cdx.get_obj('namespace')
         if not ns
           coll = Base.Collections('Namespace')
           ns = new coll.model(doc : doc.id)
           coll.add(ns)
-          cdx.set_obj('namespace', ns)
-        plotlist = cdx.get_obj('plotlist')
+          @cdx.set_obj('namespace', ns)
+
+        plotlist = @cdx.get_obj('plotlist')
         if not plotlist
           coll = Base.Collections('PlotList')
           plotlist = new coll.model(doc : doc.id)
           coll.add(plotlist)
-          cdx.set_obj('plotlist', plotlist)
-        BulkSave([cdx, doc.get_obj('plot_context'), ns, plotlist])
-        @cdxmodel = cdx
-        @listenTo(@cdxmodel, 'change:activetable', @render_activetable)
-        @listenTo(@cdxmodel, 'change:namespace', @render_namespace)
-        @listenTo(@cdxmodel, 'change:plotlist', @render_plotlist)
-        @listenTo(@cdxmodel, 'change:activeplot', @render_activeplot)
-        @listenTo(@cdxmodel, 'change:pivot_tables', @render_pivot_tables)
+          @cdx.set_obj('plotlist', plotlist)
+
+        BulkSave([@cdx, doc.get_obj('plot_context'), ns, plotlist])
+
+        @listenTo(@cdx, 'change:activetable', @render_activetable)
+        @listenTo(@cdx, 'change:namespace', @render_namespace)
+        @listenTo(@cdx, 'change:plotlist', @render_plotlist)
+        @listenTo(@cdx, 'change:activeplot', @render_activeplot)
+        @listenTo(@cdx, 'change:pivot_tables', @render_pivot_tables)
+
         @render_namespace()
         @render_tabs()
         @render_plotlist()
         @render_activeplot()
-      )
-
-      @wswrapper = wswrapper
 
     render_namespace: () ->
-      activetable = @cdxmodel.get_obj('activetable')
+      activetable = @cdx.get_obj('activetable')
       @nsview = new Namespace.View({
-        model: @cdxmodel.get_obj('namespace')
+        model: @cdx.get_obj('namespace')
         active: activetable?.get_obj("source").get("varname")
       })
       @$namespace.html(@nsview.$el)
@@ -120,15 +121,15 @@ define [
       pivots.add(pivot)
 
       # XXX: doesn't work if set simultaneously
-      @cdxmodel.set({'activetable': table.ref()}, {'silent': true})
+      @cdx.set({'activetable': table.ref()}, {'silent': true})
 
-      result = BulkSave([@cdxmodel, table, pivot, remotedata])
+      result = BulkSave([@cdx, table, pivot, remotedata])
       result.done(() =>
-        @cdxmodel.trigger('change:activetable')
+        @cdx.trigger('change:activetable')
       )
 
     render_plotlist : () ->
-      plotlist = @cdxmodel.get_obj('plotlist')
+      plotlist = @cdx.get_obj('plotlist')
       @plotlistview = new PNGPlotView(
         model : plotlist
         thumb_x : 150
@@ -138,11 +139,11 @@ define [
       @listenTo(@plotlistview, 'showplot', @showplot)
 
     showplot : (ref) ->
-      model = @cdxmodel.resolve_ref(ref)
-      @cdxmodel.set_obj('activeplot', model)
+      model = @cdx.resolve_ref(ref)
+      @cdx.set_obj('activeplot', model)
 
     render_activeplot : () ->
-      activeplot = @cdxmodel.get_obj('activeplot')
+      activeplot = @cdx.get_obj('activeplot')
       if activeplot
         width = @$plotholder.width()
         height = @$plotholder.height()
@@ -164,7 +165,7 @@ define [
         @$plotholder.html('')
 
     render_activetable: () ->
-      activetable = @cdxmodel.get_obj('activetable')
+      activetable = @cdx.get_obj('activetable')
       if activetable
         activetableview = new activetable.default_view({model: activetable})
         @$table.html(activetableview.$el)
@@ -204,15 +205,15 @@ define [
     add_pivot_table: (event) =>
       collection = Base.Collections("PivotTable")
       pivot_table = new collection.model()
-      pivot_table.set_obj('source', @cdxmodel.get_obj("activetable").get_obj("source"))
+      pivot_table.set_obj('source', @cdx.get_obj("activetable").get_obj("source"))
       collection.add(pivot_table)
 
-      pivot_tables = @cdxmodel.get('pivot_tables')
+      pivot_tables = @cdx.get('pivot_tables')
       updated_pivot_tables = pivot_tables.concat([pivot_table.ref()])
-      @cdxmodel.set("pivot_tables", updated_pivot_tables, {silent: true})
+      @cdx.set("pivot_tables", updated_pivot_tables, {silent: true})
 
-      BulkSave([@cdxmodel, pivot_table]).done () =>
-        @cdxmodel.trigger('change:pivot_tables')
+      BulkSave([@cdx, pivot_table]).done () =>
+        @cdx.trigger('change:pivot_tables')
 
     render_tabs: () ->
       $tabs = $('<ul class="nav nav-tabs"></ul>')
@@ -226,7 +227,7 @@ define [
       @$table = $('<div id="tab-table" class="tab-pane"></div>')
       $tabs_content.append(@$table)
 
-      pivot_tables = @cdxmodel.get_obj('pivot_tables')
+      pivot_tables = @cdx.get_obj('pivot_tables')
       _.each pivot_tables, (pivot_table) =>
         id = pivot_table.get("id")
 
