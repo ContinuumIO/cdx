@@ -17,8 +17,7 @@ def init_session(title, cdx_addr="http://localhost:5041", arrayserver_port=10020
     return sess
 
 class CDXSession(PlotServerSession):
-    def __init__(self, username=None, serverloc=None, userapikey="nokey",
-                 arrayserver_port=10020):
+    def __init__(self, username=None, serverloc=None, userapikey="nokey", arrayserver_port=10020):
         self.arrayserver_port = arrayserver_port
         super(CDXSession, self).__init__(username=username,
                                          serverloc=serverloc,
@@ -36,23 +35,27 @@ class CDXSession(PlotServerSession):
     def load_doc(self, docid):
         super(CDXSession, self).load_doc(docid)
         cdx = self.load_type('CDX')
+
         if len(cdx):
             cdx = cdx[0]
         else:
             cdx = CDX()
             self.add(cdx)
             self.store_obj(cdx)
+
         self.cdx = cdx
         self.plotcontext.children.append(cdx)
         self.plotcontext._dirty = True
-        if not cdx.namespace:
+
+        if cdx.namespace:
+            cdx.namespace.name = self.docname
+        else:
             ns = Namespace(name=self.docname)
             self.add(ns)
             cdx.namespace = ns
             self.store_obj(ns)
             self.store_obj(cdx)
-        cdx.namespace.name = self.docname
-        cdx.namespace.port = self.arrayserver_port
+
         if not cdx.plotcontext:
             cdx.plotcontext = self.plotcontext
             self.store_obj(cdx)
@@ -61,7 +64,7 @@ class CDXSession(PlotServerSession):
             cdx.plotlist = PlotList()
             self.add(cdx.plotlist)
             self.store_objs([cdx, cdx.plotlist])
-        #load namespace
+
         self.cdx.namespace.load()
         self.cdx.namespace.populate(to_disk=False)
 

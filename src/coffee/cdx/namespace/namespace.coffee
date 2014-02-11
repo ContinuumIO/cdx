@@ -47,12 +47,12 @@ define [
       @$el.html(@$accordion)
 
     renderElements: (el) ->
-      data = @mget('data') || {}
+      datasets = @mget('datasets') || {}
       html =
-        if _.size(data) == 0
+        if _.size(datasets) == 0
           $("<div>No datasets</div>")
         else
-          @template({data: data})
+          @template({data: datasets})
        el.html(html)
 
   class Namespace extends HasProperties

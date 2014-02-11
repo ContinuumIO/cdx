@@ -169,12 +169,11 @@ class PivotTable(PlotObject):
         ))
 
 class Namespace(PlotObject):
-    data = Dict()
+    datasets = Dict()
     name = String()
-    arrayserver_port = Int()
 
     def __str__(self):
-        return "Namespace(name=%r, datasets=%s)" % (self.name, sorted(self.data.keys()))
+        return "Namespace(name=%r, datasets=%s)" % (self.name, sorted(self.datasets.keys()))
 
     __repr__ = __str__
 
@@ -200,19 +199,19 @@ class Namespace(PlotObject):
             if isinstance(dataset, DataFrame) and not name.startswith("_"):
                 datasets[name] = list(dataset.columns)
 
-        if datasets == self.data:
+        if datasets == self.datasets:
             return
 
-        self.data = datasets
+        self.datasets = datasets
         self.session.store_obj(self)
 
         if not to_disk:
             return
 
-        data = dict([ (name, ns[name]) for name in datasets.keys() ])
+        to_write = dict([ (name, ns[name]) for name in datasets.keys() ])
 
         with open(self.filename, "w+") as file:
-            pickle.dump(data, file, protocol=-1)
+            pickle.dump(to_write, file, protocol=-1)
 
     def clean(self):
         """Remove all pandas' datasets from global namespace. """
