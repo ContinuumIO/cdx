@@ -223,40 +223,45 @@ define [
       @cdx.save()
 
     render_tabs: () ->
-      $tabs = $('<ul class="nav nav-tabs"></ul>')
-      $table_link = $('<a href="#tab-table">Data Table</a>')
-      $table_link.click(@show_tab)
-      $table_link.on('show.bs.tab', @on_show_table_tab)
-      $table_tab = $('<li></li>').html($table_link)
-      $tabs.append($table_tab)
+      @$tabsholder.empty()
 
-      $tabs_content = $('<div class="tab-content"></div>')
-      @$table = $('<div id="tab-table" class="tab-pane"></div>')
-      $tabs_content.append(@$table)
+      if not @cdx.get_obj('activetable')
+        @$tabsholder.html("<div>Nothing to show</div>")
+      else
+        $tabs = $('<ul class="nav nav-tabs"></ul>')
+        $table_link = $('<a href="#tab-table">Data Table</a>')
+        $table_link.click(@show_tab)
+        $table_link.on('show.bs.tab', @on_show_table_tab)
+        $table_tab = $('<li></li>').html($table_link)
+        $tabs.append($table_tab)
 
-      pivot_tables = @cdx.get_obj('pivot_tables')
-      _.each pivot_tables, (pivot_table) =>
-        id = pivot_table.get("id")
+        $tabs_content = $('<div class="tab-content"></div>')
+        @$table = $('<div id="tab-table" class="tab-pane"></div>')
+        $tabs_content.append(@$table)
 
-        tab_id = "tab-pivot-" + id
-        tab_title = pivot_table.get("title")
+        pivot_tables = @cdx.get_obj('pivot_tables')
+        _.each pivot_tables, (pivot_table) =>
+          id = pivot_table.get("id")
 
-        $tab_link = $('<a></a>').attr("href", "#" + tab_id).data("pivot-table", id).text(tab_title)
-        $tab_link.append(@render_pivot_table_menu(id))
-        $tab_link.click(@show_tab)
-        $tab_link.on('show.bs.tab', @on_show_pivot_tab)
-        $tab = $('<li></li>').html($tab_link)
-        $tabs.append($tab)
+          tab_id = "tab-pivot-" + id
+          tab_title = pivot_table.get("title")
 
-        $tab_content = $('<div class="tab-pane"></div>').attr("id", tab_id)
-        $tabs_content.append($tab_content)
+          $tab_link = $('<a></a>').attr("href", "#" + tab_id).data("pivot-table", id).text(tab_title)
+          $tab_link.append(@render_pivot_table_menu(id))
+          $tab_link.click(@show_tab)
+          $tab_link.on('show.bs.tab', @on_show_pivot_tab)
+          $tab = $('<li></li>').html($tab_link)
+          $tabs.append($tab)
 
-      $add = $('<button class="btn btn-link pull-right cdx-add-tab"><i class="fa fa-plus"></i></button>')
-      $add.click(@add_pivot_table)
-      $tabs.append($add)
+          $tab_content = $('<div class="tab-pane"></div>').attr("id", tab_id)
+          $tabs_content.append($tab_content)
 
-      @$tabsholder.empty().append([$tabs, $tabs_content])
-      $table_tab.find("a").tab('show')
+        $add = $('<button class="btn btn-link pull-right cdx-add-tab"><i class="fa fa-plus"></i></button>')
+        $add.click(@add_pivot_table)
+        $tabs.append($add)
+
+        @$tabsholder.append([$tabs, $tabs_content])
+        $table_tab.find("a").tab('show')
 
     render_layouts: () ->
       @$namespace = $('<div class="namespaceholder hundredpct"></div>')
