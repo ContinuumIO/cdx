@@ -229,7 +229,10 @@ def pivot(varname):
     value_fields = fields(values)
     filter_fields = fields(filters)
 
-    aggfunc = len
+    if len(values) > 0:
+        aggfunc = values[0]["aggregate"]
+    else:
+        aggfunc = len
 
     _, (_attrs, _rows, _cols, _values) = _pivot_table(namespace[varname], row_fields, column_fields, value_fields, aggfunc)
 

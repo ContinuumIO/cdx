@@ -5,6 +5,21 @@ from pandas.tools.util import cartesian_product
 from pandas.compat import range, lrange, zip
 from pandas import compat
 import numpy as np
+from six import string_types
+
+_aggregates = {
+    "count": len,
+    "counta": np.count_nonzero,
+    "countunique": lambda arr: len(np.unique(arr)),
+    "average": np.average,
+    "max": np.max,
+    "min": np.min,
+    "median": np.median,
+    "sum": np.sum,
+    "product": np.product,
+    "stdev": np.std,
+    "var": np.var,
+}
 
 def pivot_table(data, values=[], rows=[], cols=[], aggfunc=None, fill_value=0):
     """
@@ -62,7 +77,10 @@ def pivot_table(data, values=[], rows=[], cols=[], aggfunc=None, fill_value=0):
     cols = _convert_by(cols)
     keys = rows + cols
 
-    aggfunc = len if aggfunc is None else aggfunc
+    if aggfunc is None:
+        aggfunc = len
+    elif isinstance(aggfunc, string_types):
+        aggfunc = _aggregates[aggfunc]
 
     to_filter = []
 
