@@ -33,10 +33,6 @@ define [
       ipython_ws_addr = $body.data('ipython-ws-addr')
       arrayserver_port = $body.data('arrayserver-port')
 
-      kernel = ipython.init_kernel(ipython_ws_addr)
-      view = new CDXApp.View({title: title, kernel: kernel})
-      $('#CDX').html(view.el)
-
       callbacks = {
         execute_reply: (content) =>
           console.log(content)
@@ -44,10 +40,21 @@ define [
           console.log(msg_type, content)
       }
 
+      # XXX: uncomment and remove delay() after switching to IPython 2.0
+
+      #$([IPython.events]).on 'status_started.Kernel', (event, data) =>
+      #  code = @initCode(arrayserver_port, cdx_addr, title)
+      #  data.kernel.execute(code, callbacks, {silent: false})
+
+      kernel = ipython.init_kernel(ipython_ws_addr)
+
       _.delay((() =>
           code = @initCode(arrayserver_port, cdx_addr, title)
           kernel.execute(code, callbacks, {silent: false})),
-      1000) # XXX: otherwise throws InvalidStateError 11, why?
+      1000)
+
+      view = new CDXApp.View({title: title, kernel: kernel})
+      $('#CDX').html(view.el)
 
   register_models = () ->
     console.log("register_models")
