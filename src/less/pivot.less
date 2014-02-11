@@ -8,6 +8,9 @@
     font-size: @font-size-large;
 }
 
+@header-color: lighten(#000, 90%);
+@border-color: lighten(#000, 80%);
+
 .cdx-pivot-toolbox {
     min-width: 200px;
     width: 250px;
@@ -23,13 +26,13 @@
     }
 
     .cdx-pivot-box {
-        border: 1px solid lighten(#000, 80%);
+        border: 1px solid @border-color;
         border-radius: 5px;
         margin-top: 5px;
         background-color: white;
 
         > li:first-child {
-            background-color: lighten(#000, 90%);
+            background-color: @header-color;
         }
 
         .cdx-pivot-box-header {
@@ -59,8 +62,8 @@ table.pvtTable {
     border-collapse: collapse;
 }
 table.pvtTable tr th, table.pvtTable tr th {
-    background-color: #e6EEEE;
-    border: 1px solid #CDCDCD;
+    background-color: @header-color;
+    border: 1px solid @border-color;
     font-size: 8pt;
     padding: 5px;
 }
@@ -69,28 +72,10 @@ table.pvtTable .pvtColLabel {text-align: center;}
 table.pvtTable .pvtTotalLabel {text-align: right;}
 
 table.pvtTable tr td {
-    color: #3D3D3D;
     padding: 5px;
-    background-color: #FFF;
-    border: 1px solid #CDCDCD;
+    border: 1px solid @border-color;
     vertical-align: top;
     text-align: right;
 }
 
 .pvtTotal, .pvtGrandTotal { font-weight: bold; }
-
-.pvtAxisContainer {
-    border: 1px solid gray;
-    background: #EEE;
-    padding: 5px;
-    min-width: 20px;
-    min-height: 20px;
-}
-.pvtAxisContainer li {
-    margin: 5px;
-    padding: 5px;
-    list-style-type: none;
-    cursor:move;
-}
-
-.pvtHorizList li { display: inline; }
