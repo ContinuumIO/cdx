@@ -12,7 +12,7 @@ define [
   "server/usercontext/usercontext"
   "./pngplotview"
   "./layout/index"
-  "./namespace/namespace"
+  "./namespace"
 ], (_, $, $$1, $$2, Backbone, Base, HasProperties, PlotContext, bulk_save, ServerUtils, UserContext, PNGPlotView, Layout, Namespace) ->
 
   Base.Config.ws_conn_string = "ws://#{window.location.host}/bokeh/sub"
