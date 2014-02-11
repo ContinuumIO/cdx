@@ -172,11 +172,12 @@ define [
       else
         @$table.empty()
 
-    render_pivot_table_menu: () ->
+    render_pivot_table_menu: (id) ->
       items = ["Delete", "Duplicate", "Protect", "Hide", "Edit"]
       menu = $('<ul class="dropdown-menu"></ul>')
       menu_items = _.map items, (item) =>
         link = $('<a tabindex="-1" href="javascript://"></a>').text(item)
+        link.click (event) => @del_pivot_table(id)
         menu_item = $('<li></li>')
         menu_item.append(link)
       menu.append(menu_items)
@@ -215,6 +216,12 @@ define [
       BulkSave([@cdx, pivot_table]).done () =>
         @cdx.trigger('change:pivot_tables')
 
+    del_pivot_table: (id) =>
+      pivot_tables = @cdx.get('pivot_tables')
+      updated_pivot_tables = _.filter(pivot_tables, (obj) -> obj.id != id)
+      @cdx.set('pivot_tables', updated_pivot_tables)
+      @cdx.save()
+
     render_tabs: () ->
       $tabs = $('<ul class="nav nav-tabs"></ul>')
       $table_link = $('<a href="#tab-table">Data Table</a>')
@@ -235,7 +242,7 @@ define [
         tab_title = pivot_table.get("title")
 
         $tab_link = $('<a></a>').attr("href", "#" + tab_id).data("pivot-table", id).text(tab_title)
-        $tab_link.append(@render_pivot_table_menu())
+        $tab_link.append(@render_pivot_table_menu(id))
         $tab_link.click(@show_tab)
         $tab_link.on('show.bs.tab', @on_show_pivot_tab)
         $tab = $('<li></li>').html($tab_link)
