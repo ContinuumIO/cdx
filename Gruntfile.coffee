@@ -53,14 +53,6 @@ module.exports = (grunt) ->
         ext: '.css'
         options:
           sourceMap: true
-      bokeh:
-        expand: true
-        cwd: '<%= bokehjs %>/src/less'
-        src: '*.less'
-        dest: 'build/css'
-        ext: '.css'
-        options:
-          sourceMap: true
 
     eco:
       compile:
@@ -147,11 +139,7 @@ module.exports = (grunt) ->
         ]
         dest: 'build/cdx-vendor.css'
       css:
-        src: [
-          "build/css/continuum.css"
-          "build/css/main.css"
-          "build/css/cdx.css"
-        ]
+        src: ['build/css/cdx.css']
         dest: 'build/cdx.css'
 
     watch:
@@ -161,7 +149,7 @@ module.exports = (grunt) ->
         options:
           spawn: false
       bokeh:
-        files: [files("coffee.bokeh"), "<%= less.bokeh.cwd %>/*.less", files("eco.bokeh")]
+        files: [files("coffee.bokeh"), files("eco.bokeh")]
         tasks: ["bokeh"]
         options:
           spawn: false
@@ -219,7 +207,7 @@ module.exports = (grunt) ->
   grunt.registerTask("default", ["build"])
   grunt.registerTask("build",   ["compile", "bokeh", "copy", "concat"])
   grunt.registerTask("compile", ["coffee:compile", "less:compile", "eco:compile"])
-  grunt.registerTask("bokeh",   ["coffee:bokeh", "less:bokeh", "eco:bokeh"])
+  grunt.registerTask("bokeh",   ["coffee:bokeh", "eco:bokeh"])
   grunt.registerTask("rebuild", ["clean", "install", "build"])
   grunt.registerTask("deploy",  ["build", "cssmin", "requirejs"])
 
