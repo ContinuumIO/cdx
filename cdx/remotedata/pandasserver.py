@@ -6,7 +6,9 @@ import json
 
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, filename="pandasserver.log")
+logging.captureWarnings(True)
+
 log = logging.getLogger(__name__)
 
 def make_json(jsonstring, status_code=200, headers={}):
