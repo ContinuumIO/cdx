@@ -4,6 +4,7 @@
 }
 
 .cdx-pivot-toolbox {
+    min-width: 200px;
     width: 250px;
 
     ul {
@@ -24,6 +25,20 @@
 
         > li:first-child {
             background-color: lighten(#000, 90%);
+        }
+
+        .cdx-pivot-box-header {
+            .cdx-field {
+                font-weight: bold;
+            }
+
+            .cdx-dtype {
+                color: @gray-light;
+            }
+
+            .close {
+                font-size: 16px;
+            }
         }
     }
 }

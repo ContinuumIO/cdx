@@ -206,7 +206,8 @@ def _pivot_table(dataset, rows, cols, values, aggfunc=None):
 
 @app.route("/array/<varname>/fields", methods=["GET"])
 def fields(varname):
-    fields = list(namespace[varname].columns)
+    df = namespace[varname]
+    fields = [ dict(name=column, dtype=dtype.name) for (column, dtype) in zip(df.columns, df.dtypes) ]
     return make_json(protocol.serialize_json(fields))
 
 @app.route("/array/<varname>/pivot", methods=["POST"])

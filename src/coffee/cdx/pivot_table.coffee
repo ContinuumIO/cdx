@@ -32,6 +32,15 @@ define [
       fn(value)
       @mset(attr, value)
 
+    fieldNames: () ->
+      (field.name for field in @mget("fields"))
+
+    fieldDTypes: () ->
+      (field.dtype for field in @mget("fields"))
+
+    getDType: (fieldName) ->
+      _.find(@mget("fields"), (field) -> field.name == fieldName).dtype
+
     render: () ->
       html = $('<table class="cdx-pivot"></table>')
 
@@ -74,7 +83,7 @@ define [
       dropdown
 
     renderFields: (exclude, handler) ->
-      fields = _.difference(@mget("fields"), exclude)
+      fields = _.difference(@fieldNames(), exclude)
       menu = $('<ul class="dropdown-menu"></ul>')
       items = _.map fields, (field) ->
         link = $('<a tabindex="-1" href="javascript://"></a>')
@@ -106,9 +115,15 @@ define [
       dropdown.append([button.dropdown(), menu])
 
     makeSortable: (attr, $el) ->
-      $el.sortable({handle: ".cdx-pivot-header", axis: "y"}).on 'sortstop', (ui) =>
+      $el.sortable({handle: ".cdx-pivot-box-header", axis: "y"}).on 'sortstop', (ui) =>
         fields = ($(child).data('cdx-field') for child in $el.children())
         @mset(attr, _.sortBy(@mget(attr), (item) -> fields.indexOf(item.field)))
+
+    renderFieldName: (field) ->
+      $('<span class="cdx-field"></span').text(field)
+
+    renderDType: (field) ->
+      $('<span class="cdx-dtype"></span').text('(' + @getDType(field) + ')')
 
     defaultRowColumn: (field) ->
       {field: field, order: "ascending", sort_by: field, totals: true}
@@ -123,9 +138,11 @@ define [
       header.append(add)
       $rows = $('<ul></ul>')
       _.each @mget("rows"), (row, index) =>
-        groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
-        remove = @renderRemove("rows", row.field)
-        groupBy.append([row.field, remove])
+        groupBy = $('<li class="cdx-pivot-box-header">Group by:</li>')
+        $field = @renderFieldName(row.field)
+        $dtype = @renderDType(row.field)
+        $remove = @renderRemove("rows", row.field)
+        groupBy.append(["&nbsp;", $field, "&nbsp;", $dtype, $remove])
         order = $('<li>Order:&nbsp;</li>')
         order.append(@renderOptions(["ascending", "descending"], row.order,
           (value) => @mupdate("rows", (rows) -> rows[index].order = value)))
@@ -149,9 +166,11 @@ define [
       header.append(add)
       $columns = $('<ul></ul>')
       _.each @mget("columns"), (column, index) =>
-        groupBy = $('<li class="cdx-pivot-header">Group by:&nbsp;</li>')
-        remove = @renderRemove("columns", column.field)
-        groupBy.append([column.field, remove])
+        groupBy = $('<li class="cdx-pivot-box-header">Group by:</li>')
+        $field = @renderFieldName(column.field)
+        $dtype = @renderDType(column.field)
+        $remove = @renderRemove("columns", column.field)
+        groupBy.append(["&nbsp;", $field, "&nbsp;", $dtype, $remove])
         order = $('<li>Order:&nbsp;</li>')
         order.append(@renderOptions(["ascending", "descending"], column.order,
           (value) => @mupdate("columns", (columns) -> columns[index].order = value)))
@@ -178,9 +197,11 @@ define [
       header.append(add)
       $values = $('<ul></ul>')
       _.each @mget("values"), (value, index) =>
-        display = $('<li class="cdx-pivot-header">Display:&nbsp;</li>')
-        remove = @renderRemove("values", value.field)
-        display.append([value.field, remove])
+        display = $('<li class="cdx-pivot-box-header">Display:</li>')
+        $field = @renderFieldName(value.field)
+        $dtype = @renderDType(value.field)
+        $remove = @renderRemove("values", value.field)
+        display.append(["&nbsp;", $field, "&nbsp;", $dtype, $remove])
         aggregate = $('<li>Aggregate:&nbsp;</li>')
         aggregate.append(@renderOptions(@model.aggregates, value.aggregate,
           (aggregate) => @mupdate("values", (values) -> values[index].aggregate = aggregate)))
@@ -204,9 +225,11 @@ define [
       header.append(add)
       $filters = $('<ul></ul>')
       _.each @mget("filters"), (filter) =>
-        display = $('<li class="cdx-pivot-header">Filter:&nbsp;</li>')
-        remove = @renderRemove("filters", filter.field)
-        display.append([filter.field, remove])
+        display = $('<li class="cdx-pivot-box-header">Filter:</li>')
+        $field = @renderFieldName(filter.field)
+        $dtype = @renderDType(filter.field)
+        $remove = @renderRemove("filters", filter.field)
+        display.append(["&nbsp;", $field, "&nbsp;", $dtype, $remove])
         $filter = $('<ul class="cdx-pivot-box"></ul>')
         $filter.data('cdx-field', filter.field)
         $filter.append([display])
