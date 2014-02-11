@@ -23,10 +23,10 @@ define [
       "keyup .pandasoffset": 'pandasoffset'
       "keyup .pandassize": 'pandassize'
       "change .pandasagg": 'pandasagg'
-      "click .pandasbeginning": 'pandasbeginning'
-      "click .pandasback": 'pandasback'
-      "click .pandasnext": 'pandasnext'
-      "click .pandasend": 'pandasend'
+      "click .cdx-go-first": 'go_first'
+      "click .cdx-go-prev": 'go_prev'
+      "click .cdx-go-next": 'go_next'
+      "click .cdx-go-last": 'go_last'
       "click .controlsmore": 'toggle_more_controls'
       "click .cdx-column-sort": 'sort'
       "click .pandasrow": 'rowclick'
@@ -94,17 +94,17 @@ define [
         @controls_hide = true
       @render()
 
-    pandasbeginning: () =>
-      @model.go_beginning()
+    go_first: () =>
+      @model.go_first()
 
-    pandasback: () =>
-      @model.go_back()
+    go_prev: () =>
+      @model.go_prev()
 
-    pandasnext: () =>
-      @model.go_forward()
+    go_next: () =>
+      @model.go_next()
 
-    pandasend: () =>
-      @model.go_end()
+    go_last: () =>
+      @model.go_last()
 
     pandasoffset: (e) ->
       if e.keyCode == ENTER
@@ -239,11 +239,11 @@ define [
         @save('sort', sorting, {'wait':true})
         return
 
-    go_beginning: () ->
+    go_first: () ->
       @set('offset', 0)
       @save()
 
-    go_back: () ->
+    go_prev: () ->
       offset = @get('offset')
       offset = offset - @length()
       if offset < 0
@@ -251,7 +251,7 @@ define [
       @set('offset', offset)
       @save()
 
-    go_forward: () ->
+    go_next: () ->
       offset = @get('offset')
       offset = offset + @length()
       maxoffset = @get('maxlength') - @length()
@@ -260,7 +260,7 @@ define [
       @set('offset', offset)
       @save()
 
-    go_end: () ->
+    go_last: () ->
       maxoffset = @get('maxlength') - @length()
       @set('offset', maxoffset)
       @save()

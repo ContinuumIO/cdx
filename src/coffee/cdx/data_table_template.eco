@@ -39,12 +39,12 @@
 </table>
 <form>
   <center>
-    <div class="btn-group pagination">
-      <button class="btn btn-mini">First</button>
-      <button class="btn btn-mini">Previous</button>
-      <button class="btn btn-mini">Next</button>
-      <button class="btn btn-mini">Last</button>
-    </div>
+    <ul class="pagination">
+      <li><a href="javascript://" class="cdx-go-first">First</a></li>
+      <li><a href="javascript://" class="cdx-go-prev">Previous</a></li>
+      <li><a href="javascript://" class="cdx-go-next">Next</a></li>
+      <li><a href="javascript://" class="cdx-go-last">Last</a></li>
+    </ul>
     <div class="paginatedisplay">
       Show <input type="text" class="pandassize" value="<%= @length %>"> records
       From <input type="text" class="pandasoffset" value="<%= @offset %>">
