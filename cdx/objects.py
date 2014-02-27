@@ -98,6 +98,7 @@ class DataTable(PlotObject):
     totallength = Int()
     tabledata = Dict()
     filterselected = Bool(default=False)
+
     def setup_events(self):
         self.on_change('sort', self, 'get_data')
         self.on_change('group', self, 'get_data')
@@ -234,10 +235,19 @@ class Namespace(PlotObject):
             for k,v in data.iteritems():
                 ns[k] = v
 
+class Workspace(PlotObject):
+    varname = String()
+    data_table = Instance(DataTable, has_ref=True)
+    pivot_tables = List(Instance(PivotTable, has_ref=True), has_ref=True)
+    plots = List(Instance(Plot, has_ref=True), has_ref=True)
+    plot_context = Instance(PlotContext, has_ref=True)
+    active_tab = Int(0)
+
 class CDX(PlotObject):
     namespace = Instance(Namespace, has_ref=True)
-    activetable = Instance(Plot, has_ref=True)
+    workspaces = List(Instance(Workspace, has_ref=True), has_ref=True)
+    active_workspace = Instance(Workspace, has_ref=True)
+
     activeplot = Instance(Plot, has_ref=True)
     plotlist = Instance(PlotList, has_ref=True)
     plotcontext = Instance(PlotContext, has_ref=True) # list of to level UI elems
-    pivot_tables = List(Instance(PivotTable, has_ref=True), has_ref=True)

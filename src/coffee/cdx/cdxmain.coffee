@@ -61,6 +61,7 @@ define [
     Base.locations['RemoteDataSource'] = "cdx/remote_data_source"
     Base.locations['DataTable'] = "cdx/data_table"
     Base.locations['PivotTable'] = "cdx/pivot_table"
+    Base.locations['Workspace'] = "cdx/workspace"
     Base.locations['Namespace'] = "cdx/namespace"
     Base.locations['CDX'] = "cdx/cdxapp"
 

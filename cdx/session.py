@@ -68,16 +68,10 @@ class CDXSession(PlotServerSession):
         self.cdx.namespace.load()
         self.cdx.namespace.populate(to_disk=False)
 
-    @property
-    def source(self):
-        return self.cdx.activetable.source
-
     def reset(self):
-        self.cdx.activetable = None
-        self.cdx.activepivot = None
+        self.cdx.namespace.datasets = {}
         self.cdx.plotlist.children = []
         self.cdx.plotlist._dirty = True
-        self.cdx.namespace.data = {}
         self.cdx.activeplot = None
         self.store_all()
 
