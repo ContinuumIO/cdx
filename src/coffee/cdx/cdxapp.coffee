@@ -194,7 +194,7 @@ define [
       items = ["Delete", "Duplicate", "Protect", "Hide", "Edit"]
       menu = $('<ul class="dropdown-menu"></ul>')
       menu_items = _.map items, (item) =>
-        link = $('<a tabindex="-1" href="javascript://"></a>').text(item)
+        link = $('<a tabindex="-1"></a>').text(item)
         link.click (event) => @del_pivot_table(id)
         menu_item = $('<li></li>')
         menu_item.append(link)
@@ -213,10 +213,11 @@ define [
 
     on_show_pivot_tab: (event) =>
       id = $(event.target).data("pivot-table")
-      collection = Base.Collections("PivotTable")
-      pivot_table = collection.find((obj) -> obj.get('id') == id)
-      pivot_table_view = new pivot_table.default_view({model: pivot_table})
-      $("#tab-pivot-" + id).html(pivot_table_view.$el)
+      if id?
+        collection = Base.Collections("PivotTable")
+        pivot_table = collection.find((obj) -> obj.get('id') == id)
+        pivot_table_view = new pivot_table.default_view({model: pivot_table})
+        $("#tab-" + id).html(pivot_table_view.$el)
 
     add_pivot_table: (event) =>
       workspace = @cdx.get_obj('active_workspace')
@@ -263,7 +264,7 @@ define [
         _.each pivot_tables, (pivot_table) =>
           id = pivot_table.get("id")
 
-          tab_id = "tab-pivot-" + id
+          tab_id = "tab-" + id
           tab_title = pivot_table.get("title")
 
           $tab_link = $('<a></a>').attr("href", "#" + tab_id).data("pivot-table", id).text(tab_title)
