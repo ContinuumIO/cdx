@@ -88,12 +88,12 @@ define [
 
     render_namespace: () ->
       workspace = @cdx.get_obj('active_workspace')
-      @nsview = new Namespace.View({
-        model: @cdx.get_obj('namespace')
+      @namespace_view = new Namespace.View({
         active: workspace?.get("varname")
+        model: @cdx.get_obj('namespace')
+        el: @$namespace
       })
-      @$namespace.html(@nsview.$el)
-      @listenTo(@nsview, 'view', @change_workspace)
+      @listenTo(@namespace_view, 'view', @change_workspace)
 
     render_workspace: () ->
       workspace = @cdx.get_obj('active_workspace')
@@ -152,13 +152,13 @@ define [
 
     render_plotlist : () ->
       plotlist = @cdx.get_obj('plotlist')
-      @plotlistview = new PNGPlotView(
-        model : plotlist
-        thumb_x : 150
-        thumb_y : 150
+      @plotlist_view = new PNGPlotView(
+        model: plotlist
+        el: @$plotlist
+        thumb_x: 150
+        thumb_y: 150
       )
-      @$plotlistholder.html(@plotlistview.$el)
-      @listenTo(@plotlistview, 'showplot', @showplot)
+      @listenTo(@plotlist_view, 'showplot', @showplot)
 
     showplot : (ref) ->
       model = @cdx.resolve_ref(ref)
@@ -167,32 +167,31 @@ define [
     render_activeplot : () ->
       activeplot = @cdx.get_obj('activeplot')
       if activeplot
-        width = @$plotholder.width()
-        height = @$plotholder.height()
+        width = @$plot.width()
+        height = @$plot.height()
         ratio1 = width / activeplot.get('outer_width')
         ratio2 = height / activeplot.get('outer_height')
         ratio = _.min([ratio1, ratio2])
         newwidth = activeplot.get('outer_width') * ratio * 0.9
         newheight = activeplot.get('outer_height') * ratio * 0.9
-        view = new activeplot.default_view(
+        new activeplot.default_view({
           model : activeplot
+          el : @$plot
           canvas_height : newwidth
           canvas_width : newheight
           outer_height : newwidth
           outer_width : newheight
-        )
-        @activeplotview = view
-        @$plotholder.html('').append(view.$el)
+        })
       else
-        @$plotholder.html('')
+        @$plot.empty()
 
     render_layouts: () ->
-      @$namespace = $('<div class="namespaceholder hundredpct"></div>')
-      @$workspace = $('<div class="tabsholder hundredpct"></div>')
-      @$plotholder = $('<div class="plotholder hundredpct"></div>')
-      @$plotlistholder = $('<div class="plotlistholder hundredpct"></div>')
+      @$namespace = $('<div class="cdx-namespace-holder hundredpct"></div>')
+      @$workspace = $('<div class="cdx-tabs-holder hundredpct"></div>')
+      @$plot = $('<div class="cdx-plot-holder hundredpct"></div>')
+      @$plotlist = $('<div class="cdx-plotlist-holder hundredpct"></div>')
       @plotbox = new Layout.HBoxView(
-        elements : [@$namespace, @$workspace, @$plotholder, @$plotlistholder]
+        elements : [@$namespace, @$workspace, @$plot, @$plotlist]
         height : '100%',
         width : '100%',
       )

@@ -20,8 +20,7 @@ define [
 
     render_data_table: () ->
       data_table = @model.get_obj("data_table")
-      data_table_view = new data_table.default_view({model: data_table})
-      @$table.html(data_table_view.$el)
+      new data_table.default_view({ model: data_table, el: @$table })
 
     render_pivot_table_menu: (id) ->
       items = ["Delete", "Duplicate", "Protect", "Hide", "Edit"]
@@ -49,8 +48,7 @@ define [
       if id?
         collection = Base.Collections("PivotTable")
         pivot_table = collection.find((obj) -> obj.get('id') == id)
-        pivot_table_view = new pivot_table.default_view({model: pivot_table})
-        $("#tab-" + id).html(pivot_table_view.$el)
+        new pivot_table.default_view({ model: pivot_table, el: $("#tab-" + id) })
 
     add_pivot_table: (event) =>
       collection = Base.Collections("PivotTable")
