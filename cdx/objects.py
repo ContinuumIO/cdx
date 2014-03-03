@@ -42,13 +42,17 @@ class RemoteDataSource(PlotObject):
             (remotedata.host, remotedata.port, remotedata.varname, func)
         return url
 
+    def _is_ok(self, response):
+        response.raise_for_status()
+
     def _trigger_events(self):
         self.selected = self.selected + 1
 
     def setselect(self, select, transform):
         data = transform
         data['selected'] = select
-        requests.post(self._url("setselect"), data=protocol.serialize_json(data))
+        json = protocol.serialize_json(data)
+        requests.post(self._url("setselect"), data=json)
         self._trigger_events()
 
     def search(self, search):
@@ -58,7 +62,8 @@ class RemoteDataSource(PlotObject):
     def select(self, select, transform):
         data = transform
         data['selected'] = select
-        requests.post(self._url("select"), data=protocol.serialize_json(data))
+        json = protocol.serialize_json(data)
+        requests.post(self._url("select"), data=json)
         self._trigger_events()
 
     def deselect(self, deselect, transform):
@@ -68,22 +73,34 @@ class RemoteDataSource(PlotObject):
         self._trigger_events()
 
     def pivot(self, transform):
-        data = requests.post(self._url("pivot"), data=protocol.serialize_json(transform)).json()
+        json = protocol.serialize_json(transform)
+        response = requests.post(self._url("pivot"), data=json)
+        self._is_ok(response)
+        data = response.json()
         self._trigger_events()
         return data
 
     def fields(self):
-        data = requests.get(self._url("fields"), data=protocol.serialize_json({})).json()
+        json = protocol.serialize_json({})
+        response = requests.get(self._url("fields"), data=json)
+        self._is_ok(response)
+        data = response.json()
         self._trigger_events()
         return data
 
     def get_data(self, transform):
-        data = requests.get(self._url(), data=protocol.serialize_json(transform)).json()
+        json = protocol.serialize_json(transform)
+        response = requests.get(self._url(), data=json)
+        self._is_ok(response)
+        data = response.json()
         self.metadata = data.pop('metadata', {})
         return data
 
     def set_computed_columns(self, computed_columns):
-        data = requests.get(self._url("computed"), data=protocol.serialize_json(computed_columns)).json()
+        json = protocol.serialize_json(computed_columns)
+        response = requests.get(self._url("computed"), data=json)
+        self._is_ok(response)
+        data = response.json()
         self.computed_columns = computed_columns
         self.data += 1
         return data
