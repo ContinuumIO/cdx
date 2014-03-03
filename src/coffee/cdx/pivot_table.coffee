@@ -18,12 +18,6 @@ define [
       @listenTo(@model, 'change:data', @rerenderPivotTable)
       @render()
 
-    mset: () ->
-      if @mget("manual_update")
-        @model.set.apply(@model, arguments)
-      else
-        @model.save.apply(@model, arguments)
-
     mpush: (attr, value) ->
       @mset(attr, @mget(attr).concat([value]))
 
@@ -399,6 +393,12 @@ define [
     aggregates: ["count", "counta", "countunique", "average", "max", "min", "median", "sum", "product", "stdev", "stdevp", "var", "varp"]
     renderers: ["default", "heatmap"]
     formatters: ["none"]
+
+    mset: () ->
+      if @get("manual_update")
+        @set.apply(this, arguments)
+      else
+        @save.apply(this, arguments)
 
   class PivotTables extends Backbone.Collection
     model: PivotTable
