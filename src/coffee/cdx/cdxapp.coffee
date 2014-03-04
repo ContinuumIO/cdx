@@ -93,7 +93,7 @@ define [
         model: @cdx.get_obj('namespace')
         el: @$namespace
       })
-      @listenTo(@namespace_view, 'view', @change_workspace)
+      @listenTo(@namespace_view, 'activate', @change_workspace)
 
     render_workspace: () ->
       workspace = @cdx.get_obj('active_workspace')

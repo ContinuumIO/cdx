@@ -1,66 +1,61 @@
 define [
   "underscore"
   "jquery"
-  "jquery_ui/sortable"
-  "jquery_ui/accordion"
+  "bootstrap"
   "backbone"
   "common/continuum_view"
   "common/has_properties"
-], (_, $, $$1, $$2, Backbone, ContinuumView, HasProperties) ->
+], (_, $, Bootstrap, Backbone, ContinuumView, HasProperties) ->
 
   class NamespaceView extends ContinuumView.View
     initialize: (options) ->
       super(options)
       @render(options.active)
 
-    events:
-      "click .cdx-namespace-header": "click"
-
-    click: (event) =>
-      varname = $(event.currentTarget).data('varname')
-      @trigger("view", varname)
-
     delegateEvents: (events) ->
       super(events)
       @listenTo(@model, 'change', @render)
 
-    get_active_index: (activeName) ->
-      if activeName?
-        for dataset, i in @$accordion.find(".cdx-namespace-header")
-          if $(dataset).data("varname") == activeName
-            return i
+    activateDataset: (event) =>
+      name = $(event.target).data('name')
+      @trigger("activate", name)
 
-    render: (activeName) ->
-      @$accordion = @renderElements()
-      @$accordion.accordion({
-        header: "> .cdx-namespace-element > .cdx-namespace-header",
-        heightStyle: "content",
-        active: @get_active_index(activeName),
-      }).sortable({
-        handle: ".cdx-namespace-header",
-        axis: "y",
-        distance: 10,
-      })
-      @$el.html(@$accordion)
+    renderDataset: (name, dataset, active) ->
+      el = $("""
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">
+              <a data-toggle="collapse" data-parent="#namespace-accordion" href="#namespace-#{name}">
+                #{name}
+              </a>
+            </h4>
+          </div>
+          <div id="namespace-#{name}" data-name="#{name}" class="panel-collapse collapse">
+            <div class="panel-body">
+              <ul></ul>
+            </div>
+          </div>
+        </div>
+        """)
+      columns = ($('<li></li>').text(colname) for colname in dataset)
+      el.find(".panel-body > ul").html(columns)
+      if name == active then el.find(".panel-collapse").addClass("in")
+      el
 
-    renderElements: () ->
-      datasets = @mget('datasets') || {}
-      if _.size(datasets) == 0
-        $("<div>No datasets</div>")
-      else
-        @renderDatasets(datasets)
-
-    renderDatasets: (datasets) ->
-      $elements = $('<ul class="nav nav-pills nav-stacked"></ul>')
-
+    renderDatasets: (accordion, datasets, active) ->
       for name in _.keys(datasets).sort()
-        $header = $('<a href="#" class="cdx-namespace-header"></a>').data('varname', name).text(name)
-        items = ($('<li></li>').text(colname) for colname in datasets[name])
-        $columns = $('<ul></ul>').append(items)
-        $element = $('<li class="cdx-namespace-element"></li>').append([$header, $columns])
-        $elements.append($element)
+        accordion.append(@renderDataset(name, datasets[name], active))
 
-      $elements
+    render: (active) ->
+      datasets = @mget('datasets') || {}
+
+      if _.size(datasets) == 0
+        @$el.html("<div>No datasets</div>")
+      else
+        accordion = $('<div id="namespace-accordion" class="panel-group"></div>')
+        @renderDatasets(accordion, datasets, active)
+        accordion.on("show.bs.collapse", @activateDataset)
+        @$el.html(accordion)
 
   class Namespace extends HasProperties
     default_view: NamespaceView
