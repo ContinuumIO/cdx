@@ -121,34 +121,35 @@ define [
       source
 
     change_workspace: (varname) ->
-      workspaces = Base.Collections("Workspace")
-      workspace = workspaces.find((obj) -> obj.get('varname') == varname)
+      if @cdx.get_obj('active_workspace').get('varname') != varname
+        workspaces = Base.Collections("Workspace")
+        workspace = workspaces.find((obj) -> obj.get('varname') == varname)
 
-      # XXX: use silent=true with conjunction with bulk_save()
-      set_active_workspace = (workspace) =>
-        # @cdx.set_obj('active_workspace', workspace)
-        @cdx.set({'active_workspace': workspace.ref()}, {'silent': true})
+        # XXX: use silent=true with conjunction with bulk_save()
+        set_active_workspace = (workspace) =>
+          # @cdx.set_obj('active_workspace', workspace)
+          @cdx.set({'active_workspace': workspace.ref()}, {'silent': true})
 
-      if workspace?
-        set_active_workspace(workspace)
-        future = @cdx.save()
-      else
-        source = @get_source(varname)
+        if workspace?
+          set_active_workspace(workspace)
+          future = @cdx.save()
+        else
+          source = @get_source(varname)
 
-        tables = Base.Collections("DataTable")
-        table = new tables.model()
-        table.set_obj('source', source)
-        tables.add(table)
+          tables = Base.Collections("DataTable")
+          table = new tables.model()
+          table.set_obj('source', source)
+          tables.add(table)
 
-        workspace = new workspaces.model()
-        workspace.set('varname', varname)
-        workspace.set_obj('data_table', table)
-        workspaces.add(workspace)
+          workspace = new workspaces.model()
+          workspace.set('varname', varname)
+          workspace.set_obj('data_table', table)
+          workspaces.add(workspace)
 
-        set_active_workspace(workspace)
-        future = bulk_save([@cdx, workspace, table, source])
+          set_active_workspace(workspace)
+          future = bulk_save([@cdx, workspace, table, source])
 
-      future.done () => @cdx.trigger('change:active_workspace')
+        future.done () => @cdx.trigger('change:active_workspace')
 
     render_plotlist : () ->
       plotlist = @cdx.get_obj('plotlist')
