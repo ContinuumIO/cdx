@@ -121,7 +121,9 @@ define [
       source
 
     change_workspace: (varname) ->
-      if @cdx.get_obj('active_workspace').get('varname') != varname
+      active_workspace = @cdx.get_obj('active_workspace')
+
+      if not active_workspace || active_workspace.get('varname') != varname
         workspaces = Base.Collections("Workspace")
         workspace = workspaces.find((obj) -> obj.get('varname') == varname)
 
@@ -147,6 +149,8 @@ define [
           workspaces.add(workspace)
 
           set_active_workspace(workspace)
+          @cdx.set('workspaces', @cdx.get('workspaces').concat([workspace.ref()]), {'silent': true})
+
           future = bulk_save([@cdx, workspace, table, source])
 
         future.done () => @cdx.trigger('change:active_workspace')
